@@ -2,7 +2,7 @@ services:
   - docker
 
 env:
-  - DOCKER_IMAGE=thiht/$TRAVIS_REPO_SLUG
+  - DOCKER_IMAGE=$DOCKER_USERNAME/$TRAVIS_REPO_SLUG
 
 script:
   - docker build --build-arg VERSION=$TRAVIS_BRANCH --tag $DOCKER_IMAGE .
