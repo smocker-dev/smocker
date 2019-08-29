@@ -48,8 +48,7 @@ func setupLogger(logLevel string) {
 }
 
 func setupServer(mockServerListenPort, configListenPort int) {
-	mockServer := NewMockServer()
-	mockServer.Start(mockServerListenPort)
+	mockServer := NewMockServer(mockServerListenPort)
 
 	e := echo.New()
 	e.HideBanner = true
