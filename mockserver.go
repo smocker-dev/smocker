@@ -82,6 +82,9 @@ func (s *mockServer) AddRoute(route MockRoute) {
 			}
 		}
 
+		// Delay
+		time.Sleep(response.Delay)
+
 		// Status
 		c.Response().WriteHeader(response.Status)
 

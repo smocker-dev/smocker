@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"time"
 )
 
 type MockRoute struct {
@@ -26,8 +27,8 @@ func (m *MockRequest) Hash() string {
 type MockResponse struct {
 	Body    string        `json:"body" yaml:"body"`
 	Status  int           `json:"status" yaml:"status"`
+	Delay   time.Duration `json:"delay" yaml:"delay"`
 	Headers http.Header   `json:"headers" yaml:"headers"`
-	Cookies []http.Cookie `json:"cookies" yaml:"cookies"`
 }
 
 type QueryParams url.Values
