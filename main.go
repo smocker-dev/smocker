@@ -55,6 +55,7 @@ func setupServer(mockServerListenPort, configListenPort int) {
 	e.HidePort = true
 
 	e.POST("/mocks", func(c echo.Context) error {
+		log.Info("Registering new mocks")
 		req := c.Request()
 		var mocks []MockRoute
 		if err := c.Bind(&mocks); err != nil {
@@ -74,6 +75,11 @@ func setupServer(mockServerListenPort, configListenPort int) {
 			mockServer.AddRoute(mock)
 		}
 
+		log.Info("New mocks registered successfully")
+		return nil
+	})
+	e.POST("/mocks/reset", func(c echo.Context) error {
+		mockServer.Reset()
 		return nil
 	})
 

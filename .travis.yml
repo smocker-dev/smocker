@@ -9,12 +9,12 @@ env:
 script:
   - docker build --build-arg VERSION=$TRAVIS_BRANCH --tag $DOCKER_IMAGE .
 
-#before_deploy:
-#  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-#  - docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TRAVIS_TAG
+before_deploy:
+  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+  - docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TRAVIS_TAG
 
-#deploy:
-#  provider: script
-#  script: docker push $DOCKER_IMAGE && docker push $DOCKER_IMAGE:$TRAVIS_TAG
-#  on:
-#    tags: true
+deploy:
+  provider: script
+  script: docker push $DOCKER_IMAGE && docker push $DOCKER_IMAGE:$TRAVIS_TAG
+  on:
+    tags: true
