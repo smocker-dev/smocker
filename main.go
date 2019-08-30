@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -81,6 +82,14 @@ func setupServer(mockServerListenPort, configListenPort int) {
 	e.POST("/mocks/reset", func(c echo.Context) error {
 		mockServer.Reset()
 		return nil
+	})
+	e.GET("/version", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, echo.Map{
+			"appName":      appName,
+			"buildVersion": buildVersion,
+			"buildCommit":  buildCommit,
+			"buildDate":    buildDate,
+		})
 	})
 
 	log.WithField("port", configListenPort).Info("Starting config server")
