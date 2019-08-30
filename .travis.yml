@@ -10,7 +10,7 @@ script:
   - docker build --build-arg VERSION=$TRAVIS_BRANCH --tag $DOCKER_IMAGE .
 
 before_deploy:
-  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TRAVIS_TAG
 
 deploy:
