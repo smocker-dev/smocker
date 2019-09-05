@@ -57,7 +57,12 @@ curl -XPOST \
 After your mock is registered, you can query the mock server on the specified route, so that it returns the expected response to you:
 
 ```sh
-$ curl localhost:8080/hello/world
+$ curl -i localhost:8080/hello/world
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Thu, 05 Sep 2019 15:49:32 GMT
+Content-Length: 31
+
 {
   "hello": "Hello, World!"
 }
