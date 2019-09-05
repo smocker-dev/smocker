@@ -24,7 +24,7 @@ type config struct {
 
 func parseConfig() (c config) {
 	// Use a prefix for environment variables
-	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "GOMS", flag.ExitOnError)
+	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "SMOCK", flag.ExitOnError)
 
 	flag.StringVar(&c.logLevel, "log-level", "info", "")
 	flag.IntVar(&c.configListenPort, "config-listen-port", 8081, "")
