@@ -55,34 +55,44 @@ func setupServer(mockServerListenPort, configListenPort int) {
 	e.HideBanner = true
 	e.HidePort = true
 
+	e.GET("/mocks", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, mockServer.Routes())
+	})
 	e.POST("/mocks", func(c echo.Context) error {
-		log.Info("Registering new mocks")
-		req := c.Request()
 		var mocks []Route
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
-				return err
+				log.WithError(err).Error("Failed to parse payload")
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			}
 
 			// echo doesn't support YAML yet
+			req := c.Request()
 			if strings.HasPrefix(req.Header.Get(echo.HeaderContentType), "application/x-yaml") {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
-					log.WithError(err).Error("Failed to parse YAML")
-					return err
+					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
 			}
 		}
 
 		for _, mock := range mocks {
+			if err := mock.Validate(); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+		}
+		for _, mock := range mocks {
 			mockServer.AddRoute(mock)
 		}
 
-		log.Info("New mocks registered successfully")
-		return nil
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "Mocks registered successfully",
+		})
 	})
 	e.POST("/mocks/reset", func(c echo.Context) error {
 		mockServer.Reset()
-		return nil
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "Reset successful",
+		})
 	})
 	e.GET("/version", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, echo.Map{

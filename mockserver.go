@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,6 +11,7 @@ import (
 
 type MockServer interface {
 	AddRoute(Route)
+	Routes() map[string]Routes
 	Reset()
 }
 
@@ -41,23 +41,10 @@ func NewMockServer(port int) MockServer {
 }
 
 func (s *mockServer) genericHandler(c echo.Context) error {
-	body, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		log.WithError(err).Error("Failed to read request body")
-	}
-
-	actualRequest := Request{
-		Path:        c.Request().URL.Path,
-		Method:      c.Request().Method,
-		QueryParams: QueryParams(c.QueryParams()),
-		Body:        string(body),
-	}
+	actualRequest := HTTPRequestToRequest(c.Request())
 
 	// Query Params
-	var (
-		response      Response
-		responseFound bool
-	)
+	var response *Response
 	mocks := s.mocksByRoute[actualRequest.Hash()]
 	for _, mock := range mocks {
 		if actualRequest.QueryParams.Equals(mock.Request.QueryParams) {
@@ -66,12 +53,14 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 			} else {
 				response = mock.Response
 			}
-			responseFound = true
 			break
 		}
 	}
-	if !responseFound {
-		return c.NoContent(http.StatusNotFound)
+	if response == nil {
+		return c.JSON(http.StatusNotFound, echo.Map{
+			"message": "No mock found matching the request",
+			"request": actualRequest,
+		})
 	}
 
 	// Headers
@@ -88,8 +77,12 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	c.Response().WriteHeader(response.Status)
 
 	// Body
-	_, err = c.Response().Write([]byte(response.Body))
-	return err
+	if _, err := c.Response().Write([]byte(response.Body)); err != nil {
+		log.WithError(err).Error("Failed to write response body")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return nil
 }
 
 func (s *mockServer) AddRoute(newMock Route) {
@@ -108,6 +101,10 @@ func (s *mockServer) AddRoute(newMock Route) {
 	}
 
 	s.mocksByRoute[newMock.Request.Hash()] = Routes{newMock}
+}
+
+func (s *mockServer) Routes() map[string]Routes {
+	return s.mocksByRoute
 }
 
 func (s *mockServer) Reset() {

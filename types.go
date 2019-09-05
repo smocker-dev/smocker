@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -13,18 +16,56 @@ import (
 )
 
 type Route struct {
-	Request         Request          `json:"request" yaml:"request"`
-	Response        Response         `json:"response" yaml:"response"`
-	DynamicResponse *DynamicResponse `json:"dynamic_response" yaml:"dynamic_response"`
+	Request         Request          `json:"request,omitempty" yaml:"request"`
+	Response        *Response        `json:"response,omitempty" yaml:"response"`
+	DynamicResponse *DynamicResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response"`
+}
+
+func (r *Route) Validate() error {
+	if r.Response == nil && r.DynamicResponse == nil {
+		return errors.New("The route must define at least a response or a dynamic response")
+	}
+
+	if r.Response != nil && r.DynamicResponse != nil {
+		return errors.New("The route must define either a response or a dynamic response, not both")
+	}
+
+	r.Request.Path = strings.TrimSpace(r.Request.Path)
+	r.Request.Method = strings.TrimSpace(r.Request.Method)
+	if r.Request.Path == "" || r.Request.Method == "" {
+		return errors.New("The request must match at least a path and a method")
+	}
+
+	if r.Response != nil {
+		if r.Response.Status == 0 {
+			return errors.New("The response must define at least a status")
+		}
+	}
+
+	return nil
 }
 
 type Routes []Route
 
+func HTTPRequestToRequest(req *http.Request) Request {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		log.WithError(err).Error("Failed to read request body")
+	}
+
+	return Request{
+		Path:        req.URL.Path,
+		Method:      req.Method,
+		Body:        string(body),
+		QueryParams: QueryParams(req.URL.Query()),
+	}
+}
+
 type Request struct {
 	Path        string      `json:"path" yaml:"path"`
 	Method      string      `json:"method" yaml:"method"`
-	Body        string      `json:"body" yaml:"body"`
-	QueryParams QueryParams `json:"query_params" yaml:"query_params"`
+	Body        string      `json:"body,omitempty" yaml:"body"`
+	QueryParams QueryParams `json:"query_params,omitempty" yaml:"query_params"`
 }
 
 func (m *Request) Hash() string {
@@ -32,17 +73,17 @@ func (m *Request) Hash() string {
 }
 
 type Response struct {
-	Body    string        `json:"body" yaml:"body"`
+	Body    string        `json:"body,omitempty" yaml:"body"`
 	Status  int           `json:"status" yaml:"status"`
-	Delay   time.Duration `json:"delay" yaml:"delay"`
-	Headers http.Header   `json:"headers" yaml:"headers"`
+	Delay   time.Duration `json:"delay,omitempty" yaml:"delay"`
+	Headers http.Header   `json:"headers,omitempty" yaml:"headers"`
 }
 
 type DynamicResponse struct {
 	Script string `json:"script" yaml:"script"`
 }
 
-func (r *DynamicResponse) ToMockResponse(request Request) Response {
+func (r *DynamicResponse) ToMockResponse(request Request) *Response {
 	luaState := lua.NewState(lua.Options{
 		SkipOpenLibs: true,
 	})
@@ -67,7 +108,7 @@ func (r *DynamicResponse) ToMockResponse(request Request) Response {
 			lua.LString(pair.n),
 		); err != nil {
 			log.WithError(err).Error("Failed to load Lua libraries")
-			return Response{
+			return &Response{
 				Status: http.StatusInternalServerError,
 				Body:   "Failed to load Lua libraries: " + err.Error(),
 			}
@@ -75,7 +116,7 @@ func (r *DynamicResponse) ToMockResponse(request Request) Response {
 	}
 	if err := luaState.DoString("coroutine=nil;debug=nil;io=nil;open=nil;os=nil"); err != nil {
 		log.WithError(err).Error("Failed to sandbox Lua environment")
-		return Response{
+		return &Response{
 			Status: http.StatusInternalServerError,
 			Body:   "Failed to sandbox Lua environment: " + err.Error(),
 		}
@@ -84,7 +125,7 @@ func (r *DynamicResponse) ToMockResponse(request Request) Response {
 	luaState.SetGlobal("request", luar.New(luaState, request))
 	if err := luaState.DoString(r.Script); err != nil {
 		log.WithError(err).Error("Failed to execute dynamic template")
-		return Response{
+		return &Response{
 			Status: http.StatusInternalServerError,
 			Body:   "Failed to execute dynamic template: " + err.Error(),
 		}
@@ -93,13 +134,13 @@ func (r *DynamicResponse) ToMockResponse(request Request) Response {
 	var response Response
 	if err := gluamapper.Map(luaState.Get(-1).(*lua.LTable), &response); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
-		return Response{
+		return &Response{
 			Status: http.StatusInternalServerError,
 			Body:   "Invalid result from Lua script: " + err.Error(),
 		}
 	}
 
-	return response
+	return &response
 }
 
 type QueryParams url.Values
