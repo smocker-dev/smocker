@@ -58,7 +58,7 @@ func setupServer(mockServerListenPort, configListenPort int) {
 	e.POST("/mocks", func(c echo.Context) error {
 		log.Info("Registering new mocks")
 		req := c.Request()
-		var mocks []MockRoute
+		var mocks []Route
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				return err
@@ -67,6 +67,7 @@ func setupServer(mockServerListenPort, configListenPort int) {
 			// echo doesn't support YAML yet
 			if strings.HasPrefix(req.Header.Get(echo.HeaderContentType), "application/x-yaml") {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
+					log.WithError(err).Error("Failed to parse YAML")
 					return err
 				}
 			}

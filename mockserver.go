@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,19 +11,19 @@ import (
 )
 
 type MockServer interface {
-	AddRoute(MockRoute)
+	AddRoute(Route)
 	Reset()
 }
 
 type mockServer struct {
 	server       *echo.Echo
-	mocksByRoute map[string]MockRoutes
+	mocksByRoute map[string]Routes
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
 		server:       echo.New(),
-		mocksByRoute: map[string]MockRoutes{},
+		mocksByRoute: map[string]Routes{},
 	}
 
 	s.server.HideBanner = true
@@ -40,19 +41,36 @@ func NewMockServer(port int) MockServer {
 }
 
 func (s *mockServer) genericHandler(c echo.Context) error {
-	method, path := c.Request().Method, c.Request().URL.Path
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		log.WithError(err).Error("Failed to read request body")
+	}
+
+	actualRequest := Request{
+		Path:        c.Request().URL.Path,
+		Method:      c.Request().Method,
+		QueryParams: QueryParams(c.QueryParams()),
+		Body:        string(body),
+	}
 
 	// Query Params
-	mocks := s.mocksByRoute[method+" "+path]
-	queryParams := QueryParams(c.QueryParams())
-	var response *MockResponse
+	var (
+		response      Response
+		responseFound bool
+	)
+	mocks := s.mocksByRoute[actualRequest.Hash()]
 	for _, mock := range mocks {
-		if queryParams.Equals(mock.Request.QueryParams) {
-			response = &mock.Response
+		if actualRequest.QueryParams.Equals(mock.Request.QueryParams) {
+			if mock.DynamicResponse != nil {
+				response = mock.DynamicResponse.ToMockResponse(actualRequest)
+			} else {
+				response = mock.Response
+			}
+			responseFound = true
 			break
 		}
 	}
-	if response == nil {
+	if !responseFound {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -70,11 +88,11 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	c.Response().WriteHeader(response.Status)
 
 	// Body
-	_, err := c.Response().Write([]byte(response.Body))
+	_, err = c.Response().Write([]byte(response.Body))
 	return err
 }
 
-func (s *mockServer) AddRoute(newMock MockRoute) {
+func (s *mockServer) AddRoute(newMock Route) {
 	mocks, ok := s.mocksByRoute[newMock.Request.Hash()]
 	if ok {
 		for i, mock := range mocks {
@@ -89,9 +107,9 @@ func (s *mockServer) AddRoute(newMock MockRoute) {
 		return
 	}
 
-	s.mocksByRoute[newMock.Request.Hash()] = MockRoutes{newMock}
+	s.mocksByRoute[newMock.Request.Hash()] = Routes{newMock}
 }
 
 func (s *mockServer) Reset() {
-	s.mocksByRoute = map[string]MockRoutes{}
+	s.mocksByRoute = map[string]Routes{}
 }
