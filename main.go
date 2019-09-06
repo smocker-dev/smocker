@@ -56,10 +56,10 @@ func setupServer(mockServerListenPort, configListenPort int) {
 	e.HidePort = true
 
 	e.GET("/mocks", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, mockServer.Routes())
+		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})
 	e.POST("/mocks", func(c echo.Context) error {
-		var mocks []Route
+		var mocks []Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				log.WithError(err).Error("Failed to parse payload")
@@ -81,7 +81,7 @@ func setupServer(mockServerListenPort, configListenPort int) {
 			}
 		}
 		for _, mock := range mocks {
-			mockServer.AddRoute(mock)
+			mockServer.AddMock(mock)
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{

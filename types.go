@@ -15,29 +15,29 @@ import (
 	luar "layeh.com/gopher-luar"
 )
 
-type Route struct {
+type Mock struct {
 	Request         Request          `json:"request,omitempty" yaml:"request"`
 	Response        *Response        `json:"response,omitempty" yaml:"response"`
 	DynamicResponse *DynamicResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response"`
 }
 
-func (r *Route) Validate() error {
-	if r.Response == nil && r.DynamicResponse == nil {
+func (m *Mock) Validate() error {
+	if m.Response == nil && m.DynamicResponse == nil {
 		return errors.New("The route must define at least a response or a dynamic response")
 	}
 
-	if r.Response != nil && r.DynamicResponse != nil {
+	if m.Response != nil && m.DynamicResponse != nil {
 		return errors.New("The route must define either a response or a dynamic response, not both")
 	}
 
-	r.Request.Path = strings.TrimSpace(r.Request.Path)
-	r.Request.Method = strings.TrimSpace(r.Request.Method)
-	if r.Request.Path == "" || r.Request.Method == "" {
+	m.Request.Path = strings.TrimSpace(m.Request.Path)
+	m.Request.Method = strings.TrimSpace(m.Request.Method)
+	if m.Request.Path == "" || m.Request.Method == "" {
 		return errors.New("The request must match at least a path and a method")
 	}
 
-	if r.Response != nil {
-		if r.Response.Status == 0 {
+	if m.Response != nil {
+		if m.Response.Status == 0 {
 			return errors.New("The response must define at least a status")
 		}
 	}
@@ -45,7 +45,7 @@ func (r *Route) Validate() error {
 	return nil
 }
 
-type Routes []Route
+type Mocks []Mock
 
 func HTTPRequestToRequest(req *http.Request) Request {
 	body, err := ioutil.ReadAll(req.Body)

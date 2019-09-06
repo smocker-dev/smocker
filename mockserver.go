@@ -10,20 +10,20 @@ import (
 )
 
 type MockServer interface {
-	AddRoute(Route)
-	Routes() map[string]Routes
+	AddMock(Mock)
+	Mocks() map[string]Mocks
 	Reset()
 }
 
 type mockServer struct {
 	server       *echo.Echo
-	mocksByRoute map[string]Routes
+	mocksByRoute map[string]Mocks
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
 		server:       echo.New(),
-		mocksByRoute: map[string]Routes{},
+		mocksByRoute: map[string]Mocks{},
 	}
 
 	s.server.HideBanner = true
@@ -85,7 +85,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	return nil
 }
 
-func (s *mockServer) AddRoute(newMock Route) {
+func (s *mockServer) AddMock(newMock Mock) {
 	mocks, ok := s.mocksByRoute[newMock.Request.Hash()]
 	if ok {
 		for i, mock := range mocks {
@@ -100,13 +100,13 @@ func (s *mockServer) AddRoute(newMock Route) {
 		return
 	}
 
-	s.mocksByRoute[newMock.Request.Hash()] = Routes{newMock}
+	s.mocksByRoute[newMock.Request.Hash()] = Mocks{newMock}
 }
 
-func (s *mockServer) Routes() map[string]Routes {
+func (s *mockServer) Mocks() map[string]Mocks {
 	return s.mocksByRoute
 }
 
 func (s *mockServer) Reset() {
-	s.mocksByRoute = map[string]Routes{}
+	s.mocksByRoute = map[string]Mocks{}
 }
