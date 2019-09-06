@@ -1,4 +1,8 @@
-# smock [![Build Status](https://travis-ci.org/Thiht/smock.svg?branch=master)](https://travis-ci.org/Thiht/smock)
+# smock
+
+[![Build Status](https://travis-ci.org/Thiht/smock.svg?branch=master)](https://travis-ci.org/Thiht/smock)
+[![GoDoc](https://godoc.org/github.com/Thiht/smock?status.svg)](https://godoc.org/github.com/Thiht/smock)
+[![License](https://img.shields.io/github/license/Thiht/smock)](./LICENSE)
 
 smock (server mock) is a simple and efficient HTTP mock server.
 
@@ -67,7 +71,3 @@ Content-Length: 31
   "hello": "Hello, World!"
 }
 ```
-
-## License
-
-See the [LICENSE file](./LICENSE).
