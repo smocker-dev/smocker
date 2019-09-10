@@ -33,7 +33,7 @@ func (m *Mock) Validate() error {
 	m.Request.Path = strings.TrimSpace(m.Request.Path)
 	m.Request.Method = strings.TrimSpace(m.Request.Method)
 	if m.Request.Path == "" || m.Request.Method == "" {
-		return errors.New("The request must match at least a path and a method")
+		return errors.New("The request must define at least a path and a method")
 	}
 
 	if m.Response != nil {
