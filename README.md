@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Thiht/smock.svg?branch=master)](https://travis-ci.org/Thiht/smock)
 [![GoDoc](https://godoc.org/github.com/Thiht/smock?status.svg)](https://godoc.org/github.com/Thiht/smock)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smock)](https://goreportcard.com/report/github.com/Thiht/smock)
 [![License](https://img.shields.io/github/license/Thiht/smock)](./LICENSE)
 
 smock (server mock) is a simple and efficient HTTP mock server.
