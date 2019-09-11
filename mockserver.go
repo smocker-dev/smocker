@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"regexp"
 
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
@@ -12,22 +13,26 @@ import (
 type MockServer interface {
 	AddMock(Mock)
 	Mocks() Mocks
+	History(filterPath string) (History, error)
 	Reset()
 }
 
 type mockServer struct {
-	server *echo.Echo
-	mocks  Mocks
+	server  *echo.Echo
+	mocks   Mocks
+	history History
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
-		server: echo.New(),
-		mocks:  Mocks{},
+		server:  echo.New(),
+		mocks:   Mocks{},
+		history: History{},
 	}
 
 	s.server.HideBanner = true
 	s.server.HidePort = true
+	s.server.Use(s.historyMiddleware())
 	s.server.Any("/*", s.genericHandler)
 
 	log.WithField("port", port).Info("Starting mock server")
@@ -95,6 +100,21 @@ func (s *mockServer) Mocks() Mocks {
 	return s.mocks
 }
 
+func (s *mockServer) History(filterPath string) (History, error) {
+	res := History{}
+	regex, err := regexp.Compile(filterPath)
+	if err != nil {
+		return res, err
+	}
+	for _, entry := range s.history {
+		if regex.Match([]byte(entry.Request.Path)) {
+			res = append(res, entry)
+		}
+	}
+	return res, nil
+}
+
 func (s *mockServer) Reset() {
 	s.mocks = Mocks{}
+	s.history = History{}
 }

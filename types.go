@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -48,11 +49,15 @@ func (m *Mock) Validate() error {
 type Mocks []Mock
 
 func HTTPRequestToRequest(req *http.Request) Request {
-	body, err := ioutil.ReadAll(req.Body)
+	body := []byte{}
+	var err error
+	if req.Body != nil {
+		body, err = ioutil.ReadAll(req.Body)
+	}
 	if err != nil {
 		log.WithError(err).Error("Failed to read request body")
 	}
-
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return Request{
 		Path:        req.URL.Path,
 		Method:      req.Method,
@@ -66,10 +71,6 @@ type Request struct {
 	Method      string      `json:"method" yaml:"method"`
 	Body        string      `json:"body,omitempty" yaml:"body"`
 	QueryParams QueryParams `json:"query_params,omitempty" yaml:"query_params"`
-}
-
-func (m *Request) Hash() string {
-	return m.Method + " " + m.Path
 }
 
 type Response struct {
@@ -170,3 +171,10 @@ func (q1 QueryParams) Equals(q2 QueryParams) bool {
 	}
 	return true
 }
+
+type Entry struct {
+	Request  Request                `json:"request"`
+	Response map[string]interface{} `json:"response"`
+}
+
+type History []Entry
