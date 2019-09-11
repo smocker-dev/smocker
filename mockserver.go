@@ -11,19 +11,19 @@ import (
 
 type MockServer interface {
 	AddMock(Mock)
-	Mocks() map[string]Mocks
+	Mocks() Mocks
 	Reset()
 }
 
 type mockServer struct {
-	server       *echo.Echo
-	mocksByRoute map[string]Mocks
+	server *echo.Echo
+	mocks  Mocks
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
-		server:       echo.New(),
-		mocksByRoute: map[string]Mocks{},
+		server: echo.New(),
+		mocks:  Mocks{},
 	}
 
 	s.server.HideBanner = true
@@ -45,9 +45,11 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 
 	// Query Params
 	var response *Response
-	mocks := s.mocksByRoute[actualRequest.Hash()]
-	for _, mock := range mocks {
-		if actualRequest.QueryParams.Equals(mock.Request.QueryParams) {
+	for _, mock := range s.mocks {
+		isSameMethod := mock.Request.Method == actualRequest.Method
+		isMatchingPath := mock.Request.Path == actualRequest.Path
+		isMatchingQuery := mock.Request.QueryParams.Equals(actualRequest.QueryParams)
+		if isSameMethod && isMatchingPath && isMatchingQuery {
 			if mock.DynamicResponse != nil {
 				response = mock.DynamicResponse.ToMockResponse(actualRequest)
 			} else {
@@ -86,27 +88,13 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 }
 
 func (s *mockServer) AddMock(newMock Mock) {
-	mocks, ok := s.mocksByRoute[newMock.Request.Hash()]
-	if ok {
-		for i, mock := range mocks {
-			if newMock.Request.QueryParams.Equals(mock.Request.QueryParams) {
-				mocks[i] = newMock
-				s.mocksByRoute[newMock.Request.Hash()] = mocks
-				return
-			}
-		}
-		mocks = append(mocks, newMock)
-		s.mocksByRoute[newMock.Request.Hash()] = mocks
-		return
-	}
-
-	s.mocksByRoute[newMock.Request.Hash()] = Mocks{newMock}
+	s.mocks = append(Mocks{newMock}, s.mocks...)
 }
 
-func (s *mockServer) Mocks() map[string]Mocks {
-	return s.mocksByRoute
+func (s *mockServer) Mocks() Mocks {
+	return s.mocks
 }
 
 func (s *mockServer) Reset() {
-	s.mocksByRoute = map[string]Mocks{}
+	s.mocks = Mocks{}
 }
