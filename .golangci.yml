@@ -1,0 +1,9 @@
+linters-settings:
+  lll:
+    line-length: 150
+
+issues:
+  exclude-rules:
+    - text: "exported type .* should have comment or be unexported"
+      linters:
+        - go-lint

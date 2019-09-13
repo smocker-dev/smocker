@@ -2,9 +2,9 @@ package main
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
-	"regexp"
 
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
@@ -49,7 +49,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	actualRequest := HTTPRequestToRequest(c.Request())
 
 	// Query Params
-	var response *Response
+	var response *MockResponse
 	for _, mock := range s.mocks {
 		isSameMethod := mock.Request.Method == actualRequest.Method
 		isMatchingPath := mock.Request.Path == actualRequest.Path
