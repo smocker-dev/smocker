@@ -2,19 +2,24 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type Mocks []Mock
+type Mocks []*Mock
 
 type Mock struct {
 	Request         MockRequest          `json:"request,omitempty" yaml:"request"`
 	Response        *MockResponse        `json:"response,omitempty" yaml:"response"`
 	DynamicResponse *DynamicMockResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response"`
+	compiledRequest *CompiledMockRequest
 }
 
 func (m *Mock) Validate() error {
@@ -38,7 +43,16 @@ func (m *Mock) Validate() error {
 		}
 	}
 
+	var err error
+	m.compiledRequest, err = m.Request.Compile()
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func (m *Mock) MatchRequest(req Request) bool {
+	return m.compiledRequest.Match(req)
 }
 
 type MockRequest struct {
@@ -46,6 +60,60 @@ type MockRequest struct {
 	Method      string      `json:"method" yaml:"method"`
 	Body        string      `json:"body,omitempty" yaml:"body"`
 	QueryParams QueryParams `json:"query_params,omitempty" yaml:"query_params"`
+	Headers     http.Header `json:"headers,omitempty" yaml:"headers"`
+}
+
+func (mr MockRequest) Compile() (*CompiledMockRequest, error) {
+	compiledPath, err := regexp.Compile(mr.Path)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request path %v: %w", mr.Path, err)
+	}
+	compiledMethod, err := regexp.Compile(mr.Method)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request method %v: %w", mr.Method, err)
+	}
+	compiledBody, err := regexp.Compile(mr.Body)
+	if err != nil {
+
+		return nil, fmt.Errorf("invalid request body %v: %w", mr.Method, err)
+	}
+	compiledQueryParams, err := CompileMultiMap(mr.QueryParams)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request query parameters: %w", err)
+	}
+	compiledHeaders, err := CompileMultiMap(mr.Headers)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request headers: %w", err)
+	}
+	return &CompiledMockRequest{
+		Path:        compiledPath,
+		Method:      compiledMethod,
+		Body:        compiledBody,
+		QueryParams: compiledQueryParams,
+		Headers:     compiledHeaders,
+	}, nil
+}
+
+type CompiledMockRequest struct {
+	Path        *regexp.Regexp
+	Method      *regexp.Regexp
+	Body        *regexp.Regexp
+	QueryParams map[*regexp.Regexp][]*regexp.Regexp
+	Headers     map[*regexp.Regexp][]*regexp.Regexp
+}
+
+func (cmr CompiledMockRequest) Match(req Request) bool {
+	matchPath := cmr.Path.MatchString(req.Path)
+	log.WithField("match", matchPath).Debug("is matching request path")
+	matchMethod := cmr.Method.MatchString(req.Method)
+	log.WithField("match", matchMethod).Debug("is matching request method")
+	matchBody := cmr.Body.MatchString(req.Body)
+	log.WithField("match", matchBody).Debug("is matching request body")
+	matchQueryParams := MatchMultiMap(cmr.QueryParams, req.QueryParams)
+	log.WithField("match", matchQueryParams).Debug("is matching request query parameters")
+	matchHeaders := MatchMultiMap(cmr.Headers, req.Headers)
+	log.WithField("match", matchHeaders).Debug("is matching request headers")
+	return matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
 }
 
 type MockResponse struct {

@@ -25,7 +25,7 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor/' \
-		-- go run $(GO_LDFLAGS) *.go
+		-- go run $(GO_LDFLAGS) *.go --log-level=debug
 
 .PHONY: build
 build:
