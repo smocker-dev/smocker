@@ -1,9 +1,10 @@
-package main
+package history
 
 import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -19,7 +20,7 @@ type Request struct {
 	Path        string         `json:"path"`
 	Method      string         `json:"method"`
 	Body        string         `json:"body,omitempty"`
-	QueryParams QueryParams    `json:"query_params,omitempty"`
+	QueryParams url.Values     `json:"query_params,omitempty"`
 	Headers     http.Header    `json:"headers,omitempty"`
 	Cookies     []*http.Cookie `json:"cookies,omitempty"`
 }
@@ -45,7 +46,7 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		Path:        req.URL.Path,
 		Method:      req.Method,
 		Body:        string(body),
-		QueryParams: QueryParams(req.URL.Query()),
+		QueryParams: req.URL.Query(),
 		Headers:     req.Header,
 		Cookies:     req.Cookies(),
 	}
