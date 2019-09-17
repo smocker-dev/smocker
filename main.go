@@ -88,7 +88,16 @@ func setupServer(mockServerListenPort, configListenPort int) {
 			"message": "Mocks registered successfully",
 		})
 	})
-	e.POST("/mocks/reset", func(c echo.Context) error {
+	e.GET("/history", func(c echo.Context) error {
+		filter := c.QueryParam("filter")
+		history, err := mockServer.History(filter)
+		if err != nil {
+			log.WithError(err).Error("Failed to retreive history")
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, history)
+	})
+	e.POST("/reset", func(c echo.Context) error {
 		mockServer.Reset()
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "Reset successful",
