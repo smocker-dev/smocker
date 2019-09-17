@@ -1,4 +1,4 @@
-package main
+package mocks
 
 import (
 	"errors"
@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Thiht/smock/history"
+	"github.com/Thiht/smock/templates"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,10 +39,10 @@ func (m *Mock) Validate() error {
 		return errors.New("The request must define at least a path and a method")
 	}
 
-	if m.Response != nil {
-		if m.Response.Status == 0 {
-			return errors.New("The response must define at least a status")
-		}
+	if m.Response != nil && m.Response.Status == 0 {
+		return errors.New("The response must define at least a status")
+	} else if m.DynamicResponse.Engine != templates.GoTemplateEngineKey && m.DynamicResponse.Engine != templates.LuaEngineKey {
+		return errors.New("The dynamic response engine must be equal to either '" + templates.GoTemplateEngineKey + "' or '" + templates.LuaEngineKey + "'")
 	}
 
 	var err error
@@ -51,7 +53,7 @@ func (m *Mock) Validate() error {
 	return nil
 }
 
-func (m *Mock) MatchRequest(req Request) bool {
+func (m *Mock) MatchRequest(req history.Request) bool {
 	return m.compiledRequest.Match(req)
 }
 
@@ -102,7 +104,7 @@ type CompiledMockRequest struct {
 	Headers     map[*regexp.Regexp][]*regexp.Regexp
 }
 
-func (cmr CompiledMockRequest) Match(req Request) bool {
+func (cmr CompiledMockRequest) Match(req history.Request) bool {
 	matchPath := cmr.Path.MatchString(req.Path)
 	log.WithField("match", matchPath).Debug("is matching request path")
 	matchMethod := cmr.Method.MatchString(req.Method)
@@ -124,13 +126,25 @@ type MockResponse struct {
 }
 
 type DynamicMockResponse struct {
+	Engine string `json:"engine" yaml:"engine"`
 	Script string `json:"script" yaml:"script"`
 }
 
-func (d DynamicMockResponse) ToMockResponse(request Request) *MockResponse {
-
-	engine := NewLuaEngine()
-	return engine.Execute(request, d.Script)
+func (d DynamicMockResponse) ToMockResponse(request history.Request) *MockResponse {
+	var engine templates.TemplateEngine
+	if d.Engine == templates.GoTemplateEngineKey {
+		engine = templates.NewGoTemplateEngine()
+	} else if d.Engine == templates.LuaEngineKey {
+		engine = templates.NewLuaEngine()
+	}
+	var res MockResponse
+	if err := engine.Execute(request, d.Script, &res); err != nil {
+		res = MockResponse{
+			Status: http.StatusInternalServerError,
+			Body:   err.Error(),
+		}
+	}
+	return &res
 }
 
 type QueryParams url.Values

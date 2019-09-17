@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"net/http"
@@ -6,28 +6,30 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Thiht/smock/history"
+	"github.com/Thiht/smock/mocks"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 )
 
 type MockServer interface {
-	AddMock(*Mock)
-	Mocks() Mocks
-	History(filterPath string) (History, error)
+	AddMock(*mocks.Mock)
+	Mocks() mocks.Mocks
+	History(filterPath string) (history.History, error)
 	Reset()
 }
 
 type mockServer struct {
 	server  *echo.Echo
-	mocks   Mocks
-	history History
+	mocks   mocks.Mocks
+	history history.History
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
 		server:  echo.New(),
-		mocks:   Mocks{},
-		history: History{},
+		mocks:   mocks.Mocks{},
+		history: history.History{},
 	}
 
 	s.server.HideBanner = true
@@ -46,10 +48,10 @@ func NewMockServer(port int) MockServer {
 }
 
 func (s *mockServer) genericHandler(c echo.Context) error {
-	actualRequest := HTTPRequestToRequest(c.Request())
+	actualRequest := history.HTTPRequestToRequest(c.Request())
 
 	// Query Params
-	var response *MockResponse
+	var response *mocks.MockResponse
 	for _, mock := range s.mocks {
 		if mock.MatchRequest(actualRequest) {
 			if mock.DynamicResponse != nil {
@@ -89,16 +91,16 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	return nil
 }
 
-func (s *mockServer) AddMock(newMock *Mock) {
-	s.mocks = append(Mocks{newMock}, s.mocks...)
+func (s *mockServer) AddMock(newMock *mocks.Mock) {
+	s.mocks = append(mocks.Mocks{newMock}, s.mocks...)
 }
 
-func (s *mockServer) Mocks() Mocks {
+func (s *mockServer) Mocks() mocks.Mocks {
 	return s.mocks
 }
 
-func (s *mockServer) History(filterPath string) (History, error) {
-	res := History{}
+func (s *mockServer) History(filterPath string) (history.History, error) {
+	res := history.History{}
 	regex, err := regexp.Compile(filterPath)
 	if err != nil {
 		return res, err
@@ -112,6 +114,6 @@ func (s *mockServer) History(filterPath string) (History, error) {
 }
 
 func (s *mockServer) Reset() {
-	s.mocks = Mocks{}
-	s.history = History{}
+	s.mocks = mocks.Mocks{}
+	s.history = history.History{}
 }

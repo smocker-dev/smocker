@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Thiht/smock/history"
 	"github.com/labstack/echo"
 )
 
@@ -40,7 +41,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			if req == nil {
 				return fmt.Errorf("empty request")
 			}
-			request := HTTPRequestToRequest(req)
+			request := history.HTTPRequestToRequest(req)
 			responseBody := new(bytes.Buffer)
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
@@ -60,9 +61,9 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 					"body": response,
 				}
 			}
-			s.history = append(s.history, Entry{
+			s.history = append(s.history, history.Entry{
 				Request:  request,
-				Response: Response{Body: response},
+				Response: history.Response{Body: response},
 			})
 			return nil
 		}

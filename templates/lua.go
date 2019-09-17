@@ -1,17 +1,16 @@
-package main
+package templates
 
 import (
-	"net/http"
+	"fmt"
 
+	"github.com/Thiht/smock/history"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"
 )
 
-type TemplateEngine interface {
-	Execute(request Request, script string) *MockResponse
-}
+const LuaEngineKey = "lua"
 
 type luaEngine struct{}
 
@@ -19,7 +18,7 @@ func NewLuaEngine() TemplateEngine {
 	return &luaEngine{}
 }
 
-func (*luaEngine) Execute(request Request, script string) *MockResponse {
+func (*luaEngine) Execute(request history.Request, script string, result interface{}) error {
 	luaState := lua.NewState(lua.Options{
 		SkipOpenLibs: true,
 	})
@@ -44,37 +43,24 @@ func (*luaEngine) Execute(request Request, script string) *MockResponse {
 			lua.LString(pair.n),
 		); err != nil {
 			log.WithError(err).Error("Failed to load Lua libraries")
-			return &MockResponse{
-				Status: http.StatusInternalServerError,
-				Body:   "Failed to load Lua libraries: " + err.Error(),
-			}
+			return fmt.Errorf("Failed to load Lua libraries: %w", err)
 		}
 	}
 	if err := luaState.DoString("coroutine=nil;debug=nil;io=nil;open=nil;os=nil"); err != nil {
 		log.WithError(err).Error("Failed to sandbox Lua environment")
-		return &MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   "Failed to sandbox Lua environment: " + err.Error(),
-		}
+		return fmt.Errorf("Failed to sandbox Lua environment: %w", err)
 	}
 
 	luaState.SetGlobal("request", luar.New(luaState, request))
 	if err := luaState.DoString(script); err != nil {
 		log.WithError(err).Error("Failed to execute dynamic template")
-		return &MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   "Failed to execute dynamic template: " + err.Error(),
-		}
+		return fmt.Errorf("Failed to execute dynamic template: %w", err)
 	}
 
-	var response MockResponse
-	if err := gluamapper.Map(luaState.Get(-1).(*lua.LTable), &response); err != nil {
+	if err := gluamapper.Map(luaState.Get(-1).(*lua.LTable), result); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
-		return &MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   "Invalid result from Lua script: " + err.Error(),
-		}
+		return fmt.Errorf("Invalid result from Lua script: %w", err)
 	}
 
-	return &response
+	return nil
 }
