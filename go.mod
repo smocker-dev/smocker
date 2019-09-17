@@ -9,6 +9,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/namsral/flag v1.7.4-pre
 	github.com/sirupsen/logrus v1.4.2
+	github.com/smartystreets/assertions v1.0.1
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7
 	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036
 	golang.org/x/crypto v0.0.0-20190909091759-094676da4a83 // indirect

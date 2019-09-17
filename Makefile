@@ -25,11 +25,11 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor/' \
-		-- go run $(GO_LDFLAGS) cli/main.go --log-level=debug
+		-- go run $(GO_LDFLAGS) main.go --log-level=debug
 
 .PHONY: build
 build:
-	go build $(GO_LDFLAGS) -o ./build/$(APPNAME) ./cli/...
+	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
 
 .PHONY: clean
 clean:

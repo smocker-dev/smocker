@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Thiht/smock/mocks"
+	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -22,7 +22,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})
 	e.POST("/mocks", func(c echo.Context) error {
-		var mocks []*mocks.Mock
+		var mocks []*types.Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				log.WithError(err).Error("Failed to parse payload")
