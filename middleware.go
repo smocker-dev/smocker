@@ -62,7 +62,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			}
 			s.history = append(s.history, Entry{
 				Request:  request,
-				Response: response,
+				Response: Response{Body: response},
 			})
 			return nil
 		}

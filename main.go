@@ -59,7 +59,7 @@ func setupServer(mockServerListenPort, configListenPort int) {
 		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})
 	e.POST("/mocks", func(c echo.Context) error {
-		var mocks []Mock
+		var mocks []*Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				log.WithError(err).Error("Failed to parse payload")

@@ -2,16 +2,16 @@ package main
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
-	"regexp"
 
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 )
 
 type MockServer interface {
-	AddMock(Mock)
+	AddMock(*Mock)
 	Mocks() Mocks
 	History(filterPath string) (History, error)
 	Reset()
@@ -49,12 +49,9 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	actualRequest := HTTPRequestToRequest(c.Request())
 
 	// Query Params
-	var response *Response
+	var response *MockResponse
 	for _, mock := range s.mocks {
-		isSameMethod := mock.Request.Method == actualRequest.Method
-		isMatchingPath := mock.Request.Path == actualRequest.Path
-		isMatchingQuery := mock.Request.QueryParams.Equals(actualRequest.QueryParams)
-		if isSameMethod && isMatchingPath && isMatchingQuery {
+		if mock.MatchRequest(actualRequest) {
 			if mock.DynamicResponse != nil {
 				response = mock.DynamicResponse.ToMockResponse(actualRequest)
 			} else {
@@ -92,7 +89,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	return nil
 }
 
-func (s *mockServer) AddMock(newMock Mock) {
+func (s *mockServer) AddMock(newMock *Mock) {
 	s.mocks = append(Mocks{newMock}, s.mocks...)
 }
 
