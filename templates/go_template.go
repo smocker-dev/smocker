@@ -39,14 +39,32 @@ func (*GoTemplateEngine) Execute(request types.Request, script string) *types.Mo
 			Body:   fmt.Sprintf("Failed to execute dynamic template: %s", err.Error()),
 		}
 	}
-	var result types.MockResponse
-	err = json.Unmarshal(buffer.Bytes(), &result)
+	var tmp map[string]interface{}
+	err = json.Unmarshal(buffer.Bytes(), &tmp)
 	if err != nil {
 		log.WithError(err).Error("Failed to unmarshal response from dynamic template")
 		return &types.MockResponse{
 			Status: http.StatusInternalServerError,
 			Body:   fmt.Sprintf("Failed to unmarshal response from dynamic template: %s", err.Error()),
 		}
+	}
+	body := tmp["body"]
+	if _, ok := body.(string); !ok {
+		b, err := json.Marshal(body)
+		if err != nil {
+			log.WithError(err).Error("Failed to unmarshal response as json")
+		}
+		tmp["body"] = string(b)
+	}
+	b, err := json.Marshal(tmp)
+	if err != nil {
+		log.WithError(err).Error("Failed to escape json")
+	}
+
+	var result types.MockResponse
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		log.WithError(err).Error("Failed to unmarshal response as mock response")
 	}
 	return &result
 }

@@ -83,10 +83,10 @@ func (mr MockRequest) Match(req Request) bool {
 }
 
 type MockResponse struct {
-	Body    string        `json:"body,omitempty" yaml:"body"`
+	Body    string        `json:"body,omitempty" yaml:"body,omitempty"`
 	Status  int           `json:"status" yaml:"status"`
-	Delay   time.Duration `json:"delay,omitempty" yaml:"delay"`
-	Headers http.Header   `json:"headers,omitempty" yaml:"headers"`
+	Delay   time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+	Headers http.Header   `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 type DynamicMockResponse struct {

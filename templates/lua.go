@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Thiht/smock/types"
+	json "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
@@ -65,14 +66,20 @@ func (*luaEngine) Execute(request types.Request, script string) *types.MockRespo
 		}
 	}
 
+	tmp := luaState.Get(-1).(*lua.LTable)
+	body := tmp.RawGetString("body")
+	if body.Type() == lua.LTTable {
+		b, _ := json.Encode(body)
+		tmp.RawSetString("body", lua.LString(string(b)))
+	}
+
 	var result types.MockResponse
-	if err := gluamapper.Map(luaState.Get(-1).(*lua.LTable), &result); err != nil {
+	if err := gluamapper.Map(tmp, &result); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
 		return &types.MockResponse{
 			Status: http.StatusInternalServerError,
 			Body:   fmt.Sprintf("Invalid result from Lua script: %s", err.Error()),
 		}
 	}
-
 	return &result
 }

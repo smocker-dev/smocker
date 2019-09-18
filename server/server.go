@@ -35,6 +35,8 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
+			} else {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			}
 		}
 
