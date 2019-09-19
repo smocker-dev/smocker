@@ -9,6 +9,7 @@ import (
 	"github.com/Thiht/smock/templates"
 	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,6 +35,7 @@ func NewMockServer(port int) MockServer {
 
 	s.server.HideBanner = true
 	s.server.HidePort = true
+	s.server.Use(middleware.Recover(), middleware.Logger())
 	s.server.Use(s.historyMiddleware())
 	s.server.Any("/*", s.genericHandler)
 

@@ -19,6 +19,10 @@ GOLANGCILINT=$(GOPATH)/bin/golangci-lint
 $(GOLANGCILINT):
 	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
 
+VENOM=$(GOPATH)/bin/venom
+$(VENOM):
+	go install github.com/ovh/venom/cli/venom
+
 .PHONY: start
 start: $(REFLEX)
 	reflex --start-service \
@@ -38,3 +42,7 @@ clean:
 .PHONY: lint
 lint: $(GOLANGCILINT)
 	golangci-lint run
+
+.PHONY: test
+test: $(VENOM)
+	venom run tests/features/*.yml

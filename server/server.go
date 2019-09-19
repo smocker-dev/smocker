@@ -7,6 +7,7 @@ import (
 
 	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -18,6 +19,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.HideBanner = true
 	e.HidePort = true
 
+	e.Use(middleware.Recover(), middleware.Logger())
 	e.GET("/mocks", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})

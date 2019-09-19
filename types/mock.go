@@ -41,7 +41,7 @@ func (m *Mock) Validate() error {
 
 	if m.Response != nil && m.Response.Status == 0 {
 		return errors.New("The response must define at least a status")
-	} else if m.DynamicResponse.Engine != GoTemplateEngineKey && m.DynamicResponse.Engine != LuaEngineKey {
+	} else if m.DynamicResponse != nil && m.DynamicResponse.Engine != GoTemplateEngineKey && m.DynamicResponse.Engine != LuaEngineKey {
 		return errors.New("The dynamic response engine must be equal to either '" + GoTemplateEngineKey + "' or '" + LuaEngineKey + "'")
 	}
 	return nil

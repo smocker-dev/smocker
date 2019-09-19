@@ -1,0 +1,35 @@
+- # Lua mock with body as string
+  request:
+    path: /test
+    method: GET
+  dynamic_response:
+    engine: lua
+    script: >
+      return {status=200, body='{"message":"request path"}', headers={["Content-Type"]={"application/json"}} }
+
+- # Lua mock with body as Table
+  request:
+    path: /test2
+    method: GET
+  dynamic_response:
+    engine: lua
+    script: >
+      return {status=200, body={message="request path "..request.path}, headers={["Content-Type"]={"application/json"}} }
+
+- # Go Template mock with body as string
+  request:
+    path: /test3
+    method: GET
+  dynamic_response:
+    engine: go_template
+    script: |
+      { "status": 200, "body":"{\"message\": \"request path: {{.Request.Path}}\"}", "headers": {"Content-Type": ["application/json"]} }
+
+- # Go Template mock with body as json
+  request:
+    path: /test4
+    method: GET
+  dynamic_response:
+    engine: go_template
+    script: >
+      { "status": 200, "body":{"message": "request path: {{.Request.Path}}"}, "headers": {"Content-Type": ["application/json"]} }

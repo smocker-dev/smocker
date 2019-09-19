@@ -72,3 +72,19 @@ Content-Length: 31
   "hello": "Hello, World!"
 }
 ```
+
+## Development
+
+### Integration Test
+
+In order to launch integrations tests, you need to open a terminal and launch smock:
+
+```sh
+make start
+```
+
+and then open an other terminal an launch venom tests:
+
+```sh
+make test
+```
