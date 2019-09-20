@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Thiht/smock/mocks"
+	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -18,11 +19,12 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.HideBanner = true
 	e.HidePort = true
 
+	e.Use(middleware.Recover(), middleware.Logger())
 	e.GET("/mocks", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})
 	e.POST("/mocks", func(c echo.Context) error {
-		var mocks []*mocks.Mock
+		var mocks []*types.Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				log.WithError(err).Error("Failed to parse payload")
@@ -35,6 +37,8 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
+			} else {
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			}
 		}
 

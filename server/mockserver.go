@@ -6,34 +6,36 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Thiht/smock/history"
-	"github.com/Thiht/smock/mocks"
+	"github.com/Thiht/smock/templates"
+	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 )
 
 type MockServer interface {
-	AddMock(*mocks.Mock)
-	Mocks() mocks.Mocks
-	History(filterPath string) (history.History, error)
+	AddMock(*types.Mock)
+	Mocks() types.Mocks
+	History(filterPath string) (types.History, error)
 	Reset()
 }
 
 type mockServer struct {
 	server  *echo.Echo
-	mocks   mocks.Mocks
-	history history.History
+	mocks   types.Mocks
+	history types.History
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
 		server:  echo.New(),
-		mocks:   mocks.Mocks{},
-		history: history.History{},
+		mocks:   types.Mocks{},
+		history: types.History{},
 	}
 
 	s.server.HideBanner = true
 	s.server.HidePort = true
+	s.server.Use(middleware.Recover(), middleware.Logger())
 	s.server.Use(s.historyMiddleware())
 	s.server.Any("/*", s.genericHandler)
 
@@ -48,14 +50,14 @@ func NewMockServer(port int) MockServer {
 }
 
 func (s *mockServer) genericHandler(c echo.Context) error {
-	actualRequest := history.HTTPRequestToRequest(c.Request())
+	actualRequest := types.HTTPRequestToRequest(c.Request())
 
 	// Query Params
-	var response *mocks.MockResponse
+	var response *types.MockResponse
 	for _, mock := range s.mocks {
 		if mock.MatchRequest(actualRequest) {
 			if mock.DynamicResponse != nil {
-				response = mock.DynamicResponse.ToMockResponse(actualRequest)
+				response = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
 			} else {
 				response = mock.Response
 			}
@@ -91,16 +93,16 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	return nil
 }
 
-func (s *mockServer) AddMock(newMock *mocks.Mock) {
-	s.mocks = append(mocks.Mocks{newMock}, s.mocks...)
+func (s *mockServer) AddMock(newMock *types.Mock) {
+	s.mocks = append(types.Mocks{newMock}, s.mocks...)
 }
 
-func (s *mockServer) Mocks() mocks.Mocks {
+func (s *mockServer) Mocks() types.Mocks {
 	return s.mocks
 }
 
-func (s *mockServer) History(filterPath string) (history.History, error) {
-	res := history.History{}
+func (s *mockServer) History(filterPath string) (types.History, error) {
+	res := types.History{}
 	regex, err := regexp.Compile(filterPath)
 	if err != nil {
 		return res, err
@@ -114,6 +116,6 @@ func (s *mockServer) History(filterPath string) (history.History, error) {
 }
 
 func (s *mockServer) Reset() {
-	s.mocks = mocks.Mocks{}
-	s.history = history.History{}
+	s.mocks = types.Mocks{}
+	s.history = types.History{}
 }

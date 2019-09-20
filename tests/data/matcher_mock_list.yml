@@ -1,0 +1,70 @@
+-
+  request:
+    path:
+      matcher: ShouldMatch
+      value: /.*
+    method: GET
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test"}
+-
+  request:
+    path: /test
+    method:
+        matcher: ShouldContainSubstring
+        value: PO
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test2"}
+-
+  request:
+    path: /test
+    method: DELETE
+    body:
+      matcher: ShouldEqualJSON
+      value: >
+        {"id": 1}
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test3"}
+-
+  request:
+    path: /test
+    method: PUT
+    headers:
+      matcher: ShouldMatch
+      values:
+        Content-Type: ["application/.*"]
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test4"}
+-
+  request:
+    path: /test
+    method: PATCH
+    query_params:
+      # It will be factorized in smocker as
+      # query_params:
+      #   test: ["true"]
+      # because 'ShouldEqual' is the default matcher
+      matcher: ShouldEqual
+      values:
+        test: ["true"]
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test5"}

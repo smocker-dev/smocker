@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Thiht/smock/history"
+	"github.com/Thiht/smock/types"
 	"github.com/labstack/echo"
 )
 
@@ -41,7 +41,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			if req == nil {
 				return fmt.Errorf("empty request")
 			}
-			request := history.HTTPRequestToRequest(req)
+			request := types.HTTPRequestToRequest(req)
 			responseBody := new(bytes.Buffer)
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
@@ -61,9 +61,9 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 					"body": response,
 				}
 			}
-			s.history = append(s.history, history.Entry{
+			s.history = append(s.history, types.Entry{
 				Request:  request,
-				Response: history.Response{Body: response},
+				Response: types.Response{Body: response},
 			})
 			return nil
 		}

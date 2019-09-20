@@ -1,0 +1,30 @@
+-
+  request:
+    path: /test
+    method: GET
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test"}
+-
+  request:
+    path: /test
+    method: POST
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test2"}
+-
+  request:
+    path: /test
+    method: DELETE
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    status: 200
+    body: >
+      {"message": "test3"}

@@ -1,4 +1,4 @@
-package history
+package types
 
 import (
 	"bytes"
