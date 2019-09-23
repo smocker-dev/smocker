@@ -10,6 +10,9 @@ GO_LDFLAGS+=-X main.buildCommit=$(COMMIT)
 GO_LDFLAGS+=-X main.buildDate=$(DATE)
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
+DOCKER_ACCOUNT:=thiht
+DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
+
 REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
 	go get github.com/cespare/reflex
@@ -35,6 +38,11 @@ start: $(REFLEX)
 build:
 	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
 
+.PHONY: build-docker
+build-docker:
+	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
+	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(VERSION)
+
 .PHONY: clean
 clean:
 	rm -rf ./build
@@ -46,3 +54,8 @@ lint: $(GOLANGCILINT)
 .PHONY: test
 test: $(VENOM)
 	venom run tests/features/*.yml
+
+.PHONY: deploy-docker
+deploy-docker:
+	docker push $(DOCKER_IMAGE):latest
+	docker push $(DOCKER_IMAGE):$(VERSION)
