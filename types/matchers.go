@@ -158,14 +158,14 @@ type MultiMapMatcher struct {
 	Values  map[string][]string
 }
 
-func (m MultiMapMatcher) Match(values map[string][]string) bool {
-	matcher := asserts[m.Matcher]
+func (mm MultiMapMatcher) Match(values map[string][]string) bool {
+	matcher := asserts[mm.Matcher]
 	if matcher == nil {
-		log.WithField("matcher", m.Matcher).Error("invalid matcher")
+		log.WithField("matcher", mm.Matcher).Error("invalid matcher")
 		return false
 	}
 
-	for key, matchingValues := range m.Values {
+	for key, matchingValues := range mm.Values {
 		expectedValues, ok := values[key]
 		if !ok || len(matchingValues) > len(expectedValues) {
 			return false
@@ -180,24 +180,24 @@ func (m MultiMapMatcher) Match(values map[string][]string) bool {
 	return true
 }
 
-func (sm MultiMapMatcher) MarshalJSON() ([]byte, error) {
-	if sm.Matcher == DefaultMatcher {
-		return json.Marshal(sm.Values)
+func (mm MultiMapMatcher) MarshalJSON() ([]byte, error) {
+	if mm.Matcher == DefaultMatcher {
+		return json.Marshal(mm.Values)
 	}
 	return json.Marshal(&struct {
 		Matcher string              `json:"matcher"`
 		Values  map[string][]string `json:"values"`
 	}{
-		Matcher: sm.Matcher,
-		Values:  sm.Values,
+		Matcher: mm.Matcher,
+		Values:  mm.Values,
 	})
 }
 
-func (sm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
+func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
 	var v map[string][]string
 	if err := json.Unmarshal(data, &v); err == nil {
-		sm.Matcher = DefaultMatcher
-		sm.Values = v
+		mm.Matcher = DefaultMatcher
+		mm.Values = v
 		return nil
 	}
 	var res struct {
@@ -207,31 +207,31 @@ func (sm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
-	sm.Matcher = res.Matcher
-	sm.Values = res.Values
+	mm.Matcher = res.Matcher
+	mm.Values = res.Values
 	return nil
 }
 
-func (sm MultiMapMatcher) MarshalYAML() (interface{}, error) {
-	if sm.Matcher == DefaultMatcher {
-		value, err := yaml.Marshal(sm.Values)
+func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
+	if mm.Matcher == DefaultMatcher {
+		value, err := yaml.Marshal(mm.Values)
 		return string(value), err
 	}
 	value, err := yaml.Marshal(&struct {
 		Matcher string              `yaml:"matcher"`
 		Values  map[string][]string `yaml:"values"`
 	}{
-		Matcher: sm.Matcher,
-		Values:  sm.Values,
+		Matcher: mm.Matcher,
+		Values:  mm.Values,
 	})
 	return string(value), err
 }
 
-func (sm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (mm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var v map[string][]string
 	if err := unmarshal(&v); err == nil {
-		sm.Matcher = DefaultMatcher
-		sm.Values = v
+		mm.Matcher = DefaultMatcher
+		mm.Values = v
 		return nil
 	}
 	var res struct {
@@ -241,7 +241,7 @@ func (sm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) erro
 	if err := unmarshal(&res); err != nil {
 		return err
 	}
-	sm.Matcher = res.Matcher
-	sm.Values = res.Values
+	mm.Matcher = res.Matcher
+	mm.Values = res.Values
 	return nil
 }
