@@ -99,7 +99,7 @@ func TestMultiMapMatcher_JSON(t *testing.T) {
 		t.Fatalf("matcher %s should be equal to %s", res.Matcher, DefaultMatcher)
 	}
 	expected := map[string][]string{
-		"test": []string{"test"},
+		"test": {"test"},
 	}
 	if !reflect.DeepEqual(res.Values, expected) {
 		t.Fatalf("values %v should be equal to %v", res.Values, expected)
@@ -122,7 +122,7 @@ func TestMultiMapMatcher_JSON(t *testing.T) {
 		t.Fatalf("matcher %s should be equal to %s", res.Matcher, "test")
 	}
 	expected = map[string][]string{
-		"test2": []string{"test3"},
+		"test2": {"test3"},
 	}
 	if !reflect.DeepEqual(res.Values, expected) {
 		t.Fatalf("values %v should be equal to %v", res.Values, expected)
