@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
@@ -21,6 +21,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 
 	e.Use(middleware.Recover(), middleware.Logger())
 	e.GET("/mocks", func(c echo.Context) error {
+		// TODO: this should be served in YAML depending on the Accept header
 		return c.JSON(http.StatusOK, mockServer.Mocks())
 	})
 	e.POST("/mocks", func(c echo.Context) error {

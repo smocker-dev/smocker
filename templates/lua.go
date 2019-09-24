@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/types"
 	json "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"

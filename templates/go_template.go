@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/types"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,4 +1,4 @@
-module github.com/Thiht/smock
+module github.com/Thiht/smocker
 
 go 1.13
 

@@ -1,11 +1,11 @@
-# smock
+# smocker
 
-[![Build Status](https://travis-ci.org/Thiht/smock.svg?branch=master)](https://travis-ci.org/Thiht/smock)
-[![GoDoc](https://godoc.org/github.com/Thiht/smock?status.svg)](https://godoc.org/github.com/Thiht/smock)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smock)](https://goreportcard.com/report/github.com/Thiht/smock)
-[![License](https://img.shields.io/github/license/Thiht/smock)](./LICENSE)
+[![Build Status](https://travis-ci.org/Thiht/smocker.svg?branch=master)](https://travis-ci.org/Thiht/smocker)
+[![GoDoc](https://godoc.org/github.com/Thiht/smocker?status.svg)](https://godoc.org/github.com/Thiht/smocker)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
+[![License](https://img.shields.io/github/license/Thiht/smocker)](./LICENSE)
 
-smock (server mock) is a simple and efficient HTTP mock server.
+smocker (server mock) is a simple and efficient HTTP mock server.
 
 ## Installation
 
@@ -16,8 +16,8 @@ docker run -d \
   --restart=always \
   -p 8080:8080 \
   -p 8081:8081 \
-  --name smock \
-  thiht/smock
+  --name smocker \
+  thiht/smocker
 ```
 
 ### Healthcheck
@@ -28,7 +28,7 @@ curl localhost:8081/version
 
 ## Usage
 
-smock exposes two ports:
+smocker exposes two ports:
 
 - `8080` is the mock server port. It will expose the routes you register through the configuration port
 - `8081` is the configuration port. It's the port you will use to register new mocks
@@ -77,7 +77,7 @@ Content-Length: 31
 
 ### Integration Test
 
-In order to launch integrations tests, you need to open a terminal and launch smock:
+In order to launch integrations tests, you need to open a terminal and launch smocker:
 
 ```sh
 make start

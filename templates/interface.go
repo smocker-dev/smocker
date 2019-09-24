@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/types"
 )
 
 type TemplateEngine interface {

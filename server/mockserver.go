@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Thiht/smock/templates"
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/templates"
+	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"

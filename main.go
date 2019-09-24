@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Thiht/smock/server"
+	"github.com/Thiht/smocker/server"
 	"github.com/labstack/echo"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
@@ -21,7 +21,7 @@ type config struct {
 
 func parseConfig() (c config) {
 	// Use a prefix for environment variables
-	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "SMOCK", flag.ExitOnError)
+	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "SMOCKER", flag.ExitOnError)
 
 	flag.StringVar(&c.logLevel, "log-level", "info", "")
 	flag.IntVar(&c.configListenPort, "config-listen-port", 8081, "")

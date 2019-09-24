@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Thiht/smock/types"
+	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 )
 
