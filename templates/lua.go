@@ -2,7 +2,6 @@ package templates
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Thiht/smocker/types"
 	json "github.com/layeh/gopher-json"
@@ -18,7 +17,7 @@ func NewLuaEngine() TemplateEngine {
 	return &luaEngine{}
 }
 
-func (*luaEngine) Execute(request types.Request, script string) *types.MockResponse {
+func (*luaEngine) Execute(request types.Request, script string) (*types.MockResponse, error) {
 	luaState := lua.NewState(lua.Options{
 		SkipOpenLibs: true,
 	})
@@ -43,27 +42,18 @@ func (*luaEngine) Execute(request types.Request, script string) *types.MockRespo
 			lua.LString(pair.n),
 		); err != nil {
 			log.WithError(err).Error("Failed to load Lua libraries")
-			return &types.MockResponse{
-				Status: http.StatusInternalServerError,
-				Body:   fmt.Sprintf("Failed to load Lua libraries: %s", err.Error()),
-			}
+			return nil, fmt.Errorf("failed to load Lua libraries: %w", err)
 		}
 	}
 	if err := luaState.DoString("coroutine=nil;debug=nil;io=nil;open=nil;os=nil"); err != nil {
 		log.WithError(err).Error("Failed to sandbox Lua environment")
-		return &types.MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   fmt.Sprintf("Failed to sandbox Lua environment: %s", err.Error()),
-		}
+		return nil, fmt.Errorf("failed to sandbox Lua environment: %w", err)
 	}
 
 	luaState.SetGlobal("request", luar.New(luaState, request))
 	if err := luaState.DoString(script); err != nil {
-		log.WithError(err).Error("Failed to execute dynamic template")
-		return &types.MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   fmt.Sprintf("Failed to execute dynamic template: %s", err.Error()),
-		}
+		log.WithError(err).Error("Failed to execute Lua script")
+		return nil, fmt.Errorf("failed to execute Lua script: %w", err)
 	}
 
 	tmp := luaState.Get(-1).(*lua.LTable)
@@ -76,10 +66,8 @@ func (*luaEngine) Execute(request types.Request, script string) *types.MockRespo
 	var result types.MockResponse
 	if err := gluamapper.Map(tmp, &result); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
-		return &types.MockResponse{
-			Status: http.StatusInternalServerError,
-			Body:   fmt.Sprintf("Invalid result from Lua script: %s", err.Error()),
-		}
+		return nil, fmt.Errorf("invalid result from Lua script: %w", err)
 	}
-	return &result
+
+	return &result, nil
 }

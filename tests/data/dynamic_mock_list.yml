@@ -4,7 +4,12 @@
   dynamic_response:
     engine: lua
     script: >
-      return {body='{"message":"request path"}', headers={["Content-Type"]={"application/json"}} }
+      return {
+        body = '{"message":"request path"}',
+        headers = {
+          ["Content-Type"] = {"application/json"}
+        }
+      }
 
 - # Lua mock with body as Table
   request:
@@ -12,7 +17,14 @@
   dynamic_response:
     engine: lua
     script: >
-      return {body={message="request path "..request.path}, headers={["Content-Type"]={"application/json"}} }
+      return {
+        body = {
+          message = "request path "..request.path
+        },
+        headers = {
+          ["Content-Type"] = {"application/json"}
+        }
+      }
 
 - # Go Template mock with body as string
   request:
@@ -20,7 +32,12 @@
   dynamic_response:
     engine: go_template
     script: |
-      {"body":"{\"message\": \"request path: {{.Request.Path}}\"}", "headers": {"Content-Type": ["application/json"]} }
+      {
+        "body": "{\"message\": \"request path: {{.Request.Path}}\"}",
+        "headers": {
+          "Content-Type": ["application/json"]
+        }
+      }
 
 - # Go Template mock with body as json
   request:
@@ -28,4 +45,11 @@
   dynamic_response:
     engine: go_template
     script: >
-      {"body":{"message": "request path: {{.Request.Path}}"}, "headers": {"Content-Type": ["application/json"]} }
+      {
+        "body": {
+          "message": "request path: {{.Request.Path}}"
+        },
+        "headers": {
+          "Content-Type": ["application/json"]
+        }
+      }

@@ -57,11 +57,20 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 
 	/* Request matching */
 
-	var response *types.MockResponse
+	var (
+		response *types.MockResponse
+		err      error
+	)
 	for _, mock := range s.mocks {
 		if mock.Request.Match(actualRequest) {
 			if mock.DynamicResponse != nil {
-				response = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
+				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, echo.Map{
+						"message": err.Error(),
+						"request": actualRequest,
+					})
+				}
 			} else {
 				response = mock.Response
 			}
@@ -95,7 +104,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	c.Response().WriteHeader(response.Status)
 
 	// Body
-	if _, err := c.Response().Write([]byte(response.Body)); err != nil {
+	if _, err = c.Response().Write([]byte(response.Body)); err != nil {
 		log.WithError(err).Error("Failed to write response body")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
