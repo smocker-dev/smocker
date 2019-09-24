@@ -4,13 +4,13 @@ services:
   - docker
 
 script:
-  - make VERSION=$TRAVIS_TAG build-docker
+  - make VERSION=$TRAVIS_BRANCH build-docker
 
 before_deploy:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
 deploy:
   provider: script
-  script: make VERSION=$TRAVIS_TAG deploy-docker
+  script: make VERSION=$TRAVIS_BRANCH deploy-docker
   on:
     tags: true
