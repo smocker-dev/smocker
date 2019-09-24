@@ -7,15 +7,17 @@
 
 smocker (server mock) is a simple and efficient HTTP mock server.
 
+The documentation is available on the [project's wiki](https://github.com/Thiht/smocker/wiki).
+
 ## Table of contents
 
-* [Installation](#installation)
-  * [With Docker](#with-docker)
-  * [Healthcheck](#healthcheck)
-* [Usage](#usage)
-  * [Hello, World!](#hello-world)
-* [Development](#development)
-  * [Integration Tests](#integration-tests)
+- [Installation](#installation)
+  - [With Docker](#with-docker)
+  - [Healthcheck](#healthcheck)
+- [Usage](#usage)
+  - [Hello, World!](#hello-world)
+- [Development](#development)
+  - [Integration Tests](#integration-tests)
 
 ## Installation
 
@@ -49,6 +51,7 @@ To register a mock, you can use the YAML and the JSON formats. A basic mock migh
 
 ```yaml
 # helloworld.yml
+# This mock register two routes: GET /hello/world and GET /foo/bar
 - request:
     # Note: the method could be omitted because GET is the default
     method: GET
@@ -62,6 +65,12 @@ To register a mock, you can use the YAML and the JSON formats. A basic mock migh
       {
         "hello": "Hello, World!"
       }
+
+- request:
+    method: GET
+    path: /foo/bar
+  response:
+    status: 204
 ```
 
 You can then register it to the configuration server with the following command:
@@ -86,6 +95,14 @@ Content-Length: 31
   "hello": "Hello, World!"
 }
 ```
+
+To cleanup the mock server without restarting it, you can execute the following command:
+
+```sh
+curl -XPOST localhost:8081/reset
+```
+
+For more advanced usage, please read the [project's documentation](https://github.com/Thiht/smocker/wiki).
 
 ## Development
 
