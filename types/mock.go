@@ -2,18 +2,12 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
-	"net/url"
-	"sort"
 	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	GoTemplateEngineKey = "go_template"
-	LuaEngineKey        = "lua"
 )
 
 type Mocks []*Mock
@@ -34,21 +28,24 @@ func (m *Mock) Validate() error {
 	}
 
 	m.Request.Path.Value = strings.TrimSpace(m.Request.Path.Value)
+	if m.Request.Path.Value == "" {
+		return errors.New("The request must define at least a path")
+	}
+
 	m.Request.Method.Value = strings.TrimSpace(m.Request.Method.Value)
-	if m.Request.Path.Value == "" || m.Request.Method.Value == "" {
-		return errors.New("The request must define at least a path and a method")
+	if m.Request.Method.Value == "" {
+		// Fallback to GET
+		m.Request.Method = StringMatcher{
+			Matcher: DefaultMatcher,
+			Value:   http.MethodGet,
+		}
 	}
 
-	if m.Response != nil && m.Response.Status == 0 {
-		return errors.New("The response must define at least a status")
-	} else if m.DynamicResponse != nil && m.DynamicResponse.Engine != GoTemplateEngineKey && m.DynamicResponse.Engine != LuaEngineKey {
-		return errors.New("The dynamic response engine must be equal to either '" + GoTemplateEngineKey + "' or '" + LuaEngineKey + "'")
+	if m.DynamicResponse != nil && !m.DynamicResponse.Engine.IsValid() {
+		return fmt.Errorf("The dynamic response engine must be equal to one of the followings: %v", TemplateEngines)
 	}
+
 	return nil
-}
-
-func (m *Mock) MatchRequest(req Request) bool {
-	return m.Request.Match(req)
 }
 
 type MockRequest struct {
@@ -90,34 +87,6 @@ type MockResponse struct {
 }
 
 type DynamicMockResponse struct {
-	Engine string `json:"engine" yaml:"engine"`
+	Engine Engine `json:"engine" yaml:"engine"`
 	Script string `json:"script" yaml:"script"`
-}
-
-type QueryParams url.Values
-
-func (q1 QueryParams) Equals(q2 QueryParams) bool {
-	if len(q1) != len(q2) {
-		return false
-	}
-
-	for k1, v1 := range q1 {
-		v2, ok := q2[k1]
-		if !ok {
-			return false
-		}
-
-		if len(v1) != len(v2) {
-			return false
-		}
-
-		sort.Strings(v1)
-		sort.Strings(v2)
-		for i := 0; i < len(v1); i++ {
-			if v1[i] != v2[i] {
-				return false
-			}
-		}
-	}
-	return true
 }

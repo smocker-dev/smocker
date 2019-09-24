@@ -9,11 +9,12 @@ type TemplateEngine interface {
 }
 
 func GenerateMockResponse(d *types.DynamicMockResponse, request types.Request) *types.MockResponse {
-	var engine TemplateEngine
-	if d.Engine == types.GoTemplateEngineKey {
-		engine = NewGoTemplateEngine()
-	} else if d.Engine == types.LuaEngineKey {
-		engine = NewLuaEngine()
+	switch d.Engine {
+	case types.GoTemplateEngineID:
+		return NewGoTemplateEngine().Execute(request, d.Script)
+	case types.LuaEngineID:
+		return NewLuaEngine().Execute(request, d.Script)
+	default:
+		return nil
 	}
-	return engine.Execute(request, d.Script)
 }

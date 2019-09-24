@@ -35,8 +35,11 @@ func NewMockServer(port int) MockServer {
 
 	s.server.HideBanner = true
 	s.server.HidePort = true
-	s.server.Use(middleware.Recover(), middleware.Logger())
-	s.server.Use(s.historyMiddleware())
+	s.server.Use(
+		middleware.Recover(),
+		middleware.Logger(),
+		s.historyMiddleware(),
+	)
 	s.server.Any("/*", s.genericHandler)
 
 	log.WithField("port", port).Info("Starting mock server")
@@ -52,10 +55,11 @@ func NewMockServer(port int) MockServer {
 func (s *mockServer) genericHandler(c echo.Context) error {
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 
-	// Query Params
+	/* Request matching */
+
 	var response *types.MockResponse
 	for _, mock := range s.mocks {
-		if mock.MatchRequest(actualRequest) {
+		if mock.Request.Match(actualRequest) {
 			if mock.DynamicResponse != nil {
 				response = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
 			} else {
@@ -71,6 +75,8 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		})
 	}
 
+	/* Response writing */
+
 	// Headers
 	for key, values := range response.Headers {
 		for _, value := range values {
@@ -82,6 +88,10 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	time.Sleep(response.Delay)
 
 	// Status
+	if response.Status == 0 {
+		// Fallback to 200 OK
+		response.Status = http.StatusOK
+	}
 	c.Response().WriteHeader(response.Status)
 
 	// Body

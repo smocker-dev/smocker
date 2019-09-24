@@ -3,11 +3,9 @@
     path:
       matcher: ShouldMatch
       value: /.*
-    method: GET
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test"}
 -
@@ -19,7 +17,6 @@
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test2"}
 -
@@ -33,7 +30,6 @@
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test3"}
 -
@@ -47,7 +43,6 @@
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test4"}
 -
@@ -65,6 +60,5 @@
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test5"}

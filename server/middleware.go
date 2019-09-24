@@ -46,15 +46,15 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
 			c.Response().Writer = writer
-			err := next(c)
-			if err != nil {
+
+			if err := next(c); err != nil {
 				return err
 			}
+
 			var response map[string]interface{}
-			err = json.Unmarshal(responseBody.Bytes(), &response)
-			if err != nil {
+			if json.Unmarshal(responseBody.Bytes(), &response) != nil {
 				response = map[string]interface{}{
-					"body": string(responseBody.Bytes()),
+					"body": responseBody.String(),
 				}
 			} else {
 				response = map[string]interface{}{

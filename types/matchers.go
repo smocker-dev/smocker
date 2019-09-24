@@ -46,7 +46,7 @@ func ShouldMatch(value interface{}, patterns ...interface{}) string {
 			return "ShouldMatch works only with strings"
 		}
 		if match, err := regexp.MatchString(patternString, valueString); !match || err != nil {
-			return fmt.Sprintf("Expected '%s' to match '%s' (but it didn't)!", valueString, patternString)
+			return fmt.Sprintf("Expected %q to match %q (but it didn't)!", valueString, patternString)
 		}
 	}
 	return ""
@@ -63,7 +63,7 @@ func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
 			return "ShouldNotMatch works only with strings"
 		}
 		if match, err := regexp.MatchString(patternString, valueString); match && err == nil {
-			return fmt.Sprintf("Expected '%s' to not match '%s' (but it did)!", valueString, patternString)
+			return fmt.Sprintf("Expected %q to not match %q (but it did)!", valueString, patternString)
 		}
 	}
 	return ""

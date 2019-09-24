@@ -7,6 +7,16 @@
 
 smocker (server mock) is a simple and efficient HTTP mock server.
 
+## Table of contents
+
+* [Installation](#installation)
+  * [With Docker](#with-docker)
+  * [Healthcheck](#healthcheck)
+* [Usage](#usage)
+  * [Hello, World!](#hello-world)
+* [Development](#development)
+  * [Integration Tests](#integration-tests)
+
 ## Installation
 
 ### With Docker
@@ -33,14 +43,18 @@ smocker exposes two ports:
 - `8080` is the mock server port. It will expose the routes you register through the configuration port
 - `8081` is the configuration port. It's the port you will use to register new mocks
 
+### Hello, World!
+
 To register a mock, you can use the YAML and the JSON formats. A basic mock might look like this:
 
 ```yaml
 # helloworld.yml
 - request:
-    path: /hello/world
+    # Note: the method could be omitted because GET is the default
     method: GET
+    path: /hello/world
   response:
+    # Note: the status could be omitted because 200 is the default
     status: 200
     headers:
       Content-Type: [application/json]
@@ -75,15 +89,15 @@ Content-Length: 31
 
 ## Development
 
-### Integration Test
+### Integration Tests
 
-In order to launch integrations tests, you need to open a terminal and launch smocker:
+In order to launch integrations tests, you must first launch smocker:
 
 ```sh
 make start
 ```
 
-and then open an other terminal an launch venom tests:
+Then, open another terminal and launch the integration tests:
 
 ```sh
 make test

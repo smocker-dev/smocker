@@ -60,7 +60,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 		filter := c.QueryParam("filter")
 		history, err := mockServer.History(filter)
 		if err != nil {
-			log.WithError(err).Error("Failed to retreive history")
+			log.WithError(err).Error("Failed to retrieve history")
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		return c.JSON(http.StatusOK, history)

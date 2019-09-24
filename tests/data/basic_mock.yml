@@ -1,10 +1,8 @@
 -
   request:
     path: /test
-    method: GET
   response:
     headers:
       Content-Type: ["application/json"]
-    status: 200
     body: >
       {"message": "test"}
