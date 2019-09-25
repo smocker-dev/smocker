@@ -70,18 +70,18 @@ func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
 }
 
 type StringMatcher struct {
-	Matcher string
-	Value   string
+	Matcher string `yaml:matcher,flow`
+	Value   string `yaml:value,flow`
 }
 
 func (sm StringMatcher) Match(value string) bool {
 	matcher := asserts[sm.Matcher]
 	if matcher == nil {
-		log.WithField("matcher", sm.Matcher).Error("invalid matcher")
+		log.WithField("matcher", sm.Matcher).Error("Invalid matcher")
 		return false
 	}
 	if res := matcher(value, sm.Value); res != "" {
-		log.Debug(res)
+		log.Debugf("Value does not match:\n%s", res)
 		return false
 	}
 	return true
@@ -121,12 +121,11 @@ func (sm *StringMatcher) UnmarshalJSON(data []byte) error {
 
 func (sm StringMatcher) MarshalYAML() (interface{}, error) {
 	if sm.Matcher == DefaultMatcher {
-		value, err := yaml.Marshal(sm.Value)
-		return string(value), err
+		return sm.Value, nil
 	}
 	value, err := yaml.Marshal(&struct {
-		Matcher string `yaml:"matcher"`
-		Value   string `yaml:"value"`
+		Matcher string `yaml:"matcher,flow"`
+		Value   string `yaml:"value,flow"`
 	}{
 		Matcher: sm.Matcher,
 		Value:   sm.Value,
@@ -161,7 +160,7 @@ type MultiMapMatcher struct {
 func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 	matcher := asserts[mm.Matcher]
 	if matcher == nil {
-		log.WithField("matcher", mm.Matcher).Error("invalid matcher")
+		log.WithField("matcher", mm.Matcher).Error("Invalid matcher")
 		return false
 	}
 
@@ -172,7 +171,7 @@ func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 		}
 		for i, value := range matchingValues {
 			if res := matcher(expectedValues[i], value); res != "" {
-				log.Debug(res)
+				log.Debugf("Value of key '%s' does not match:\n%s", key, res)
 				return false
 			}
 		}
@@ -218,7 +217,7 @@ func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
 		return string(value), err
 	}
 	value, err := yaml.Marshal(&struct {
-		Matcher string              `yaml:"matcher"`
+		Matcher string              `yaml:"matcher,flow"`
 		Values  map[string][]string `yaml:"values"`
 	}{
 		Matcher: mm.Matcher,
@@ -235,7 +234,7 @@ func (mm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) erro
 		return nil
 	}
 	var res struct {
-		Matcher string              `yaml:"matcher"`
+		Matcher string              `yaml:"matcher,flow"`
 		Values  map[string][]string `yaml:"values"`
 	}
 	if err := unmarshal(&res); err != nil {

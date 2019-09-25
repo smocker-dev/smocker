@@ -14,8 +14,8 @@ type Mocks []*Mock
 
 type Mock struct {
 	Request         MockRequest          `json:"request,omitempty" yaml:"request"`
-	Response        *MockResponse        `json:"response,omitempty" yaml:"response"`
-	DynamicResponse *DynamicMockResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response"`
+	Response        *MockResponse        `json:"response,omitempty" yaml:"response,omitempty"`
+	DynamicResponse *DynamicMockResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response,omitempty"`
 }
 
 func (m *Mock) Validate() error {
@@ -58,23 +58,23 @@ type MockRequest struct {
 
 func (mr MockRequest) Match(req Request) bool {
 	matchPath := mr.Path.Match(req.Path)
-	log.WithField("match", matchPath).Debug("is matching request path")
+	log.WithField("match", matchPath).Debug("Is matching request path")
 	matchMethod := mr.Method.Match(req.Method)
-	log.WithField("match", matchMethod).Debug("is matching request method")
+	log.WithField("match", matchMethod).Debug("Is matching request method")
 	matchBody := true
 	if mr.Body != nil {
 		matchBody = mr.Body.Match(req.Body)
-		log.WithField("match", matchBody).Debug("is matching request body")
+		log.WithField("match", matchBody).Debug("Is matching request body")
 	}
 	matchQueryParams := true
 	if mr.QueryParams != nil {
 		matchQueryParams = mr.QueryParams.Match(req.QueryParams)
-		log.WithField("match", matchQueryParams).Debug("is matching request query parameters")
+		log.WithField("match", matchQueryParams).Debug("Is matching request query parameters")
 	}
 	matchHeaders := true
 	if mr.Headers != nil {
 		matchHeaders = mr.Headers.Match(req.Headers)
-		log.WithField("match", matchHeaders).Debug("is matching request headers")
+		log.WithField("match", matchHeaders).Debug("Is matching request headers")
 	}
 	return matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
 }

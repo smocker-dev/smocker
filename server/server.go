@@ -7,9 +7,13 @@ import (
 
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+)
+
+const (
+	MIMEApplicationXYaml = "application/x-yaml"
+	JSONIndent           = "    "
 )
 
 func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
@@ -19,10 +23,21 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	e.Use(middleware.Recover(), middleware.Logger())
+	e.Use(recoverMiddleware(), loggerMiddleware())
 	e.GET("/mocks", func(c echo.Context) error {
-		// TODO: this should be served in YAML depending on the Accept header
-		return c.JSON(http.StatusOK, mockServer.Mocks())
+		mocks := mockServer.Mocks()
+		accept := c.Request().Header.Get(echo.HeaderAccept)
+		if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
+			c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
+			c.Response().WriteHeader(http.StatusOK)
+			out, err := yaml.Marshal(mocks)
+			if err != nil {
+				return err
+			}
+			_, err = c.Response().Write(out)
+			return err
+		}
+		return c.JSONPretty(http.StatusOK, mocks, JSONIndent)
 	})
 	e.POST("/mocks", func(c echo.Context) error {
 		var mocks []*types.Mock
@@ -34,7 +49,8 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 
 			// echo doesn't support YAML yet
 			req := c.Request()
-			if strings.HasPrefix(req.Header.Get(echo.HeaderContentType), "application/x-yaml") {
+			contentType := req.Header.Get(echo.HeaderContentType)
+			if strings.Contains(strings.ToLower(contentType), MIMEApplicationXYaml) {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
@@ -63,7 +79,18 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			log.WithError(err).Error("Failed to retrieve history")
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		return c.JSON(http.StatusOK, history)
+		accept := c.Request().Header.Get(echo.HeaderAccept)
+		if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
+			c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
+			c.Response().WriteHeader(http.StatusOK)
+			out, err := yaml.Marshal(history)
+			if err != nil {
+				return err
+			}
+			_, err = c.Response().Write(out)
+			return err
+		}
+		return c.JSONPretty(http.StatusOK, history, JSONIndent)
 	})
 	e.POST("/reset", func(c echo.Context) error {
 		mockServer.Reset()

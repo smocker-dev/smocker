@@ -17,19 +17,17 @@ type Entry struct {
 }
 
 type Request struct {
-	Path        string         `json:"path"`
-	Method      string         `json:"method"`
-	Body        string         `json:"body,omitempty"`
-	QueryParams url.Values     `json:"query_params,omitempty"`
-	Headers     http.Header    `json:"headers,omitempty"`
-	Cookies     []*http.Cookie `json:"cookies,omitempty"`
+	Path        string      `json:"path"`
+	Method      string      `json:"method"`
+	Body        string      `json:"body,omitempty" yaml:"body,omitempty"`
+	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
+	Headers     http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 type Response struct {
-	Body       map[string]interface{} `json:"body,omitempty"`
-	StatusCode int                    `json:"status_code"`
-	Headers    http.Header            `json:"headers,omitempty"`
-	Cookies    []*http.Cookie         `json:"cookies,omitempty"`
+	Status  int         `json:"status"`
+	Body    interface{} `json:"body,omitempty" yaml:"body,omitempty"`
+	Headers http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 func HTTPRequestToRequest(req *http.Request) Request {
@@ -48,6 +46,5 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		Body:        string(body),
 		QueryParams: req.URL.Query(),
 		Headers:     req.Header,
-		Cookies:     req.Cookies(),
 	}
 }

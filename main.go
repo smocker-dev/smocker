@@ -33,15 +33,16 @@ func parseConfig() (c config) {
 
 func setupLogger(logLevel string) {
 	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
+		FullTimestamp:    true,
+		QuoteEmptyFields: true,
 	})
 
 	level, err := log.ParseLevel(logLevel)
 	if err != nil {
-		log.WithError(err).WithField("level", level).Warn("Invalid log level, fallback to info")
+		log.WithError(err).WithField("log-level", level).Warn("Invalid log level, fallback to info")
 		level = log.InfoLevel
 	}
-	log.WithField("level", level).Info("Setting log level")
+	log.WithField("log-level", level).Info("Setting log level")
 	log.SetLevel(level)
 }
 

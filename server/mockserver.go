@@ -9,8 +9,8 @@ import (
 	"github.com/Thiht/smocker/templates"
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 type MockServer interface {
@@ -35,11 +35,7 @@ func NewMockServer(port int) MockServer {
 
 	s.server.HideBanner = true
 	s.server.HidePort = true
-	s.server.Use(
-		middleware.Recover(),
-		middleware.Logger(),
-		s.historyMiddleware(),
-	)
+	s.server.Use(recoverMiddleware(), loggerMiddleware(), s.historyMiddleware())
 	s.server.Any("/*", s.genericHandler)
 
 	log.WithField("port", port).Info("Starting mock server")
@@ -54,15 +50,19 @@ func NewMockServer(port int) MockServer {
 
 func (s *mockServer) genericHandler(c echo.Context) error {
 	actualRequest := types.HTTPRequestToRequest(c.Request())
+	b, _ := yaml.Marshal(actualRequest)
+	log.Debugf("Received request:\n---\n%s\n", string(b))
 
 	/* Request matching */
 
 	var (
-		response *types.MockResponse
-		err      error
+		matchingMock *types.Mock
+		response     *types.MockResponse
+		err          error
 	)
 	for _, mock := range s.mocks {
 		if mock.Request.Match(actualRequest) {
+			matchingMock = mock
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
 				if err != nil {
@@ -75,6 +75,9 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 				response = mock.Response
 			}
 			break
+		} else {
+			b, _ = yaml.Marshal(mock)
+			log.Debugf("Skipping mock:\n---\n%s\n", string(b))
 		}
 	}
 	if response == nil {
@@ -108,7 +111,10 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		log.WithError(err).Error("Failed to write response body")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-
+	b, _ = yaml.Marshal(matchingMock)
+	log.Debugf("Matching mock:\n---\n%s\n", string(b))
+	b, _ = yaml.Marshal(response)
+	log.Debugf("Returned response:\n---\n%s\n", string(b))
 	return nil
 }
 
