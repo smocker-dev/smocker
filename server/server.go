@@ -26,18 +26,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.Use(recoverMiddleware(), loggerMiddleware())
 	e.GET("/mocks", func(c echo.Context) error {
 		mocks := mockServer.Mocks()
-		accept := c.Request().Header.Get(echo.HeaderAccept)
-		if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
-			c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
-			c.Response().WriteHeader(http.StatusOK)
-			out, err := yaml.Marshal(mocks)
-			if err != nil {
-				return err
-			}
-			_, err = c.Response().Write(out)
-			return err
-		}
-		return c.JSONPretty(http.StatusOK, mocks, JSONIndent)
+		return respondAccordingAccept(c, mocks)
 	})
 	e.POST("/mocks", func(c echo.Context) error {
 		var mocks []*types.Mock
@@ -95,7 +84,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			response["message"] = "Some mocks doesn't match expectations"
 			response["mocks"] = failedMocks
 		}
-		return c.JSON(http.StatusOK, response)
+		return respondAccordingAccept(c, response)
 	})
 	e.GET("/history", func(c echo.Context) error {
 		filter := c.QueryParam("filter")
@@ -104,18 +93,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			log.WithError(err).Error("Failed to retrieve history")
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		accept := c.Request().Header.Get(echo.HeaderAccept)
-		if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
-			c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
-			c.Response().WriteHeader(http.StatusOK)
-			out, err := yaml.Marshal(history)
-			if err != nil {
-				return err
-			}
-			_, err = c.Response().Write(out)
-			return err
-		}
-		return c.JSONPretty(http.StatusOK, history, JSONIndent)
+		return respondAccordingAccept(c, history)
 	})
 	e.POST("/reset", func(c echo.Context) error {
 		mockServer.Reset()
@@ -131,4 +109,19 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	if err := e.Start(":" + strconv.Itoa(configListenPort)); err != nil {
 		log.WithError(err).Fatal("Config server execution failed")
 	}
+}
+
+func respondAccordingAccept(c echo.Context, body interface{}) error {
+	accept := c.Request().Header.Get(echo.HeaderAccept)
+	if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
+		c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
+		c.Response().WriteHeader(http.StatusOK)
+		out, err := yaml.Marshal(body)
+		if err != nil {
+			return err
+		}
+		_, err = c.Response().Write(out)
+		return err
+	}
+	return c.JSONPretty(http.StatusOK, body, JSONIndent)
 }
