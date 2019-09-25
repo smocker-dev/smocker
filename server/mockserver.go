@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Thiht/smocker/templates"
@@ -24,6 +25,7 @@ type mockServer struct {
 	server  *echo.Echo
 	mocks   types.Mocks
 	history types.History
+	mu      sync.Mutex
 }
 
 func NewMockServer(port int) MockServer {
@@ -49,6 +51,9 @@ func NewMockServer(port int) MockServer {
 }
 
 func (s *mockServer) genericHandler(c echo.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
 	log.Debugf("Received request:\n---\n%s\n", string(b))
@@ -135,14 +140,20 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 }
 
 func (s *mockServer) AddMock(newMock *types.Mock) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.mocks = append(types.Mocks{newMock}, s.mocks...)
 }
 
 func (s *mockServer) Mocks() types.Mocks {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.mocks
 }
 
 func (s *mockServer) History(filterPath string) (types.History, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	res := types.History{}
 	regex, err := regexp.Compile(filterPath)
 	if err != nil {
@@ -157,6 +168,8 @@ func (s *mockServer) History(filterPath string) (types.History, error) {
 }
 
 func (s *mockServer) Reset() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.mocks = types.Mocks{}
 	s.history = types.History{}
 }
