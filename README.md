@@ -117,5 +117,5 @@ make start
 Then, open another terminal and launch the integration tests:
 
 ```sh
-make test
+make test-integration
 ```

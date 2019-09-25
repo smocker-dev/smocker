@@ -40,15 +40,18 @@ func ShouldMatch(value interface{}, patterns ...interface{}) string {
 	if !ok {
 		return "ShouldMatch works only with strings"
 	}
+
 	for _, pattern := range patterns {
 		patternString, ok := pattern.(string)
 		if !ok {
 			return "ShouldMatch works only with strings"
 		}
+
 		if match, err := regexp.MatchString(patternString, valueString); !match || err != nil {
 			return fmt.Sprintf("Expected %q to match %q (but it didn't)!", valueString, patternString)
 		}
 	}
+
 	return ""
 }
 
@@ -57,15 +60,18 @@ func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
 	if !ok {
 		return "ShouldNotMatch works only with strings"
 	}
+
 	for _, pattern := range patterns {
 		patternString, ok := pattern.(string)
 		if !ok {
 			return "ShouldNotMatch works only with strings"
 		}
+
 		if match, err := regexp.MatchString(patternString, valueString); match && err == nil {
 			return fmt.Sprintf("Expected %q to not match %q (but it did)!", valueString, patternString)
 		}
 	}
+
 	return ""
 }
 
@@ -80,10 +86,12 @@ func (sm StringMatcher) Match(value string) bool {
 		log.WithField("matcher", sm.Matcher).Error("Invalid matcher")
 		return false
 	}
+
 	if res := matcher(value, sm.Value); res != "" {
 		log.Debugf("Value does not match:\n%s", res)
 		return false
 	}
+
 	return true
 }
 
@@ -91,6 +99,7 @@ func (sm StringMatcher) MarshalJSON() ([]byte, error) {
 	if sm.Matcher == DefaultMatcher {
 		return json.Marshal(sm.Value)
 	}
+
 	return json.Marshal(&struct {
 		Matcher string `json:"matcher"`
 		Value   string `json:"value"`
@@ -107,13 +116,16 @@ func (sm *StringMatcher) UnmarshalJSON(data []byte) error {
 		sm.Value = s
 		return nil
 	}
+
 	var res struct {
 		Matcher string `json:"matcher"`
 		Value   string `json:"value"`
 	}
+
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
+
 	sm.Matcher = res.Matcher
 	sm.Value = res.Value
 	return nil
@@ -123,6 +135,7 @@ func (sm StringMatcher) MarshalYAML() (interface{}, error) {
 	if sm.Matcher == DefaultMatcher {
 		return sm.Value, nil
 	}
+
 	value, err := yaml.Marshal(&struct {
 		Matcher string `yaml:"matcher,flow"`
 		Value   string `yaml:"value,flow"`
@@ -130,6 +143,7 @@ func (sm StringMatcher) MarshalYAML() (interface{}, error) {
 		Matcher: sm.Matcher,
 		Value:   sm.Value,
 	})
+
 	return string(value), err
 }
 
@@ -140,13 +154,16 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 		sm.Value = s
 		return nil
 	}
+
 	var res struct {
 		Matcher string `yaml:"matcher"`
 		Value   string `yaml:"value"`
 	}
+
 	if err := unmarshal(&res); err != nil {
 		return err
 	}
+
 	sm.Matcher = res.Matcher
 	sm.Value = res.Value
 	return nil
@@ -169,6 +186,7 @@ func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 		if !ok || len(matchingValues) > len(expectedValues) {
 			return false
 		}
+
 		for i, value := range matchingValues {
 			if res := matcher(expectedValues[i], value); res != "" {
 				log.Debugf("Value of key '%s' does not match:\n%s", key, res)
@@ -176,6 +194,7 @@ func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 			}
 		}
 	}
+
 	return true
 }
 
@@ -199,6 +218,7 @@ func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
 		mm.Values = v
 		return nil
 	}
+
 	var res struct {
 		Matcher string              `json:"matcher"`
 		Values  map[string][]string `json:"values"`
@@ -206,6 +226,7 @@ func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
+
 	mm.Matcher = res.Matcher
 	mm.Values = res.Values
 	return nil
@@ -216,6 +237,7 @@ func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
 		value, err := yaml.Marshal(mm.Values)
 		return string(value), err
 	}
+
 	value, err := yaml.Marshal(&struct {
 		Matcher string              `yaml:"matcher,flow"`
 		Values  map[string][]string `yaml:"values"`
@@ -223,6 +245,7 @@ func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
 		Matcher: mm.Matcher,
 		Values:  mm.Values,
 	})
+
 	return string(value), err
 }
 

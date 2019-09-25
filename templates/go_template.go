@@ -29,24 +29,26 @@ func (*goTemplateEngine) Execute(request types.Request, script string) (*types.M
 		return nil, fmt.Errorf("failed to execute dynamic template: %w", err)
 	}
 
-	var tmp map[string]interface{}
-	if err = json.Unmarshal(buffer.Bytes(), &tmp); err != nil {
+	var tmplResult map[string]interface{}
+	if err = json.Unmarshal(buffer.Bytes(), &tmplResult); err != nil {
 		log.WithError(err).Error("Failed to unmarshal response from dynamic template")
-		return nil, fmt.Errorf("failed to unmarshal response from dynamic template: %w")
+		return nil, fmt.Errorf("failed to unmarshal response from dynamic template: %w", err)
 	}
 
-	body := tmp["body"]
+	body := tmplResult["body"]
 	if _, ok := body.(string); !ok {
+		// FIXME: this should depend on the Content-Type of the tmplResult
 		b, err := json.Marshal(body)
 		if err != nil {
-			log.WithError(err).Error("Failed to unmarshal response as json")
+			log.WithError(err).Error("Failed to marshal response body as JSON")
+			return nil, fmt.Errorf("failed to marshal response body as JSON: %w", err)
 		}
-		tmp["body"] = string(b)
+		tmplResult["body"] = string(b)
 	}
 
-	b, err := json.Marshal(tmp)
+	b, err := json.Marshal(tmplResult)
 	if err != nil {
-		log.WithError(err).Error("Failed to escape json")
+		log.WithError(err).Error("Failed to marshal template result as JSON")
 	}
 
 	var result types.MockResponse

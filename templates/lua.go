@@ -56,15 +56,16 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 		return nil, fmt.Errorf("failed to execute Lua script: %w", err)
 	}
 
-	tmp := luaState.Get(-1).(*lua.LTable)
-	body := tmp.RawGetString("body")
+	luaResult := luaState.Get(-1).(*lua.LTable)
+	body := luaResult.RawGetString("body")
 	if body.Type() == lua.LTTable {
+		// FIXME: this should depend on the Content-Type of the luaResult
 		b, _ := json.Encode(body)
-		tmp.RawSetString("body", lua.LString(string(b)))
+		luaResult.RawSetString("body", lua.LString(string(b)))
 	}
 
 	var result types.MockResponse
-	if err := gluamapper.Map(tmp, &result); err != nil {
+	if err := gluamapper.Map(luaResult, &result); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
 		return nil, fmt.Errorf("invalid result from Lua script: %w", err)
 	}

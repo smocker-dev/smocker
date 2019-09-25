@@ -52,7 +52,11 @@ lint: $(GOLANGCILINT)
 	golangci-lint run
 
 .PHONY: test
-test: $(VENOM)
+test:
+	go test ./...
+
+.PHONY: test-integration
+test-integration: $(VENOM)
 	venom run tests/features/*.yml
 
 .PHONY: deploy-docker
