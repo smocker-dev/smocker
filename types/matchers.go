@@ -76,8 +76,8 @@ func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
 }
 
 type StringMatcher struct {
-	Matcher string `yaml:matcher,flow`
-	Value   string `yaml:value,flow`
+	Matcher string
+	Value   string
 }
 
 func (sm StringMatcher) Match(value string) bool {
@@ -156,8 +156,8 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	}
 
 	var res struct {
-		Matcher string `yaml:"matcher"`
-		Value   string `yaml:"value"`
+		Matcher string `yaml:"matcher,flow"`
+		Value   string `yaml:"value,flow"`
 	}
 
 	if err := unmarshal(&res); err != nil {
