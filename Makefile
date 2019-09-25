@@ -13,6 +13,9 @@ GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 DOCKER_ACCOUNT:=thiht
 DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 
+.PHONY: default
+default: clean test lint build
+
 REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
 	go get github.com/cespare/reflex
