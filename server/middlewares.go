@@ -150,7 +150,7 @@ func recoverWithConfig(config middleware.RecoverConfig) echo.MiddlewareFunc {
 					stack := make([]byte, config.StackSize)
 					length := runtime.Stack(stack, !config.DisableStackAll)
 					if !config.DisablePrintStack {
-						log.WithError(err).WithField("stack", fmt.Sprintf("%s", stack[:length])).Error("[PANIC RECOVER]")
+						log.WithError(err).Errorf("[PANIC RECOVER] %s", stack[:length])
 					}
 					c.Error(err)
 				}

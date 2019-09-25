@@ -65,12 +65,37 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			}
 		}
 		for _, mock := range mocks {
+			mock.State = &types.MockState{}
+			if mock.Context == nil {
+				mock.Context = &types.MockContext{}
+			}
 			mockServer.AddMock(mock)
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "Mocks registered successfully",
 		})
+	})
+	e.POST("/mocks/verify", func(c echo.Context) error {
+		mocks := mockServer.Mocks()
+		failedMocks := types.Mocks{}
+		for _, mock := range mocks {
+			if mock.Context.Times > 0 && mock.Context.Times != mock.State.TimesCount {
+				failedMocks = append(failedMocks, mock)
+			}
+		}
+
+		verified := len(failedMocks) == 0
+		response := echo.Map{
+			"verified": verified,
+		}
+		if verified {
+			response["message"] = "All mocks match expectations"
+		} else {
+			response["message"] = "Some mocks doesn't match expectations"
+			response["mocks"] = failedMocks
+		}
+		return c.JSON(http.StatusOK, response)
 	})
 	e.GET("/history", func(c echo.Context) error {
 		filter := c.QueryParam("filter")

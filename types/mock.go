@@ -15,6 +15,8 @@ type Mocks []*Mock
 type Mock struct {
 	Request         MockRequest          `json:"request,omitempty" yaml:"request"`
 	Response        *MockResponse        `json:"response,omitempty" yaml:"response,omitempty"`
+	Context         *MockContext         `json:"context,omitempty" yaml:"context,omitempty"`
+	State           *MockState           `json:"state,omitempty" yaml:"state,omitempty"`
 	DynamicResponse *DynamicMockResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response,omitempty"`
 }
 
@@ -43,6 +45,10 @@ func (m *Mock) Validate() error {
 
 	if m.DynamicResponse != nil && !m.DynamicResponse.Engine.IsValid() {
 		return fmt.Errorf("The dynamic response engine must be equal to one of the followings: %v", TemplateEngines)
+	}
+
+	if m.Context != nil && m.Context.Times < 0 {
+		return fmt.Errorf("The times field in mock context must be greater or equal to 0")
 	}
 
 	return nil
@@ -89,4 +95,11 @@ type MockResponse struct {
 type DynamicMockResponse struct {
 	Engine Engine `json:"engine" yaml:"engine"`
 	Script string `json:"script" yaml:"script"`
+}
+
+type MockContext struct {
+	Times int `json:"times,omitempty" yaml:"times,omitempty"`
+}
+type MockState struct {
+	TimesCount int `json:"times_count" yaml:"times_count"`
 }

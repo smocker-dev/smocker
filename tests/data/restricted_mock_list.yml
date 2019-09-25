@@ -1,0 +1,42 @@
+-
+  request:
+    path: /test
+    method: GET
+  context:
+    times: 1
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    body: >
+      {"message": "test"}
+-
+  request:
+    path: /test
+    method: GET
+  context:
+    times: 1
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    body: >
+      {"message": "test2"}
+-
+  request:
+    path: /test
+    method: POST
+  context:
+    times: 2
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    body: >
+      {"message": "test3"}
+-
+  request:
+    path: /test
+    method: PUT
+  response:
+    headers:
+      Content-Type: ["application/json"]
+    body: >
+      {"message": "test4"}

@@ -1,0 +1,97 @@
+
+name: Use and verify resticted mocks
+version: "2"
+testcases:
+- name: Use restricted mocks
+  steps:
+  - type: http
+    method: POST
+    url: http://localhost:8081/reset
+  - type: http
+    method: POST
+    url: http://localhost:8081/mocks
+    headers:
+      Content-Type: "application/x-yaml"
+    bodyFile: ../data/restricted_mock_list.yml
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
+  # 'test' and 'test2' should match 1 times each
+  # 'test2' is loaded after 'test' so it will come out first
+  - type: http
+    method: GET
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test2
+  - type: http
+    method: GET
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test
+
+  # 'test3' should match 2 times
+  - type: http
+    method: POST
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test3
+  - type: http
+    method: POST
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test3
+
+  # 'test4' should match any times
+  - type: http
+    method: PUT
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test4
+  - type: http
+    method: PUT
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test4
+  - type: http
+    method: PUT
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual test4
+
+  # The mocks should be verified
+  - type: http
+    method: POST
+    url: http://localhost:8081/mocks/verify
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual "All mocks match expectations"
+    - result.bodyjson.verified ShouldBeTrue
+
+  # We add an extra call to 'test'/'test2' wich should failed because call times was exceeded
+  - type: http
+    method: GET
+    url: http://localhost:8080/test
+    assertions:
+    - result.statuscode ShouldEqual 404
+    - result.bodyjson.message ShouldEqual "Matching mock found but was exceeded"
+    # both 'test' and 'test2' would have both matched if they had not exceeded their times count.
+    - result.bodyjson.nearest.__len__ ShouldEqual 2
+
+  # After the extra call the expectations should failed
+  - type: http
+    method: POST
+    url: http://localhost:8081/mocks/verify
+    assertions:
+    - result.statuscode ShouldEqual 200
+    - result.bodyjson.message ShouldEqual "Some mocks doesn't match expectations"
+    - result.bodyjson.verified ShouldBeFalse
+    - result.bodyjson.mocks.__len__ ShouldEqual 2
+

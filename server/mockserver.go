@@ -60,9 +60,16 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		response     *types.MockResponse
 		err          error
 	)
+	exceededMocks := types.Mocks{}
 	for _, mock := range s.mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
+			if matchingMock.Context.Times > 0 && matchingMock.State.TimesCount >= matchingMock.Context.Times {
+				b, _ = yaml.Marshal(mock)
+				log.Debugf("Times exceeded, skipping mock:\n---\n%s\n", string(b))
+				exceededMocks = append(exceededMocks, mock)
+				continue
+			}
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
 				if err != nil {
@@ -74,6 +81,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 			} else {
 				response = mock.Response
 			}
+			matchingMock.State.TimesCount++
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -81,10 +89,18 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		}
 	}
 	if response == nil {
-		return c.JSON(http.StatusNotFound, echo.Map{
+		resp := echo.Map{
 			"message": "No mock found matching the request",
 			"request": actualRequest,
-		})
+		}
+		if len(exceededMocks) > 0 {
+			for _, mock := range exceededMocks {
+				mock.State.TimesCount++
+			}
+			resp["message"] = "Matching mock found but was exceeded"
+			resp["nearest"] = exceededMocks
+		}
+		return c.JSON(http.StatusNotFound, resp)
 	}
 
 	/* Response writing */
