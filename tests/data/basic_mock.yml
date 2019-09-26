@@ -1,5 +1,4 @@
--
-  request:
+- request:
     path: /test
   response:
     headers:

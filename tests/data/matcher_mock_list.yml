@@ -1,5 +1,4 @@
--
-  request:
+- request:
     path:
       matcher: ShouldMatch
       value: /.*
@@ -8,19 +7,17 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test"}
--
-  request:
+- request:
     path: /test
     method:
-        matcher: ShouldContainSubstring
-        value: PO
+      matcher: ShouldContainSubstring
+      value: PO
   response:
     headers:
       Content-Type: ["application/json"]
     body: >
       {"message": "test2"}
--
-  request:
+- request:
     path: /test
     method: DELETE
     body:
@@ -32,8 +29,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test3"}
--
-  request:
+- request:
     path: /test
     method: PUT
     headers:
@@ -45,8 +41,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test4"}
--
-  request:
+- request:
     path: /test
     method: PATCH
     query_params:

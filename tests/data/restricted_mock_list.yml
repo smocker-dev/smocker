@@ -1,5 +1,4 @@
--
-  request:
+- request:
     path: /test
     method: GET
   context:
@@ -9,8 +8,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test"}
--
-  request:
+- request:
     path: /test
     method: GET
   context:
@@ -20,8 +18,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test2"}
--
-  request:
+- request:
     path: /test
     method: POST
   context:
@@ -31,8 +28,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test3"}
--
-  request:
+- request:
     path: /test
     method: PUT
   response:

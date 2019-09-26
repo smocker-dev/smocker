@@ -38,15 +38,3 @@
         {
           "message": "request path: {{.Request.Path}}"
         }
-
-- # Go Template mock with body as json
-  request:
-    path: /test4
-  dynamic_response:
-    engine: go_template
-    script: >
-      headers:
-        Content-Type: [application/json]
-      body: {
-        "message": "request path: {{.Request.Path}}"
-      }
