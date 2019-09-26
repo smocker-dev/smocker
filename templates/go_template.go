@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/Thiht/smocker/types"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -17,7 +18,7 @@ func NewGoTemplateEngine() TemplateEngine {
 }
 
 func (*goTemplateEngine) Execute(request types.Request, script string) (*types.MockResponse, error) {
-	tmpl, err := template.New("engine").Parse(script)
+	tmpl, err := template.New("engine").Funcs(sprig.TxtFuncMap()).Parse(script)
 	if err != nil {
 		log.WithError(err).Error("Failed to parse dynamic template")
 		return nil, fmt.Errorf("failed to parse dynamic template: %w", err)
