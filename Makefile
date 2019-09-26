@@ -37,6 +37,10 @@ start: $(REFLEX)
 		--inverse-regex='^vendor/' \
 		-- go run $(GO_LDFLAGS) main.go --log-level=debug
 
+.PHONY: start-docker
+start-docker:
+	docker run -d -p 8080:8080 -p 8081:8081 --name smocker $(DOCKER_IMAGE):$(VERSION)
+
 .PHONY: build
 build:
 	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
@@ -56,7 +60,7 @@ lint: $(GOLANGCILINT)
 
 .PHONY: test
 test:
-	go test ./...
+	go test -v ./...
 
 .PHONY: test-integration
 test-integration: $(VENOM)
