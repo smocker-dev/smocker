@@ -8,6 +8,7 @@ import (
 
 	"github.com/Thiht/smocker/types"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 )
 
 type goTemplateEngine struct{}
@@ -30,7 +31,7 @@ func (*goTemplateEngine) Execute(request types.Request, script string) (*types.M
 	}
 
 	var tmplResult map[string]interface{}
-	if err = json.Unmarshal(buffer.Bytes(), &tmplResult); err != nil {
+	if err = yaml.Unmarshal(buffer.Bytes(), &tmplResult); err != nil {
 		log.WithError(err).Error("Failed to unmarshal response from dynamic template")
 		return nil, fmt.Errorf("failed to unmarshal response from dynamic template: %w", err)
 	}
@@ -46,13 +47,13 @@ func (*goTemplateEngine) Execute(request types.Request, script string) (*types.M
 		tmplResult["body"] = string(b)
 	}
 
-	b, err := json.Marshal(tmplResult)
+	b, err := yaml.Marshal(tmplResult)
 	if err != nil {
-		log.WithError(err).Error("Failed to marshal template result as JSON")
+		log.WithError(err).Error("Failed to marshal template result as YAML")
 	}
 
 	var result types.MockResponse
-	if err = json.Unmarshal(b, &result); err != nil {
+	if err = yaml.Unmarshal(b, &result); err != nil {
 		log.WithError(err).Error("Failed to unmarshal response as mock response")
 	}
 
