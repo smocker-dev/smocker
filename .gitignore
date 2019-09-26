@@ -1,2 +1,6 @@
 .vscode/
 build/
+node_modules
+elm-stuff
+.cache
+client/dist/
