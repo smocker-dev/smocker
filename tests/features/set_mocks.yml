@@ -1,108 +1,104 @@
-
 name: Set mocks into smocker
 version: "2"
 testcases:
-- name: Add basic mock
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/basic_mock.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8081/mocks
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.__len__ ShouldEqual 1
-    - result.bodyjson.bodyjson0.request.method ShouldEqual GET
+  - name: Add basic mock
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/basic_mock.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
 
-- name: Add basic mock list
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/basic_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8081/mocks
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.__len__ ShouldEqual 3
+  - name: Add basic mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/basic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
 
-    # Mocks are stored as a stack
-    - result.bodyjson.bodyjson2.request.method ShouldEqual GET
-    - result.bodyjson.bodyjson1.request.method ShouldEqual POST
-    - result.bodyjson.bodyjson0.request.method ShouldEqual DELETE
+          # Mocks are stored as a stack
+          - result.bodyjson.bodyjson2.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson1.request.method ShouldEqual POST
+          - result.bodyjson.bodyjson0.request.method ShouldEqual DELETE
 
-- name: Add mocks with matchers
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/matcher_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8081/mocks
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.__len__ ShouldEqual 5
-    - result.bodyjson.bodyjson4.request.path.matcher ShouldEqual "ShouldMatch"
-    - result.bodyjson.bodyjson4.request.path.value ShouldEqual "/.*"
-    - result.bodyjson.bodyjson3.request.method.matcher ShouldEqual "ShouldContainSubstring"
-    - result.bodyjson.bodyjson3.request.method.value ShouldEqual "PO"
-    - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldEqualJSON"
-    - result.bodyjson.bodyjson2.request.body.value ShouldContainSubstring id
-    - result.bodyjson.bodyjson1.request.headers.matcher ShouldEqual "ShouldMatch"
-    - result.bodyjson.bodyjson1.request.headers.values.content-type.content-type0 ShouldEqual application/.*
-    - result.bodyjson.bodyjson0.request.query_params.test.test0 ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
+  - name: Add mocks with matchers
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/matcher_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 5
+          - result.bodyjson.bodyjson4.request.path.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson4.request.path.value ShouldEqual "/.*"
+          - result.bodyjson.bodyjson3.request.method.matcher ShouldEqual "ShouldContainSubstring"
+          - result.bodyjson.bodyjson3.request.method.value ShouldEqual "PO"
+          - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldEqualJSON"
+          - result.bodyjson.bodyjson2.request.body.value ShouldContainSubstring id
+          - result.bodyjson.bodyjson1.request.headers.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson1.request.headers.values.content-type.content-type0 ShouldEqual application/.*
+          - result.bodyjson.bodyjson0.request.query_params.test.test0 ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
 
-- name: Add dynamic mocks
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/dynamic_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8081/mocks
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.__len__ ShouldEqual 4
-    - result.bodyjson.bodyjson3.dynamic_response.engine ShouldEqual lua
-    - result.bodyjson.bodyjson2.dynamic_response.engine ShouldEqual lua
-    - result.bodyjson.bodyjson1.dynamic_response.engine ShouldEqual go_template
-    - result.bodyjson.bodyjson0.dynamic_response.engine ShouldEqual go_template
-
-
+  - name: Add dynamic mocks
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson2.dynamic_response.engine ShouldEqual lua
+          - result.bodyjson.bodyjson1.dynamic_response.engine ShouldEqual lua
+          - result.bodyjson.bodyjson0.dynamic_response.engine ShouldEqual go_template

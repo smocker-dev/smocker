@@ -11,7 +11,7 @@ import (
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type MockServer interface {

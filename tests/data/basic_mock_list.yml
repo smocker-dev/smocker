@@ -1,13 +1,11 @@
--
-  request:
+- request:
     path: /test
   response:
     headers:
       Content-Type: ["application/json"]
     body: >
       {"message": "test"}
--
-  request:
+- request:
     path: /test
     method: POST
   response:
@@ -15,8 +13,7 @@
       Content-Type: ["application/json"]
     body: >
       {"message": "test2"}
--
-  request:
+- request:
     path: /test
     method: DELETE
   response:

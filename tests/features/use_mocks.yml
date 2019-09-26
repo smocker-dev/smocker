@@ -1,145 +1,138 @@
-
 name: Use mocks to respond
 version: "2"
 testcases:
-- name: Use basic mock
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/basic_mock.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test
+  - name: Use basic mock
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/basic_mock.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test
 
-- name: Use basic mock list
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/basic_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test
-  - type: http
-    method: POST
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test2
-  - type: http
-    method: DELETE
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test3
+  - name: Use basic mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/basic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test
+      - type: http
+        method: POST
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test2
+      - type: http
+        method: DELETE
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test3
 
-- name: Use matcher mock list
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/matcher_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8080/any
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test
-  - type: http
-    method: POST
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test2
-  - type: http
-    method: DELETE
-    url: http://localhost:8080/test
-    body: >
-      {"id": 1}
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test3
-  - type: http
-    method: PUT
-    url: http://localhost:8080/test
-    headers:
-      Content-Type: application/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test4
-  - type: http
-    method: PATCH
-    url: http://localhost:8080/test?test=true
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual test5
+  - name: Use matcher mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/matcher_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/any
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test
+      - type: http
+        method: POST
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test2
+      - type: http
+        method: DELETE
+        url: http://localhost:8080/test
+        body: >
+          {"id": 1}
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test3
+      - type: http
+        method: PUT
+        url: http://localhost:8080/test
+        headers:
+          Content-Type: application/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test4
+      - type: http
+        method: PATCH
+        url: http://localhost:8080/test?test=true
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test5
 
-- name: Use dynamic mock list
-  steps:
-  - type: http
-    method: POST
-    url: http://localhost:8081/reset
-  - type: http
-    method: POST
-    url: http://localhost:8081/mocks
-    headers:
-      Content-Type: "application/x-yaml"
-    bodyFile: ../data/dynamic_mock_list.yml
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "Mocks registered successfully"
-  - type: http
-    method: GET
-    url: http://localhost:8080/test
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "request path"
-  - type: http
-    method: GET
-    url: http://localhost:8080/test2
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - result.bodyjson.message ShouldEqual "request path /test2"
-  - type: http
-    method: GET
-    url: http://localhost:8080/test3
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - 'result.bodyjson.message ShouldEqual "request path: /test3"'
-  - type: http
-    method: GET
-    url: http://localhost:8080/test4
-    assertions:
-    - result.statuscode ShouldEqual 200
-    - 'result.bodyjson.message ShouldEqual "request path: /test4"'
+  - name: Use dynamic mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "request path"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test2
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "request path /test2"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test3
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - 'result.bodyjson.message ShouldEqual "request path: /test3"'

@@ -31,25 +31,10 @@
     path: /test3
   dynamic_response:
     engine: go_template
-    script: |
-      {
-        "body": "{\"message\": \"request path: {{.Request.Path}}\"}",
-        "headers": {
-          "Content-Type": ["application/json"]
-        }
-      }
-
-- # Go Template mock with body as json
-  request:
-    path: /test4
-  dynamic_response:
-    engine: go_template
     script: >
-      {
-        "body": {
+      headers:
+        Content-Type: [application/json]
+      body: >
+        {
           "message": "request path: {{.Request.Path}}"
-        },
-        "headers": {
-          "Content-Type": ["application/json"]
         }
-      }

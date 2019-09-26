@@ -35,7 +35,7 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=debug
+		-- go run $(GO_LDFLAGS) main.go --log-level=info
 
 .PHONY: start-docker
 start-docker:
