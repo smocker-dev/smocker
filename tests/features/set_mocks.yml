@@ -98,7 +98,10 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 3
-          - result.bodyjson.bodyjson2.dynamic_response.engine ShouldEqual lua
-          - result.bodyjson.bodyjson1.dynamic_response.engine ShouldEqual lua
-          - result.bodyjson.bodyjson0.dynamic_response.engine ShouldEqual go_template
+          - result.bodyjson.__len__ ShouldEqual 6
+          - result.bodyjson.bodyjson5.dynamic_response.engine ShouldEqual lua
+          - result.bodyjson.bodyjson4.dynamic_response.engine ShouldEqual lua
+          - result.bodyjson.bodyjson3.dynamic_response.engine ShouldEqual go_template
+          - result.bodyjson.bodyjson2.dynamic_response.engine ShouldEqual go_template_yaml
+          - result.bodyjson.bodyjson1.dynamic_response.engine ShouldEqual go_template_json
+          - result.bodyjson.bodyjson0.dynamic_response.engine ShouldEqual go_template_json

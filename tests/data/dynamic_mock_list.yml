@@ -26,7 +26,7 @@
         }
       }
 
-- # Go Template mock with body as string
+- # Go Template Yaml mock by default on go_template engine
   request:
     path: /test3
   dynamic_response:
@@ -38,3 +38,44 @@
         {
           "message": "request path: {{.Request.Path}}"
         }
+
+- # Go Template Yaml mock
+  request:
+    path: /test4
+  dynamic_response:
+    engine: go_template_yaml
+    script: >
+      headers:
+        Content-Type: [application/json]
+      body: >
+        {
+          "message": "request path: {{.Request.Path}}"
+        }
+
+- # Go Template Json mock with body as string
+  request:
+    path: /test5
+  dynamic_response:
+    engine: go_template_json
+    script: |
+      {
+        "body": "{\"message\": \"request path: {{.Request.Path}}\"}",
+        "headers": {
+          "Content-Type": ["application/json"]
+        }
+      }
+
+- # Go Template Json mock with body as json
+  request:
+    path: /test6
+  dynamic_response:
+    engine: go_template_json
+    script: >
+      {
+        "body": {
+          "message": "request path: {{.Request.Path}}"
+        },
+        "headers": {
+          "Content-Type": ["application/json"]
+        }
+      }

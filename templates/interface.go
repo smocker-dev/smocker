@@ -12,8 +12,10 @@ type TemplateEngine interface {
 
 func GenerateMockResponse(d *types.DynamicMockResponse, request types.Request) (*types.MockResponse, error) {
 	switch d.Engine {
-	case types.GoTemplateEngineID:
-		return NewGoTemplateEngine().Execute(request, d.Script)
+	case types.GoTemplateEngineID, types.GoTemplateYamlEngineID:
+		return NewGoTemplateYamlEngine().Execute(request, d.Script)
+	case types.GoTemplateJsonEngineID:
+		return NewGoTemplateJsonEngine().Execute(request, d.Script)
 	case types.LuaEngineID:
 		return NewLuaEngine().Execute(request, d.Script)
 	default:

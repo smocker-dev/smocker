@@ -136,3 +136,22 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - 'result.bodyjson.message ShouldEqual "request path: /test3"'
+      - type: http
+        method: GET
+        url: http://localhost:8080/test4
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - 'result.bodyjson.message ShouldEqual "request path: /test4"'
+      - type: http
+        method: GET
+        url: http://localhost:8080/test5
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - 'result.bodyjson.message ShouldEqual "request path: /test5"'
+      - type: http
+        method: GET
+        url: http://localhost:8080/test6
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - 'result.bodyjson.message ShouldEqual "request path: /test6"'
+
