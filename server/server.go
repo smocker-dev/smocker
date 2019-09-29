@@ -39,7 +39,8 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			// echo doesn't support YAML yet
 			req := c.Request()
 			contentType := req.Header.Get(echo.HeaderContentType)
-			if strings.Contains(strings.ToLower(contentType), MIMEApplicationXYaml) {
+			// If no Content-Type setted we parse as yaml by default
+			if contentType == "" || strings.Contains(strings.ToLower(contentType), MIMEApplicationXYaml) {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}

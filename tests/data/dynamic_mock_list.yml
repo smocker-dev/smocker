@@ -5,7 +5,7 @@
     engine: lua
     script: >
       return {
-        body = '{"message":"request path"}',
+        body = '{"message":"request path '..request.path..'"}',
         headers = {
           ["Content-Type"] = {"application/json"}
         }
@@ -36,7 +36,7 @@
         Content-Type: [application/json]
       body: >
         {
-          "message": "request path: {{.Request.Path}}"
+          "message": "request path {{.Request.Path}}"
         }
 
 - # Go Template Yaml mock
@@ -49,7 +49,7 @@
         Content-Type: [application/json]
       body: >
         {
-          "message": "request path: {{.Request.Path}}"
+          "message": "request path {{.Request.Path}}"
         }
 
 - # Go Template Json mock with body as string
@@ -59,7 +59,7 @@
     engine: go_template_json
     script: |
       {
-        "body": "{\"message\": \"request path: {{.Request.Path}}\"}",
+        "body": "{\"message\": \"request path {{.Request.Path}}\"}",
         "headers": {
           "Content-Type": ["application/json"]
         }
@@ -73,7 +73,7 @@
     script: >
       {
         "body": {
-          "message": "request path: {{.Request.Path}}"
+          "message": "request path {{.Request.Path}}"
         },
         "headers": {
           "Content-Type": ["application/json"]
