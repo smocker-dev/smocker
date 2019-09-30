@@ -171,10 +171,10 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 type MultiMapMatcher struct {
 	Matcher string
-	Values  map[string][]string
+	Values  MapStringSlice
 }
 
-func (mm MultiMapMatcher) Match(values map[string][]string) bool {
+func (mm MultiMapMatcher) Match(values MapStringSlice) bool {
 	matcher := asserts[mm.Matcher]
 	if matcher == nil {
 		log.WithField("matcher", mm.Matcher).Error("Invalid matcher")
@@ -203,8 +203,8 @@ func (mm MultiMapMatcher) MarshalJSON() ([]byte, error) {
 		return json.Marshal(mm.Values)
 	}
 	return json.Marshal(&struct {
-		Matcher string              `json:"matcher"`
-		Values  map[string][]string `json:"values"`
+		Matcher string         `json:"matcher"`
+		Values  MapStringSlice `json:"values"`
 	}{
 		Matcher: mm.Matcher,
 		Values:  mm.Values,
@@ -212,7 +212,7 @@ func (mm MultiMapMatcher) MarshalJSON() ([]byte, error) {
 }
 
 func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
-	var v map[string][]string
+	var v MapStringSlice
 	if err := json.Unmarshal(data, &v); err == nil {
 		mm.Matcher = DefaultMatcher
 		mm.Values = v
@@ -220,8 +220,8 @@ func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
 	}
 
 	var res struct {
-		Matcher string              `json:"matcher"`
-		Values  map[string][]string `json:"values"`
+		Matcher string         `json:"matcher"`
+		Values  MapStringSlice `json:"values"`
 	}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
@@ -239,8 +239,8 @@ func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
 	}
 
 	value, err := yaml.Marshal(&struct {
-		Matcher string              `yaml:"matcher,flow"`
-		Values  map[string][]string `yaml:"values"`
+		Matcher string         `yaml:"matcher,flow"`
+		Values  MapStringSlice `yaml:"values"`
 	}{
 		Matcher: mm.Matcher,
 		Values:  mm.Values,
@@ -250,15 +250,15 @@ func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
 }
 
 func (mm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v map[string][]string
+	var v MapStringSlice
 	if err := unmarshal(&v); err == nil {
 		mm.Matcher = DefaultMatcher
 		mm.Values = v
 		return nil
 	}
 	var res struct {
-		Matcher string              `yaml:"matcher,flow"`
-		Values  map[string][]string `yaml:"values"`
+		Matcher string         `yaml:"matcher,flow"`
+		Values  MapStringSlice `yaml:"values"`
 	}
 	if err := unmarshal(&res); err != nil {
 		return err

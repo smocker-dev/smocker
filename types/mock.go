@@ -74,7 +74,7 @@ func (mr MockRequest) Match(req Request) bool {
 	}
 	matchQueryParams := true
 	if mr.QueryParams != nil {
-		matchQueryParams = mr.QueryParams.Match(req.QueryParams)
+		matchQueryParams = mr.QueryParams.Match(MapStringSlice(req.QueryParams))
 		log.WithField("match", matchQueryParams).Debug("Is matching request query parameters")
 	}
 	matchHeaders := true
@@ -86,10 +86,10 @@ func (mr MockRequest) Match(req Request) bool {
 }
 
 type MockResponse struct {
-	Body    string        `json:"body,omitempty" yaml:"body,omitempty"`
-	Status  int           `json:"status" yaml:"status"`
-	Delay   time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
-	Headers http.Header   `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Body    string         `json:"body,omitempty" yaml:"body,omitempty"`
+	Status  int            `json:"status" yaml:"status"`
+	Delay   time.Duration  `json:"delay,omitempty" yaml:"delay,omitempty"`
+	Headers MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 type DynamicMockResponse struct {

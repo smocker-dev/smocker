@@ -7,7 +7,7 @@
       return {
         body = '{"message":"request path"}',
         headers = {
-          ["Content-Type"] = {"application/json"}
+          ["Content-Type"] = "application/json"
         }
       }
 
@@ -22,7 +22,7 @@
           message = "request path "..request.path
         },
         headers = {
-          ["Content-Type"] = {"application/json"}
+          ["Content-Type"] = "application/json"
         }
       }
 
@@ -33,7 +33,7 @@
     engine: go_template
     script: >
       headers:
-        Content-Type: [application/json]
+        Content-Type: application/json
       body: >
         {
           "message": "request path: {{.Request.Path}}"

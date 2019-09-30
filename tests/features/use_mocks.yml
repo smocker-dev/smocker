@@ -54,6 +54,12 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test3
+      - type: http
+        method: GET
+        url: http://localhost:8080/test?foo=bar&foo=baz
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test4
 
   - name: Use matcher mock list
     steps:
