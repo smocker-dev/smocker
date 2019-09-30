@@ -58,7 +58,6 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			}
 
 			response := c.Response()
-
 			var body interface{}
 			var tmp map[string]interface{}
 			if err := json.Unmarshal(responseBody.Bytes(), &tmp); err != nil {

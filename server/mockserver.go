@@ -1,7 +1,10 @@
 package server
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
 	"regexp"
 	"strconv"
 	"sync"
@@ -42,8 +45,22 @@ func NewMockServer(port int) MockServer {
 
 	log.WithField("port", port).Info("Starting mock server")
 	go func() {
-		if err := s.server.Start(":" + strconv.Itoa(port)); err != nil {
-			log.WithError(err).Error("Mock Server execution failed")
+		// Start server
+		go func() {
+			if err := s.server.Start(":" + strconv.Itoa(port)); err != nil {
+				log.WithError(err).Fatal("Mock server execution finished")
+			}
+		}()
+
+		// Wait for interrupt signal to gracefully shutdown the server with
+		// a timeout of 10 seconds.
+		quit := make(chan os.Signal)
+		signal.Notify(quit, os.Interrupt)
+		<-quit
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := s.server.Shutdown(ctx); err != nil {
+			log.Fatal(err)
 		}
 	}()
 

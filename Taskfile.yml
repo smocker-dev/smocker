@@ -1,0 +1,29 @@
+# https://taskfile.dev
+
+version: '2'
+
+vars:
+  APPNAME:
+    sh: basename $(go list)
+  COMMIT:
+    sh: git rev-parse --verify HEAD
+  DATE:
+    sh: date +%FT%T%z
+  VERSION: '{{.VERSION | default "snapshot" }}'
+  GOPATH:
+    sh: go env GOPATH
+  GO_LDFLAGS: |
+      -X main.appName={{.APPNAME}} \
+      -X main.buildVersion={{.VERSION}} \
+      -X main.buildCommit={{.COMMIT}} \
+      -X main.buildDate={{.DATE}}
+  DOCKER_ACCOUNT: thiht
+  DOCKER_IMAGE: "{{.DOCKER_ACCOUNT}}/{{.APPNAME}}"
+
+tasks:
+  start:
+    cmds:
+      - go install -ldflags="{{.GO_LDFLAGS}}" .
+      - smocker --log-level=info
+    sources:
+      - ./**/*.go

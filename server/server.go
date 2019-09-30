@@ -1,9 +1,13 @@
 package server
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
@@ -106,8 +110,23 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	})
 
 	log.WithField("port", configListenPort).Info("Starting config server")
-	if err := e.Start(":" + strconv.Itoa(configListenPort)); err != nil {
-		log.WithError(err).Fatal("Config server execution failed")
+
+	// Start server
+	go func() {
+		if err := e.Start(":" + strconv.Itoa(configListenPort)); err != nil {
+			log.WithError(err).Fatal("Config server execution finished")
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 10 seconds.
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		log.Fatal(err)
 	}
 }
 
