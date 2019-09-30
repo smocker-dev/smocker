@@ -100,7 +100,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				bytesIn = "0"
 			}
 
-			log.WithFields(log.Fields{
+			entry := log.WithFields(log.Fields{
 				"start":     start.Format(time.RFC3339),
 				"end":       end.Format(time.RFC3339),
 				"remote-ip": c.RealIP(),
@@ -112,7 +112,15 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				"latency":   end.Sub(start).String(),
 				"bytes-in":  bytesIn,
 				"bytes-out": strconv.FormatInt(res.Size, 10),
-			}).Info("Handled request")
+			})
+
+			if res.Status < 400 {
+				entry.Info("Handled request")
+			} else if res.Status < 500 {
+				entry.Warn("Handled request")
+			} else {
+				entry.Error("Handled request")
+			}
 
 			return nil
 		}

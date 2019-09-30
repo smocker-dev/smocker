@@ -1,0 +1,50 @@
+name: Retreive calls history
+version: "2"
+testcases:
+  - name: Load dynamic mocks, call them and check that history is right
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8080/test2
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8080/test3
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /test
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test"
+          - result.bodyjson.bodyjson1.request.path ShouldEqual /test2
+          - result.bodyjson.bodyjson1.response.body.message ShouldEqual "request path /test2"
+          - result.bodyjson.bodyjson2.request.path ShouldEqual /test3
+          - result.bodyjson.bodyjson2.response.body.message ShouldEqual "request path /test3"
+      - type: http
+        method: GET
+        url: http://localhost:8081/history?filter=/test2
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /test2
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test2"
