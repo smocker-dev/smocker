@@ -30,3 +30,12 @@
       Content-Type: application/json
     body: >
       {"message": "test4"}
+- request:
+    path: /test
+    headers:
+      X-Custom-Header: [bar]
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "test5"}

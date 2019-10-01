@@ -60,7 +60,14 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test4
-
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        headers:
+          X-Custom-Header: bar
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test5
   - name: Use matcher mock list
     steps:
       - type: http
@@ -109,7 +116,6 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5
-
   - name: Use dynamic mock list
     steps:
       - type: http

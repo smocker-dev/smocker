@@ -74,7 +74,7 @@ func (mr MockRequest) Match(req Request) bool {
 	}
 	matchQueryParams := true
 	if mr.QueryParams != nil {
-		matchQueryParams = mr.QueryParams.Match(MapStringSlice(req.QueryParams))
+		matchQueryParams = mr.QueryParams.Match(req.QueryParams)
 		log.WithField("match", matchQueryParams).Debug("Is matching request query parameters")
 	}
 	matchHeaders := true
