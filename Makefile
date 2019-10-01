@@ -13,6 +13,11 @@ GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 DOCKER_ACCOUNT:=thiht
 DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 
+# See: https://docs.docker.com/engine/reference/commandline/tag/#extended-description
+# A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
+# A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
+DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
+
 .PHONY: default
 default: clean test lint build
 
@@ -39,7 +44,7 @@ start: $(REFLEX)
 
 .PHONY: start-docker
 start-docker:
-	docker run -d -p 8080:8080 -p 8081:8081 --name smocker $(DOCKER_IMAGE):$(VERSION)
+	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: build
 build:
@@ -48,7 +53,7 @@ build:
 .PHONY: build-docker
 build-docker:
 	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
-	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(VERSION)
+	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: clean
 clean:
@@ -69,4 +74,4 @@ test-integration: $(VENOM)
 .PHONY: deploy-docker
 deploy-docker:
 	docker push $(DOCKER_IMAGE):latest
-	docker push $(DOCKER_IMAGE):$(VERSION)
+	docker push $(DOCKER_IMAGE):$(DOCKER_TAG)

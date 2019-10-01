@@ -3,7 +3,7 @@ ARG VERSION=snapshot
 WORKDIR /go/src/github.com/Thiht/smocker
 COPY . .
 RUN apk add git make && \
-    make version=$VERSION build
+  make VERSION=$VERSION build
 
 FROM alpine
 COPY --from=build /go/src/github.com/Thiht/smocker/build/smocker /opt/smocker
