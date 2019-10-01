@@ -71,7 +71,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				Response: types.Response{
 					Status:  response.Status,
 					Body:    body,
-					Headers: response.Header(),
+					Headers: types.HTTPHeaderToMapStringSlice(response.Header()),
 				},
 			})
 			return nil

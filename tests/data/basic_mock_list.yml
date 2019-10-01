@@ -2,7 +2,7 @@
     path: /test
   response:
     headers:
-      Content-Type: ["application/json"]
+      Content-Type: application/json
     body: >
       {"message": "test"}
 - request:
@@ -10,7 +10,7 @@
     method: POST
   response:
     headers:
-      Content-Type: ["application/json"]
+      Content-Type: application/json
     body: >
       {"message": "test2"}
 - request:
@@ -18,6 +18,24 @@
     method: DELETE
   response:
     headers:
-      Content-Type: ["application/json"]
+      Content-Type: application/json
     body: >
       {"message": "test3"}
+- request:
+    path: /test
+    query_params:
+      foo: [bar, baz]
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "test4"}
+- request:
+    path: /test
+    headers:
+      X-Custom-Header: [bar]
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "test5"}

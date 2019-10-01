@@ -42,12 +42,14 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.__len__ ShouldEqual 5
 
           # Mocks are stored as a stack
-          - result.bodyjson.bodyjson2.request.method ShouldEqual GET
-          - result.bodyjson.bodyjson1.request.method ShouldEqual POST
-          - result.bodyjson.bodyjson0.request.method ShouldEqual DELETE
+          - result.bodyjson.bodyjson4.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson3.request.method ShouldEqual POST
+          - result.bodyjson.bodyjson2.request.method ShouldEqual DELETE
+          - result.bodyjson.bodyjson1.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
 
   - name: Add mocks with matchers
     steps:
