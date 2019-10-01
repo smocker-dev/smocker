@@ -1,0 +1,111 @@
+html {
+  height: 100%;
+  background-color: #34495e;
+  background-image: url(../assets/background.png);
+  background-repeat: repeat;
+}
+
+body {
+  color: #202124;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  margin: 30px auto;
+  padding: 0 10px;
+  max-width: 1200px;
+  min-height: 100%;
+}
+
+.error {
+  background-color: #f9a464;
+  /* box-shadow: 0 0 10px #e74c3c; */
+  border-radius: 5px;
+  padding: 1em;
+}
+
+.history {
+  background-color: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 5px;
+  padding: 0;
+}
+
+.history-entry {
+  display: flex;
+  padding: 1em;
+}
+
+.history-entry + .history-entry {
+  border-top: 1px solid #dadce0;
+}
+
+.history-request,
+.history-response {
+  flex: 50%;
+  padding: 0.5em 1em;
+}
+
+.history-request span,
+.history-response span {
+  display: inline-block;
+  margin-bottom: 0.5em;
+}
+
+.history-request span + span,
+.history-response span + span {
+  margin-left: 0.5em;
+}
+
+.request-method {
+  background-color: #2980b9;
+  border-radius: 3px;
+  color: #fdfdfd;
+  padding: 0.3em 0.7em;
+}
+
+.request-path {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.response-status {
+  border-radius: 3px;
+  padding: 0.3em 0.7em;
+}
+
+.response-status-success {
+  background-color: #27ae60;
+  color: #fdfdfd;
+}
+
+.response-status-failure {
+  background-color: #c0392b;
+  color: #fdfdfd;
+}
+
+table {
+  border-collapse: collapse;
+  border-radius: 3px;
+  border-style: hidden;
+  box-shadow: 0 0 0 1px #dadce0;
+  width: 100%;
+}
+
+tr + tr {
+  border-top: 1px solid #dadce0;
+}
+
+td {
+  padding: 0.5em 0.7em;
+}
+
+pre {
+  background: #2c3e50;
+  box-shadow: 1px 1px 2px #2c3e50;
+  color: #ecf0f1;
+  padding: 0.5em;
+  margin-top: 0.5em;
+}

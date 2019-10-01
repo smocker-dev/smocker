@@ -1,0 +1,16 @@
+{
+  "name": "test-elm",
+  "version": "1.0.0",
+  "main": "client/index.html",
+  "scripts": {
+    "start": "parcel client/index.html"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "elm-hot": "^1.1.2",
+    "node-elm-compiler": "^5.0.4",
+    "parcel-bundler": "^1.12.3"
+  }
+}

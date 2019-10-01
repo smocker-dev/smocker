@@ -1,3 +1,7 @@
 # Do not add .git to .dockerignore, it's required by the Makefile
+.cache/
 .vscode/
 build/
+dist/
+elm-stuff/
+node_modules/

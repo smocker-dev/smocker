@@ -7,6 +7,7 @@ import (
 
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
@@ -24,6 +25,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.HidePort = true
 
 	e.Use(recoverMiddleware(), loggerMiddleware())
+	e.Use(middleware.CORS())
 	e.GET("/mocks", func(c echo.Context) error {
 		mocks := mockServer.Mocks()
 		return respondAccordingAccept(c, mocks)
