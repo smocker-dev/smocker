@@ -19,18 +19,17 @@ body {
   min-height: 100%;
 }
 
-.error {
-  background-color: #f9a464;
-  /* box-shadow: 0 0 10px #e74c3c; */
+body {
+  background-color: #fff;
   border-radius: 5px;
   padding: 1em;
 }
 
-.history {
-  background-color: #fff;
-  border: 1px solid #dadce0;
+pre.error {
+  background-color: #e74c3c;
   border-radius: 5px;
-  padding: 0;
+  color: #fdfdfd;
+  padding: 1em;
 }
 
 .history-entry {
@@ -102,7 +101,7 @@ td {
   padding: 0.5em 0.7em;
 }
 
-pre {
+.request-body {
   background: #2c3e50;
   box-shadow: 1px 1px 2px #2c3e50;
   color: #ecf0f1;

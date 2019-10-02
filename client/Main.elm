@@ -8,7 +8,7 @@ import Json.Decode exposing (Decoder, map2, map3, map4, maybe, field, int, strin
 
 -- MAIN
 
-main = 
+main =
   Browser.element
     { init = init
     , update = update
@@ -61,7 +61,7 @@ update msg model =
           (Success history, Cmd.none)
 
         Err error ->
-          case error of 
+          case error of
             Http.BadUrl s ->
               (Failure s, Cmd.none)
             Http.Timeout ->
@@ -85,7 +85,7 @@ view : Model -> Html Msg
 view model =
   case model of
     Failure error ->
-      div [ class "error" ] [ text error ]
+      pre [ class "error" ] [ text error ]
 
     Loading ->
       text "Loading..."
@@ -96,7 +96,7 @@ view model =
 renderHistory : List HistoryEntry -> Html msg
 renderHistory history =
   div [ class "history" ]
-    (List.map (\entry -> 
+    (List.map (\entry ->
       div [ class "history-entry" ]
       [ renderHistoryRequest entry.request
       , renderHistoryResponse entry.response
@@ -120,7 +120,7 @@ formatQueryParams maybeDict =
 
 renderHistoryResponse : HistoryResponse -> Html msg
 renderHistoryResponse response =
-  div [ class "history-response"] 
+  div [ class "history-response"]
   [ span
     [ class "response-status"
     , classList
@@ -130,10 +130,10 @@ renderHistoryResponse response =
     ]
     [ text (String.fromInt response.status) ]
   , renderHeaders response.headers
-  , pre [] [ text response.body ]
+  , pre [ class "request-body"] [ text response.body ]
   ]
 
-renderHeaders : Maybe DictStringToListString -> Html msg 
+renderHeaders : Maybe DictStringToListString -> Html msg
 renderHeaders maybeHeaders =
   case maybeHeaders of
     Just headers -> table []

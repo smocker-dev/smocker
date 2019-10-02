@@ -39,7 +39,7 @@ start: $(REFLEX)
 	reflex --start-service \
 		--decoration='none' \
 		--regex='\.go$$' \
-		--inverse-regex='^vendor/' \
+		--inverse-regex='^(\.cache|elm-stuff|node_modules|vendor)/' \
 		-- go run $(GO_LDFLAGS) main.go --log-level=info
 
 .PHONY: start-docker

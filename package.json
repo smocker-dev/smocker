@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "client/index.html",
   "scripts": {
-    "start": "parcel client/index.html"
+    "start": "parcel client/index.html --open"
   },
   "license": "MIT",
   "private": true,
