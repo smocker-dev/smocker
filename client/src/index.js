@@ -3,10 +3,7 @@
 import { Elm } from './elm/Main.elm'
 import 'bulma/css/bulma.css'
 
-const app = Elm.Main.init({
+Elm.Main.init({
   node: document.querySelector('main'),
   flags: { basePath: basePath, version: version },
 })
-app.ports.title.subscribe(function (title) {
-  document.title = title;
-});

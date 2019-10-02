@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Page.Home as Home
 import Page.Live as Live
+import String exposing (endsWith, slice, startsWith)
 import Url exposing (Url)
 
 
@@ -39,15 +40,14 @@ updateRouter msg model =
 
 viewRouter : String -> List (Html msg)
 viewRouter path =
-    case path of
-        "/live" ->
-            Live.view
+    if startsWith path Live.path then
+        Live.view
 
-        "/home" ->
-            Home.view
+    else if startsWith path Home.path then
+        Home.view
 
-        _ ->
-            []
+    else
+        Live.view
 
 
 viewLink : String -> String -> List (Html.Attribute msg) -> List (Html msg) -> Html msg
@@ -63,3 +63,12 @@ viewLink currentPath path attrs values =
                 ++ attrs
     in
     a attributes values
+
+
+trimRightPath : String -> String
+trimRightPath path =
+    if endsWith path "/" then
+        slice 0 -1 path
+
+    else
+        path

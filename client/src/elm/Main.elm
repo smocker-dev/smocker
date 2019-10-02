@@ -1,15 +1,15 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
-import Browser exposing (Document)
+import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Debug exposing (log)
 import Header
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Router
+import Model.History as History
+import Page.Home as Home
+import Router exposing (..)
 import Url exposing (Url)
-
-
-port title : String -> Cmd msg
 
 
 main : Program Flags Model Msg
@@ -19,9 +19,19 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlChange = \url -> Route (Router.UrlChanged url)
-        , onUrlRequest = \urlRequest -> Route (Router.LinkClicked urlRequest)
+        , onUrlChange = onUrlChange
+        , onUrlRequest = onUrlRequest
         }
+
+
+onUrlChange : Url -> Msg
+onUrlChange url =
+    RouterMsg (UrlChanged url)
+
+
+onUrlRequest : UrlRequest -> Msg
+onUrlRequest urlRequest =
+    RouterMsg (LinkClicked urlRequest)
 
 
 
@@ -35,20 +45,32 @@ type alias Flags =
 
 
 type alias Model =
-    { router : Router.RouterModel
+    { router : RouterModel
+    , history : History.Model
     , flags : Flags
-    , counter : Int
     }
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( { router = { url = url, key = key }
+    ( { router =
+            { url = url
+            , key = key
+            }
+      , history = History.Success []
       , flags = flags
-      , counter = 0
       }
-    , title flags.version
+    , initPath url key Home.path
     )
+
+
+initPath : Url -> Nav.Key -> String -> Cmd msg
+initPath url key path =
+    if url.path == "/" then
+        Nav.pushUrl key path
+
+    else
+        Cmd.none
 
 
 
@@ -56,18 +78,26 @@ init flags url key =
 
 
 type Msg
-    = Route Router.RouterMsg
+    = RouterMsg RouterMsg
+    | HistoryMsg History.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Route routerMsg ->
+        RouterMsg routerMsg ->
             let
                 ( router, cmd ) =
-                    Router.updateRouter routerMsg model.router
+                    updateRouter routerMsg model.router
             in
             ( { model | router = router }, cmd )
+
+        HistoryMsg historyMsg ->
+            let
+                ( history, cmd ) =
+                    History.update historyMsg model.history
+            in
+            ( { model | history = history }, cmd )
 
 
 
@@ -85,11 +115,11 @@ subscriptions _ =
 
 view : Model -> Document Msg
 view model =
-    { title = model.router.url.path
+    { title = "Smocker: " ++ model.router.url.path
     , body =
         [ div [ class "has-background-black-ter", style "height" "100%" ]
             [ Header.view model.router.url
-            , div [ class "section has-text-centered has-text-white" ] (Router.viewRouter model.router.url.path)
+            , div [ class "section has-text-centered has-text-white" ] (viewRouter model.router.url.path)
             ]
         ]
     }
