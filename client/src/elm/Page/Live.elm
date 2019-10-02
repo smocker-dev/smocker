@@ -16,4 +16,4 @@ path =
 
 view : List (Html msg)
 view =
-    [ textarea [ class "textarea has-background-dark has-text-white is-primary" ] [ text "test" ] ]
+    [ textarea [ class "is-body" ] [ text "test" ] ]

@@ -12,15 +12,13 @@ import Url exposing (Url)
 
 view : Url -> Html msg
 view url =
-    nav [ class "navbar is-dark" ]
-        [ div [ class "navbar-brand" ]
+    nav [ class "navbar" ]
+        [ div [ class "brand" ]
             [ Router.viewLink url.path
                 Home.path
-                [ class "navbar-item has-text-primary is-uppercase has-text-weight-bold" ]
+                [ class "item" ]
                 [ text "Smocker" ]
             ]
-        , div [ class "navbar-menu" ]
-            [ div [ class "navbar-start" ]
+        , div [ class "menu" ]
                 [ Router.viewLink url.path Live.path [] [ text Live.name ] ]
-            ]
         ]

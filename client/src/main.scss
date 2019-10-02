@@ -1,0 +1,28 @@
+$base-font-size: 13px;
+$navbar-background-color: #3b3b3b;
+$navbar-text-color: white;
+$navbar-border-color: #575757;
+
+body {
+  margin: 0;
+  font-size: $base-font-size;
+}
+
+.navbar {
+  display: block;
+  background-color: $navbar-background-color;
+
+  .brand,
+  .menu {
+    margin-right: 1em;
+    display: inline-block;
+  }
+
+  .item {
+    padding: 1em;
+    display: inline-block;
+    color: $navbar-text-color;
+    border-right: 1px solid $navbar-border-color;
+    height: 1em;
+  }
+}

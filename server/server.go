@@ -11,7 +11,7 @@ import (
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 const (
@@ -21,13 +21,15 @@ const (
 
 // TemplateRenderer is a custom html/template renderer for Echo framework
 type TemplateRenderer struct {
-	templates *template.Template
+	Templates *template.Template
 }
 
 // Render renders a template document
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
+	return t.Templates.ExecuteTemplate(w, name, data)
 }
+
+var templateRenderer *TemplateRenderer
 
 func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	mockServer := NewMockServer(mockServerListenPort)
@@ -37,10 +39,6 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	e.HidePort = true
 
 	e.Static("/assets", "client/dist")
-	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseFiles("./client/dist/index.html")),
-	}
-	e.Renderer = renderer
 
 	e.Use(recoverMiddleware(), loggerMiddleware())
 	e.GET("/mocks", func(c echo.Context) error {
@@ -128,6 +126,15 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	})
 
 	e.GET("/*", func(c echo.Context) error {
+		//lazy load templates
+		if templateRenderer == nil {
+			template, err := template.ParseFiles("./client/dist/index.html")
+			if err != nil {
+				return c.String(http.StatusNotFound, "index is building...")
+			}
+			templateRenderer := &TemplateRenderer{Templates: template}
+			e.Renderer = templateRenderer
+		}
 		return c.Render(http.StatusOK, "index.html", map[string]interface{}{
 			"basePath": "/",
 			"version":  buildParams["buildVersion"],
