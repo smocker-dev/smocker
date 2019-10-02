@@ -95,7 +95,7 @@ type Msg
     = GotHistory (Result Http.Error History)
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotHistory result ->
@@ -110,6 +110,6 @@ update msg model =
 fetchHistory : String -> Cmd Msg
 fetchHistory basePath =
     Http.get
-        { url = basePath ++ "/history"
+        { url = "http://localhost:8081/history"
         , expect = Http.expectJson GotHistory historyDecoder
         }

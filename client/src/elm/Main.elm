@@ -60,7 +60,16 @@ init flags url key =
       , history = History.Success []
       , flags = flags
       }
-    , initPath url key Home.path
+    , Cmd.batch
+        [ initPath url
+            key
+            Home.path
+        , Cmd.map
+            HistoryMsg
+            (History.fetchHistory
+                flags.basePath
+            )
+        ]
     )
 
 
@@ -90,14 +99,14 @@ update msg model =
                 ( router, cmd ) =
                     updateRouter routerMsg model.router
             in
-            ( { model | router = router }, cmd )
+            ( { model | router = router }, Cmd.map RouterMsg cmd )
 
         HistoryMsg historyMsg ->
             let
                 ( history, cmd ) =
                     History.update historyMsg model.history
             in
-            ( { model | history = history }, cmd )
+            ( { model | history = history }, Cmd.map HistoryMsg cmd )
 
 
 
