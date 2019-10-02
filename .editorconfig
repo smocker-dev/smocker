@@ -12,6 +12,10 @@ trim_trailing_whitespace = true
 indent_size = unset
 indent_style = tab
 
+[*.elm]
+indent_size = 4
+indent_style = space
+
 [Makefile]
 indent_size = unset
 indent_style = tab

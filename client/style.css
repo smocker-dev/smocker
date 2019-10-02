@@ -17,15 +17,17 @@ body {
   padding: 0 10px;
   max-width: 1200px;
   min-height: 100%;
-}
-
-body {
   background-color: #fff;
   border-radius: 5px;
   padding: 1em;
 }
 
-pre.error {
+h1 {
+  margin: auto;
+  font-weight: normal;
+}
+
+.error {
   background-color: #e74c3c;
   border-radius: 5px;
   color: #fdfdfd;
@@ -101,7 +103,8 @@ td {
   padding: 0.5em 0.7em;
 }
 
-.request-body {
+pre,
+.response-body {
   background: #2c3e50;
   box-shadow: 1px 1px 2px #2c3e50;
   color: #ecf0f1;

@@ -9,6 +9,7 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
+    "elm-format": "^0.8.2",
     "elm-hot": "^1.1.2",
     "node-elm-compiler": "^5.0.4",
     "parcel-bundler": "^1.12.3"
