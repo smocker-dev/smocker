@@ -1,14 +1,16 @@
 port module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser exposing (Document, UrlRequest)
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import Debug exposing (log)
 import Header
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model.History as History
-import Page.Home as Home
-import Router exposing (..)
+import Page.Entries as EntriesPage
+import Page.Home as HomePage
+import Router
+import Task
 import Url exposing (Url)
 
 
@@ -19,19 +21,9 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlChange = onUrlChange
-        , onUrlRequest = onUrlRequest
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
-
-
-onUrlChange : Url -> Msg
-onUrlChange url =
-    RouterMsg (UrlChanged url)
-
-
-onUrlRequest : UrlRequest -> Msg
-onUrlRequest urlRequest =
-    RouterMsg (LinkClicked urlRequest)
 
 
 
@@ -45,41 +37,26 @@ type alias Flags =
 
 
 type alias Model =
-    { router : RouterModel
+    { url : Url
+    , key : Navigation.Key
     , history : History.Model
     , flags : Flags
     }
 
 
-init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( { router =
+    let
+        model =
             { url = url
             , key = key
+            , history = History.Success []
+            , flags = flags
             }
-      , history = History.Success []
-      , flags = flags
-      }
-    , Cmd.batch
-        [ initPath url
-            key
-            Home.path
-        , Cmd.map
-            HistoryMsg
-            (History.fetchHistory
-                flags.basePath
-            )
-        ]
+    in
+    ( model
+    , onRouteChanged (Router.parseUrl url) model
     )
-
-
-initPath : Url -> Nav.Key -> String -> Cmd msg
-initPath url key path =
-    if url.path == "/" then
-        Nav.pushUrl key path
-
-    else
-        Cmd.none
 
 
 
@@ -87,26 +64,43 @@ initPath url key path =
 
 
 type Msg
-    = RouterMsg RouterMsg
+    = LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
     | HistoryMsg History.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RouterMsg routerMsg ->
-            let
-                ( router, cmd ) =
-                    updateRouter routerMsg model.router
-            in
-            ( { model | router = router }, Cmd.map RouterMsg cmd )
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Navigation.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Navigation.load href )
+
+        UrlChanged url ->
+            ( { model | url = url }
+            , onRouteChanged (Router.parseUrl url) model
+            )
 
         HistoryMsg historyMsg ->
             let
                 ( history, cmd ) =
-                    History.update historyMsg model.history
+                    History.update model.flags.basePath historyMsg model.history
             in
             ( { model | history = history }, Cmd.map HistoryMsg cmd )
+
+
+onRouteChanged : Router.Route -> Model -> Cmd Msg
+onRouteChanged route model =
+    case route of
+        Router.Entries ->
+            Cmd.map HistoryMsg (Task.succeed History.FetchHistory |> Task.perform identity)
+
+        _ ->
+            Cmd.none
 
 
 
@@ -124,11 +118,24 @@ subscriptions _ =
 
 view : Model -> Document Msg
 view model =
-    { title = "Smocker: " ++ model.router.url.path
+    { title = "Smocker: " ++ model.url.path
     , body =
-        [ div [ class "has-background-black-ter", style "height" "100%" ]
-            [ Header.view model.router.url
-            , div [ class "section has-text-centered has-text-white" ] (viewRouter model.router.url.path)
+        [ div [ class "expended vertical layout start-justified" ]
+            [ Header.view model.url
+            , div [ class "flex vertical layout start-justified" ] [ viewRouter model ]
             ]
         ]
     }
+
+
+viewRouter : Model -> Html Msg
+viewRouter model =
+    case Router.parseUrl model.url of
+        Router.Home ->
+            HomePage.view
+
+        Router.Entries ->
+            EntriesPage.view (EntriesPage.Model model.history)
+
+        Router.NotFound ->
+            HomePage.view

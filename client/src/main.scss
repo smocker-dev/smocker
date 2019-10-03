@@ -1,28 +1,273 @@
 $base-font-size: 13px;
+$base-background-color: lightgrey;
+
 $navbar-background-color: #3b3b3b;
-$navbar-text-color: white;
+$navbar-text-color: #c6c6c6;
 $navbar-border-color: #575757;
+$navbar-brand-color: #5cb0ec;
 
 body {
   margin: 0;
   font-size: $base-font-size;
+  font-family: Lato, BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: $base-background-color;
 }
 
 .navbar {
   display: block;
   background-color: $navbar-background-color;
-
-  .brand,
-  .menu {
-    margin-right: 1em;
-    display: inline-block;
-  }
+  box-shadow: 0px 1px 10px 0px $navbar-background-color;
+  z-index: 10;
 
   .item {
+    text-decoration: none;
     padding: 1em;
     display: inline-block;
     color: $navbar-text-color;
     border-right: 1px solid $navbar-border-color;
     height: 1em;
+    line-height: 1em;
+
+    &:hover {
+      background-color: rgba(black, 0.125);
+    }
+
+    &:not(.brand).is-active {
+      background-color: rgba(black, 0.25);
+      color: white;
+    }
+
+
+    &.brand {
+      color: $navbar-brand-color;
+      font-weight: bolder;
+      text-transform: uppercase;
+    }
   }
+}
+
+
+.loader {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+
+  div {
+    animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    transform-origin: 32px 32px;
+
+    &:after {
+      content: " ";
+      display: block;
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      margin: -3px 0 0 -3px;
+    }
+
+    &:nth-child(1) {
+      animation-delay: -0.036s;
+
+      &:after {
+        top: 50px;
+        left: 50px;
+      }
+    }
+
+    &:nth-child(2) {
+      animation-delay: -0.072s;
+
+      &:after {
+        top: 54px;
+        left: 45px;
+      }
+    }
+
+    &:nth-child(3) {
+      animation-delay: -0.108s;
+
+      &:after {
+        top: 57px;
+        left: 39px;
+      }
+    }
+
+    &:nth-child(4) {
+      animation-delay: -0.144s;
+
+      &:after {
+        top: 58px;
+        left: 32px;
+      }
+    }
+
+    &:nth-child(5) {
+      animation-delay: -0.18s;
+
+      &:after {
+        top: 57px;
+        left: 25px;
+      }
+    }
+
+    &:nth-child(6) {
+      animation-delay: -0.216s;
+
+      &:after {
+        top: 54px;
+        left: 19px;
+      }
+    }
+
+    &:nth-child(7) {
+      animation-delay: -0.252s;
+
+      &:after {
+        top: 50px;
+        left: 14px;
+      }
+    }
+
+    &:nth-child(8) {
+      animation-delay: -0.288s;
+
+      &:after {
+        top: 45px;
+        left: 10px;
+      }
+    }
+  }
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.home {
+  padding: 2em 5em;
+
+  .segment {
+    padding: 2em;
+    background-color: white;
+    border-radius: 3px;
+
+    h1 {
+      font-weight: bolder;
+    }
+  }
+}
+
+
+h1 {
+  margin: auto;
+  font-weight: normal;
+}
+
+.error {
+  background-color: #e74c3c;
+  border-radius: 5px;
+  color: #fdfdfd;
+  padding: 1em;
+}
+
+.history {
+  padding: 0 8em;
+}
+
+.history-entry {
+  display: flex;
+  padding: 2em 0;
+}
+
+.history-entry+.history-entry {
+  border-top: 1px solid white;
+}
+
+.history-request {
+  flex: 50%;
+  padding-right: 1em;
+}
+
+.history-response {
+  flex: 50%;
+  padding-left: 1em;
+}
+
+.history-request span,
+.history-response span {
+  display: inline-block;
+  margin-bottom: 0.5em;
+}
+
+.history-request span+span,
+.history-response span+span {
+  margin-left: 0.5em;
+}
+
+.request-method {
+  background-color: #2980b9;
+  border-radius: 3px;
+  color: #fdfdfd;
+  padding: 0.3em 0.7em;
+}
+
+.request-path {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.response-status {
+  border-radius: 3px;
+  padding: 0.3em 0.7em;
+}
+
+.response-status-success {
+  background-color: #27ae60;
+  color: #fdfdfd;
+}
+
+.response-status-failure {
+  background-color: #c0392b;
+  color: #fdfdfd;
+}
+
+table {
+  border-collapse: collapse;
+  border-radius: 3px;
+  border-style: hidden;
+  box-shadow: 0 0 0 1px #dadce0;
+  width: 100%;
+  background-color: white;
+  font-size: $base-font-size;
+}
+
+tr+tr {
+  border-top: 1px solid #dadce0;
+}
+
+td {
+  width: 50%;
+  padding: 0.5em 0.7em;
+
+  &:nth-child(1) {
+    font-weight: bolder;
+  }
+}
+
+pre,
+.response-body {
+  background: #2c3e50;
+  color: #ecf0f1;
+  padding: 1em;
+  margin: 0.5em 0 0;
+  border-radius: 3px;
 }

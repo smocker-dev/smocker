@@ -1,74 +1,65 @@
 module Router exposing (..)
 
 import Browser exposing (Document)
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Page.Home as Home
-import Page.Live as Live
+import Page.Entries as EntriesPage
+import Page.Home as HomePage
 import String exposing (endsWith, slice, startsWith)
 import Url exposing (Url)
+import Url.Parser as P
 
 
-type alias RouterModel =
-    { url : Url
-    , key : Nav.Key
-    }
+type Route
+    = Home
+    | Entries
+    | NotFound
 
 
-type RouterMsg
-    = LinkClicked Browser.UrlRequest
-    | UrlChanged Url.Url
+matchers : P.Parser (Route -> a) a
+matchers =
+    P.oneOf
+        [ P.map Home (P.s HomePage.key)
+        , P.map Entries (P.s EntriesPage.key)
+        ]
 
 
-updateRouter : RouterMsg -> RouterModel -> ( RouterModel, Cmd msg )
-updateRouter msg model =
-    case msg of
-        LinkClicked urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+parseUrl : Url -> Route
+parseUrl url =
+    let
+        route =
+            P.parse matchers url
+    in
+    case route of
+        Just r ->
+            r
 
-                Browser.External href ->
-                    ( model, Nav.load href )
-
-        UrlChanged url ->
-            ( { model | url = url }
-            , Cmd.none
-            )
+        Nothing ->
+            NotFound
 
 
-viewRouter : String -> List (Html msg)
-viewRouter path =
-    if startsWith path Live.path then
-        Live.view
+pathFor : Route -> String
+pathFor route =
+    case route of
+        Home ->
+            HomePage.path
 
-    else if startsWith path Home.path then
-        Home.view
+        Entries ->
+            EntriesPage.path
 
-    else
-        Live.view
+        NotFound ->
+            HomePage.path
 
 
-viewLink : String -> String -> List (Html.Attribute msg) -> List (Html msg) -> Html msg
-viewLink currentPath path attrs values =
+link : String -> String -> List (Html.Attribute msg) -> List (Html msg) -> Html msg
+link currentPath path attrs values =
     let
         attributes =
             [ classList
-                [ ( "navbar-item", True )
-                , ( "is-active", currentPath == path )
-                ]
+                [ ( "is-active", currentPath == path ) ]
             , href path
             ]
                 ++ attrs
     in
     a attributes values
-
-
-trimRightPath : String -> String
-trimRightPath path =
-    if endsWith path "/" then
-        slice 0 -1 path
-
-    else
-        path

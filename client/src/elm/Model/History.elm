@@ -2,8 +2,9 @@ module Model.History exposing (..)
 
 import Dict exposing (Dict)
 import Http
-import Json.Decode as Decode exposing (Decoder, bool, decodeString, dict, float, int, lazy, list, map, null, nullable, oneOf, string)
+import Json.Decode as Decode exposing (Decoder, bool, decodeString, dict, float, int, lazy, list, map, null, nullable, oneOf, string, value)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Json.Encode exposing (encode)
 
 
 type alias History =
@@ -31,9 +32,9 @@ entryDecoder =
 type alias Request =
     { path : String
     , method : String
-    , body : String
-    , queryParams : Dict String (List String)
-    , headers : Dict String (List String)
+    , body : Maybe String
+    , queryParams : Maybe (Dict String (List String))
+    , headers : Maybe (Dict String (List String))
     }
 
 
@@ -42,15 +43,15 @@ requestDecoder =
     Decode.succeed Request
         |> required "path" string
         |> required "method" string
-        |> optional "body" string ""
-        |> optional "query_params" (dict (list string)) Dict.empty
-        |> optional "headers" (dict (list string)) Dict.empty
+        |> optional "body" (nullable string) Nothing
+        |> optional "query_params" (nullable (dict (list string))) Nothing
+        |> optional "headers" (nullable (dict (list string))) Nothing
 
 
 type alias Response =
     { status : Int
-    , body : JsonValue
-    , headers : Dict String (List String)
+    , body : Maybe String
+    , headers : Maybe (Dict String (List String))
     }
 
 
@@ -58,53 +59,48 @@ responseDecoder : Decoder Response
 responseDecoder =
     Decode.succeed Response
         |> required "status" int
-        |> optional "body" jsonValueDecoder JsonNull
-        |> optional "headers" (dict (list string)) Dict.empty
-
-
-type JsonValue
-    = JsonString String
-    | JsonInt Int
-    | JsonFloat Float
-    | JsonBoolean Bool
-    | JsonArray (List JsonValue)
-    | JsonObject (Dict String JsonValue)
-    | JsonNull
-
-
-jsonValueDecoder : Decoder JsonValue
-jsonValueDecoder =
-    oneOf
-        [ map JsonString string
-        , map JsonInt int
-        , map JsonFloat float
-        , map JsonBoolean bool
-        , list (lazy (\_ -> jsonValueDecoder)) |> map JsonArray
-        , dict (lazy (\_ -> jsonValueDecoder)) |> map JsonObject
-        , null JsonNull
-        ]
+        |> optional "body" (nullable (value |> Decode.map (encode 2))) Nothing
+        |> optional "headers" (nullable (dict (list string))) Nothing
 
 
 type Model
     = Loading
-    | Failure
     | Success History
+    | Failure String
 
 
 type Msg
-    = GotHistory (Result Http.Error History)
+    = FetchHistory
+    | GotHistory (Result Http.Error History)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : String -> Msg -> Model -> ( Model, Cmd Msg )
+update basePath msg model =
     case msg of
+        FetchHistory ->
+            ( Loading, fetchHistory basePath )
+
         GotHistory result ->
             case result of
                 Ok history ->
                     ( Success history, Cmd.none )
 
-                Err _ ->
-                    ( Failure, Cmd.none )
+                Err error ->
+                    case error of
+                        Http.BadUrl s ->
+                            ( Failure s, Cmd.none )
+
+                        Http.Timeout ->
+                            ( Failure "Timeout", Cmd.none )
+
+                        Http.NetworkError ->
+                            ( Failure "Network Error", Cmd.none )
+
+                        Http.BadStatus s ->
+                            ( Failure (String.fromInt s), Cmd.none )
+
+                        Http.BadBody s ->
+                            ( Failure s, Cmd.none )
 
 
 fetchHistory : String -> Cmd Msg
