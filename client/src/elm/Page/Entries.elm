@@ -45,7 +45,14 @@ view model =
                 ]
 
         History.Success history ->
-            renderHistory history
+            if List.length history == 0 then
+                div [ class "expended layout vertical center-center" ]
+                    [ h2 []
+                        [ text "No history found" ]
+                    ]
+
+            else
+                renderHistory history
 
         History.Failure err ->
             text err
