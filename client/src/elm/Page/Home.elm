@@ -11,7 +11,7 @@ key =
 
 path : String
 path =
-    "/home"
+    "/page/home"
 
 
 name : String

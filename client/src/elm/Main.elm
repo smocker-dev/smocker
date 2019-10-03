@@ -7,7 +7,7 @@ import Header
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model.History as History
-import Page.Entries as EntriesPage
+import Page.History as HistoryPage
 import Page.Home as HomePage
 import Process
 import Router
@@ -109,7 +109,7 @@ update msg model =
 onRouteChanged : Router.Route -> Model -> Cmd Msg
 onRouteChanged route model =
     case route of
-        Router.Entries ->
+        Router.History ->
             Cmd.map HistoryMsg (Task.succeed History.FetchHistory |> Task.perform identity)
 
         _ ->
@@ -147,8 +147,8 @@ viewRouter model =
         Router.Home ->
             HomePage.view
 
-        Router.Entries ->
-            EntriesPage.view (EntriesPage.Model model.history)
+        Router.History ->
+            HistoryPage.view (HistoryPage.Model model.history)
 
         Router.NotFound ->
             HomePage.view

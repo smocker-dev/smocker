@@ -1,4 +1,4 @@
-module Page.Entries exposing (..)
+module Page.History exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -9,17 +9,17 @@ import Model.History as History
 
 key : String
 key =
-    "entries"
+    "history"
 
 
 path : String
 path =
-    "/entries"
+    "/page/history"
 
 
 name : String
 name =
-    "Entries"
+    "History"
 
 
 type alias Model =
@@ -47,7 +47,7 @@ view model =
         History.Success history ->
             if List.length history == 0 then
                 div [ class "expended layout vertical center-center" ]
-                    [ h2 []
+                    [ h3 []
                         [ text "No history found" ]
                     ]
 

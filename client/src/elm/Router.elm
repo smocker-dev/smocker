@@ -4,24 +4,24 @@ import Browser exposing (Document)
 import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Page.Entries as EntriesPage
+import Page.History as HistoryPage
 import Page.Home as HomePage
 import String exposing (endsWith, slice, startsWith)
 import Url exposing (Url)
-import Url.Parser as P
+import Url.Parser as P exposing ((</>))
 
 
 type Route
     = Home
-    | Entries
+    | History
     | NotFound
 
 
 matchers : P.Parser (Route -> a) a
 matchers =
     P.oneOf
-        [ P.map Home (P.s HomePage.key)
-        , P.map Entries (P.s EntriesPage.key)
+        [ P.map Home (P.s "page" </> P.s HomePage.key)
+        , P.map History (P.s "page" </> P.s HistoryPage.key)
         ]
 
 
@@ -45,8 +45,8 @@ pathFor route =
         Home ->
             HomePage.path
 
-        Entries ->
-            EntriesPage.path
+        History ->
+            HistoryPage.path
 
         NotFound ->
             HomePage.path
