@@ -1,5 +1,5 @@
 $base-font-size: 13px;
-$base-background-color: lightgrey;
+$base-background-color: #1a252f;
 
 $navbar-background-color: #3b3b3b;
 $navbar-text-color: #c6c6c6;
@@ -16,7 +16,7 @@ body {
 .navbar {
   display: block;
   background-color: $navbar-background-color;
-  box-shadow: 0px 1px 10px 0px $navbar-background-color;
+  box-shadow: 0px 1px 10px 0px rgba(black, 0.8);
   z-index: 10;
 
   .item {
@@ -172,6 +172,10 @@ h1 {
   font-weight: normal;
 }
 
+h2 {
+  color: white;
+}
+
 .error {
   background-color: #e74c3c;
   border-radius: 5px;
@@ -180,7 +184,11 @@ h1 {
 }
 
 .history {
-  padding: 0 8em;
+  margin: 2em 8em;
+  padding: 0 2em;
+  background-color: #2c2c2c;
+  border-radius: 3px;
+  box-shadow: 0px 1px 10px 0px rgba(black, 0.8);
 }
 
 .history-entry {
@@ -189,7 +197,7 @@ h1 {
 }
 
 .history-entry+.history-entry {
-  border-top: 1px solid white;
+  border-top: 1px dashed lightgrey;
 }
 
 .history-request {
@@ -202,14 +210,22 @@ h1 {
   padding-left: 1em;
 }
 
-.history-request span,
-.history-response span {
-  display: inline-block;
-  margin-bottom: 0.5em;
+.history-request>span,
+.history-response>span {
+  margin-bottom: 1em;
+  align-items: center;
+  border-radius: 3px;
+  display: inline-flex;
+  font-size: .75rem;
+  height: 1em;
+  justify-content: center;
+  line-height: 1.5;
+  padding: .5em;
+  white-space: nowrap;
 }
 
-.history-request span+span,
-.history-response span+span {
+.history-request>span+span,
+.history-response>span+span {
   margin-left: 0.5em;
 }
 
@@ -223,6 +239,9 @@ h1 {
 .request-path {
   font-family: monospace;
   white-space: pre-wrap;
+  font-weight: bolder;
+  color: #fdfdfd;
+  word-break: break-all;
 }
 
 .response-status {
@@ -268,6 +287,11 @@ pre,
   background: #2c3e50;
   color: #ecf0f1;
   padding: 1em;
-  margin: 0.5em 0 0;
+  margin: 1em 0 0;
   border-radius: 3px;
+
+  .hljs {
+    background-color: transparent;
+    padding: 0;
+  }
 }

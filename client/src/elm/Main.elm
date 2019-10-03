@@ -9,9 +9,13 @@ import Html.Attributes exposing (..)
 import Model.History as History
 import Page.Entries as EntriesPage
 import Page.Home as HomePage
+import Process
 import Router
-import Task
+import Task exposing (Task)
 import Url exposing (Url)
+
+
+port highlight : () -> Cmd msg
 
 
 main : Program Flags Model Msg
@@ -67,6 +71,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | HistoryMsg History.Msg
+    | Highlight ()
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,7 +95,15 @@ update msg model =
                 ( history, cmd ) =
                     History.update model.flags.basePath historyMsg model.history
             in
-            ( { model | history = history }, Cmd.map HistoryMsg cmd )
+            ( { model | history = history }
+            , Cmd.batch
+                [ Cmd.map HistoryMsg cmd
+                , Process.sleep 100 |> Task.perform Highlight
+                ]
+            )
+
+        Highlight _ ->
+            ( model, highlight () )
 
 
 onRouteChanged : Router.Route -> Model -> Cmd Msg

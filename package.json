@@ -29,5 +29,7 @@
     "parcel-bundler": "^1.12.3",
     "sass": "^1.23.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "highlight.js": "^9.15.10"
+  }
 }

@@ -97,14 +97,16 @@ renderHistoryResponse response =
         [ renderStatus response.status
         , renderHeaders response.headers
         , pre [ class "response-body" ]
-            [ text
-                (case response.body of
-                    Just txt ->
-                        txt
+            [ code [ class "json" ]
+                [ text
+                    (case response.body of
+                        Just txt ->
+                            txt
 
-                    Nothing ->
-                        ""
-                )
+                        Nothing ->
+                            ""
+                    )
+                ]
             ]
         ]
 
