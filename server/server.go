@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
@@ -55,7 +56,9 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			}
 		}
 		for _, mock := range mocks {
-			mock.State = &types.MockState{}
+			mock.State = &types.MockState{
+				CreationDate: time.Now(),
+			}
 			if mock.Context == nil {
 				mock.Context = &types.MockContext{}
 			}
