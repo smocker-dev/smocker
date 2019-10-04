@@ -48,9 +48,8 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				return fmt.Errorf("empty request")
 			}
 
-			requestDate := time.Now()
 			request := types.HTTPRequestToRequest(req)
-			request.Date = requestDate
+			request.Date = time.Now()
 			responseBody := new(bytes.Buffer)
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
@@ -60,7 +59,6 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				return err
 			}
 
-			responseDate := time.Now()
 			response := c.Response()
 			var body interface{}
 			var tmp map[string]interface{}
@@ -75,7 +73,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 					Status:  response.Status,
 					Body:    body,
 					Headers: types.HTTPHeaderToMapStringSlice(response.Header()),
-					Date:    responseDate,
+					Date:    time.Now(),
 				},
 			})
 			return nil
