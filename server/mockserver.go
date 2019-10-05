@@ -105,7 +105,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 			resp["message"] = "Matching mock found but was exceeded"
 			resp["nearest"] = exceededMocks
 		}
-		return c.JSON(http.StatusNotFound, resp)
+		return c.JSON(666, resp)
 	}
 
 	/* Response writing */

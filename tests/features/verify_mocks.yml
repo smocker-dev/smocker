@@ -79,7 +79,7 @@ testcases:
         method: GET
         url: http://localhost:8080/test
         assertions:
-          - result.statuscode ShouldEqual 404
+          - result.statuscode ShouldEqual 666
           - result.bodyjson.message ShouldEqual "Matching mock found but was exceeded"
           # both 'test' and 'test2' would have both matched if they had not exceeded their times count.
           - result.bodyjson.nearest.__len__ ShouldEqual 2
