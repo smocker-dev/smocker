@@ -9,7 +9,7 @@ services:
 script:
   - make test
   - make lint
-  - make VERSION=$TRAVIS_BRANCH build
+  - make VERSION=$TRAVIS_BRANCH RELEASE=1 build
   - make VERSION=$TRAVIS_BRANCH build-docker
   - make VERSION=$TRAVIS_BRANCH start-docker
   - make test-integration

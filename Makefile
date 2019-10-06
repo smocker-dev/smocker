@@ -2,12 +2,17 @@ APPNAME:=$(shell basename $(shell go list))
 VERSION?=snapshot
 COMMIT:=$(shell git rev-parse --verify HEAD)
 DATE:=$(shell date +%FT%T%z)
+RELEASE?=0
 
 GOPATH?=$(shell go env GOPATH)
 GO_LDFLAGS+=-X main.appName=$(APPNAME)
 GO_LDFLAGS+=-X main.buildVersion=$(VERSION)
 GO_LDFLAGS+=-X main.buildCommit=$(COMMIT)
 GO_LDFLAGS+=-X main.buildDate=$(DATE)
+ifeq ($(RELEASE), 1)
+	# Strip debug information from the binary
+	GO_LDFLAGS+=-s -w
+endif
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
 DOCKER_ACCOUNT:=thiht
