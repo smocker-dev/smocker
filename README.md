@@ -61,7 +61,7 @@ To register a mock, you can use the YAML and the JSON formats. A basic mock migh
     # Note: the status could be omitted because 200 is the default
     status: 200
     headers:
-      Content-Type: [application/json]
+      Content-Type: application/json
     body: >
       {
         "hello": "Hello, World!"
@@ -78,7 +78,6 @@ You can then register it to the configuration server with the following command:
 
 ```sh
 curl -XPOST \
-  --header "Content-Type: application/x-yaml" \
   --data-binary "@helloworld.yml" \
   localhost:8081/mocks
 ```
