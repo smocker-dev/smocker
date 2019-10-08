@@ -1,23 +1,21 @@
 {
   "compilerOptions": {
+    "baseUrl": "./client/src",
     "allowSyntheticDefaultImports": true,
     "module": "commonjs",
-    "target": "es6",
+    "target": "es5",
     "lib": ["es6", "dom"],
     "sourceMap": true,
     "allowJs": false,
     "jsx": "react",
     "moduleResolution": "node",
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "typeRoots": [
-      "node_modules/@types",
-      "client/src"
-    ]
+    "importHelpers": true,
+    "strict": true,
+    "removeComments": true,
+
+    "paths": {
+      "~*": ["./*"]
+    }
   },
   "include": [
     "client/src/**/*"
