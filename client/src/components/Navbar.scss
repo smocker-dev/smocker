@@ -1,0 +1,45 @@
+@import '~/variables.scss';
+
+.navbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: $color-black-dark;
+  box-shadow: $base-box-shadow;
+  z-index: 10;
+
+  .menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1 auto;
+  }
+
+  .item {
+    color: $color-grey-light;
+    padding: 1em;
+    height: 1em;
+    border-right: 1px solid $color-darkgrey-light;
+
+    &.brand {
+      text-transform: uppercase;
+      font-weight: bolder;
+      color: $color-teal-dark;
+    }
+
+    &:hover {
+      background-color: rgba(black, .25);
+    }
+
+    &:active,
+    &.active {
+      background-color: rgba(black, .5);
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

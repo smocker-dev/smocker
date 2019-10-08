@@ -1,6 +1,8 @@
 package server
 
 import (
+	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,12 +19,26 @@ const (
 	JSONIndent           = "    "
 )
 
+// TemplateRenderer is a custom html/template renderer for Echo framework
+type TemplateRenderer struct {
+	Templates *template.Template
+}
+
+// Render renders a template document
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.Templates.ExecuteTemplate(w, name, data)
+}
+
+var templateRenderer *TemplateRenderer
+
 func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	mockServer := NewMockServer(mockServerListenPort)
 
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+
+	e.Static("/assets", "client/dist")
 
 	e.Use(recoverMiddleware(), loggerMiddleware())
 	e.GET("/mocks", func(c echo.Context) error {
@@ -107,6 +123,22 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 	})
 	e.GET("/version", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, buildParams)
+	})
+
+	e.GET("/*", func(c echo.Context) error {
+		//lazy load templates
+		if templateRenderer == nil {
+			template, err := template.ParseFiles("./client/dist/index.html")
+			if err != nil {
+				return c.String(http.StatusNotFound, "index is building...")
+			}
+			templateRenderer := &TemplateRenderer{Templates: template}
+			e.Renderer = templateRenderer
+		}
+		return c.Render(http.StatusOK, "index.html", map[string]interface{}{
+			"basePath": "/",
+			"version":  buildParams["buildVersion"],
+		})
 	})
 
 	log.WithField("port", configListenPort).Info("Starting config server")

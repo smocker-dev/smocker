@@ -1,0 +1,157 @@
+@import '~/variables.scss';
+
+.mocks {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+
+    h3 {
+      color: $color-black-dark;
+    }
+  }
+
+  .dimmer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+
+    .loader {
+      border: 16px solid $color-black-dark;
+      border-top: 16px solid $color-teal-dark;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  .list {
+    margin: 2em 8em;
+    padding: 0 2em;
+    background-color: $color-white-light;
+    border-radius: 3px;
+    box-shadow: $base-box-shadow;
+    flex: 1 1 auto;
+
+    .mock {
+      display: flex;
+      padding: 2em 0;
+
+      &+.mock {
+        border-top: 1px dashed $color-grey-dark;
+      }
+
+      .request,
+      .response {
+        flex: 50%;
+        padding: 1em;
+
+        &>span {
+          margin-bottom: 1em;
+          align-items: center;
+          border-radius: 3px;
+          display: inline-flex;
+          font-size: .75rem;
+          height: 1em;
+          justify-content: center;
+          line-height: 1.5;
+          white-space: nowrap;
+
+          &+span {
+            margin-left: 0.5em;
+          }
+        }
+
+        table {
+          border-collapse: collapse;
+          border-radius: 3px;
+          border-style: hidden;
+          box-shadow: 0 0 0 1px $color-grey-light;
+          width: 100%;
+          background-color: rgba($color-white-dark, .125);
+          font-size: $base-font-size;
+        }
+
+        tr+tr {
+          border-top: 1px solid $color-grey-light;
+        }
+
+        td {
+          width: 50%;
+          padding: 0.5em 0.7em;
+
+          &:nth-child(1) {
+            font-weight: bolder;
+          }
+        }
+      }
+
+      .request {
+        .method {
+          border-radius: 3px;
+          color: $color-white-light;
+          padding: .5em;
+          background-color: $color-blue-dark;
+        }
+
+        .path {
+          font-family: monospace;
+          white-space: pre-wrap;
+          font-weight: bolder;
+          word-break: break-all;
+        }
+      }
+
+      .response {
+
+        .status,
+        .engine {
+          border-radius: 3px;
+          padding: .5em;
+
+          &.info {
+            color: $color-white-light;
+            background-color: $color-blue-dark;
+          }
+
+          &.failure {
+            color: $color-white-light;
+            background-color: $color-red-dark;
+          }
+        }
+
+        pre.body,
+        pre.script {
+          background: $color-black-light;
+          color: $color-white-dark;
+          padding: 1em 2em;
+          margin: 1em 0 0;
+          border-radius: 3px;
+        }
+      }
+    }
+  }
+}

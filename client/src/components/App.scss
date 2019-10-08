@@ -1,0 +1,18 @@
+@import '~/variables.scss';
+
+body {
+  margin: 0;
+  font-size: $base-font-size;
+  font-family: Lato, BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: 100%;
+  background-color: $color-grey-light;
+  min-height: 0;
+  overflow-y: auto;
+}

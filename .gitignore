@@ -1,2 +1,5 @@
 .vscode/
 build/
+node_modules/
+client/dist/
+.cache/
