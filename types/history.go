@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -19,7 +20,8 @@ type Entry struct {
 type Request struct {
 	Path        string         `json:"path"`
 	Method      string         `json:"method"`
-	Body        string         `json:"body,omitempty" yaml:"body,omitempty"`
+	Body        interface{}    `json:"body,omitempty" yaml:"body,omitempty"`
+	BodyString  string         `json:"-" yaml:"-"`
 	QueryParams MapStringSlice `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 	Date        time.Time      `json:"date" yaml:"date"`
@@ -33,19 +35,27 @@ type Response struct {
 }
 
 func HTTPRequestToRequest(req *http.Request) Request {
-	body := []byte{}
+	bodyBytes := []byte{}
 	var err error
 	if req.Body != nil {
-		body, err = ioutil.ReadAll(req.Body)
+		bodyBytes, err = ioutil.ReadAll(req.Body)
 	}
 	if err != nil {
 		log.WithError(err).Error("Failed to read request body")
 	}
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	var body interface{}
+	var tmp map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &tmp); err != nil {
+		body = string(bodyBytes)
+	} else {
+		body = tmp
+	}
 	return Request{
 		Path:        req.URL.Path,
 		Method:      req.Method,
-		Body:        string(body),
+		Body:        body,
+		BodyString:  string(bodyBytes),
 		QueryParams: URLValuesToMapStringSlice(req.URL.Query()),
 		Headers:     HTTPHeaderToMapStringSlice(req.Header),
 		Date:        time.Now(),

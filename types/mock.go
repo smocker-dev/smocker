@@ -69,7 +69,7 @@ func (mr MockRequest) Match(req Request) bool {
 	log.WithField("match", matchMethod).Debug("Is matching request method")
 	matchBody := true
 	if mr.Body != nil {
-		matchBody = mr.Body.Match(req.Body)
+		matchBody = mr.Body.Match(req.BodyString)
 		log.WithField("match", matchBody).Debug("Is matching request body")
 	}
 	matchQueryParams := true
