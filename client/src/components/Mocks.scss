@@ -55,8 +55,11 @@
     border-radius: 3px;
     box-shadow: $base-box-shadow;
     flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
 
     .mock {
+      position: relative;
       display: flex;
       padding: 2em 0;
 
@@ -126,6 +129,7 @@
       }
 
       .response {
+        position: relative;
 
         .status,
         .engine {
@@ -143,13 +147,17 @@
           }
         }
 
-        pre.body,
-        pre.script {
-          background: $color-black-light;
-          color: $color-white-dark;
-          padding: 1em 2em;
+        .CodeMirror {
+          position: relative;
+          height: auto;
+          overflow-y: hidden;
+          padding: .5em 0;
           margin: 1em 0 0;
           border-radius: 3px;
+
+          .CodeMirror-scroll {
+            height: auto;
+          }
         }
       }
     }

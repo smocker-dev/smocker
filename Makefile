@@ -44,7 +44,7 @@ start: $(REFLEX)
 	reflex --start-service \
 		--decoration='none' \
 		--regex='\.go$$' \
-		--inverse-regex='^vendor/' \
+		--inverse-regex='^vendor|node_modules/' \
 		-- go run $(GO_LDFLAGS) main.go --log-level=info
 
 .PHONY: start-docker

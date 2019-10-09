@@ -1,6 +1,14 @@
 import * as React from "react";
 import useAxios from "axios-hooks";
 import classNames from "classnames";
+import { UnControlled as CodeMirror } from "react-codemirror2";
+import "codemirror/lib/codemirror.css";
+import "codemirror/theme/material.css";
+import "codemirror/addon/fold/foldgutter.css";
+import "codemirror/mode/javascript/javascript";
+import "codemirror/addon/fold/foldcode";
+import "codemirror/addon/fold/foldgutter";
+import "codemirror/addon/fold/brace-fold";
 import "./History.scss";
 import { Multimap, formQueryParams, trimedPath } from "~utils";
 
@@ -65,20 +73,35 @@ const Entry = ({ value }: { value: Entry }) => (
           </tbody>
         </table>
       )}
-      <pre className="body">
-        <code className="json">
-          {value.response.body
+      <CodeMirror
+        value={
+          value.response.body
             ? JSON.stringify(value.response.body, undefined, "  ")
-            : ""}
-        </code>
-      </pre>
+            : ""
+        }
+        options={{
+          mode: "application/json",
+          theme: "material",
+          lineNumbers: true,
+          readOnly: true,
+          viewportMargin: Infinity,
+          foldGutter: true,
+          gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+        }}
+      />
     </div>
   </div>
 );
 
 const EntryList = () => {
   const [{ data, loading, error }] = useAxios<Entry[]>(trimedPath + "/history");
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="dimmer">
+        <div className="loader" />
+      </div>
+    );
+  }
   if (error) return <div>{error}</div>;
   if (!Boolean(data.length))
     return (
@@ -98,15 +121,7 @@ const EntryList = () => {
 export const History = () => {
   return (
     <div className="history">
-      <React.Suspense
-        fallback={
-          <div className="dimmer">
-            <div className="loader" />
-          </div>
-        }
-      >
-        <EntryList />
-      </React.Suspense>
+      <EntryList />
     </div>
   );
 };
