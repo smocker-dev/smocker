@@ -16,4 +16,4 @@ export const formQueryParams = (params?: Multimap) => {
     .join("&");
 };
 
-export const trimedPath = trimEnd(basePath, "/");
+export const trimedPath = trimEnd(window.basePath, "/");

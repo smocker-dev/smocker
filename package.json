@@ -6,7 +6,9 @@
   "author": "Thibaut Rousseau <thibaut.rousseau@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "parcel watch -d ./client/dist --public-url ./assets ./client/src/index.html & make start"
+    "clean": "rm -rf ./client/dist || true",
+    "start": "yarn clean && parcel watch -d ./client/dist --public-url /assets ./client/src/index.html & make start",
+    "build": "yarn clean && NODE_ENV=production parcel build -d ./client/dist --public-url ./assets ./client/src/index.html"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.9",
@@ -15,7 +17,7 @@
     "@types/react": "^16.9.5",
     "@types/react-dom": "^16.9.1",
     "@types/react-router-dom": "^5.1.0",
-    "parcel-bundler": "^1.12.4",
+    "parcel": "^2.0.0-alpha.1.1",
     "sass": "^1.23.0",
     "tslib": "^1.10.0",
     "typescript": "^3.6.3"

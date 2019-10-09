@@ -4,4 +4,5 @@ import App from "~/components/App";
 
 render(<App />, document.getElementById("root"));
 
-(module as any).hot.accept();
+const m = module as any;
+m.hot && m.hot.accept();

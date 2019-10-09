@@ -1,9 +1,10 @@
 <html>
 
 <head>
+  <base href="{{.basePath}}" />
   <script>
-    var basePath = "{{.basePath}}";
-    var version = "{{.version}}";
+    window.basePath = "{{.basePath}}";
+    window.version = "{{.version}}";
 
   </script>
 </head>
