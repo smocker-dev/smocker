@@ -47,7 +47,9 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			if req == nil {
 				return fmt.Errorf("empty request")
 			}
+
 			request := types.HTTPRequestToRequest(req)
+			request.Date = time.Now()
 			responseBody := new(bytes.Buffer)
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
@@ -58,7 +60,6 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			}
 
 			response := c.Response()
-
 			var body interface{}
 			var tmp map[string]interface{}
 			if err := json.Unmarshal(responseBody.Bytes(), &tmp); err != nil {
@@ -72,6 +73,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 					Status:  response.Status,
 					Body:    body,
 					Headers: types.HTTPHeaderToMapStringSlice(response.Header()),
+					Date:    time.Now(),
 				},
 			})
 			return nil

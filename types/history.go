@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -21,12 +22,14 @@ type Request struct {
 	Body        string         `json:"body,omitempty" yaml:"body,omitempty"`
 	QueryParams MapStringSlice `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Date        time.Time      `json:"date" yaml:"date"`
 }
 
 type Response struct {
 	Status  int            `json:"status"`
 	Body    interface{}    `json:"body,omitempty" yaml:"body,omitempty"`
 	Headers MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Date    time.Time      `json:"date" yaml:"date"`
 }
 
 func HTTPRequestToRequest(req *http.Request) Request {
@@ -45,5 +48,6 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		Body:        string(body),
 		QueryParams: URLValuesToMapStringSlice(req.URL.Query()),
 		Headers:     HTTPHeaderToMapStringSlice(req.Header),
+		Date:        time.Now(),
 	}
 }
