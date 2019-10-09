@@ -10,7 +10,7 @@ import "codemirror/addon/fold/foldcode";
 import "codemirror/addon/fold/foldgutter";
 import "codemirror/addon/fold/brace-fold";
 import "./History.scss";
-import { Multimap, formQueryParams, trimedPath } from "~utils";
+import { Multimap, formQueryParams, trimedPath, usePollAPI } from "~utils";
 
 interface Entry {
   request: Request;
@@ -94,8 +94,13 @@ const Entry = ({ value }: { value: Entry }) => (
 );
 
 const EntryList = () => {
-  const [{ data, loading, error }] = useAxios<Entry[]>(trimedPath + "/history");
-  if (loading) {
+  const [{ data, loading, error }] = usePollAPI<Entry[]>(
+    trimedPath + "/history",
+    {},
+    10000
+  );
+  const isEmpty = !Boolean(data) || !Boolean(data.length);
+  if (isEmpty && loading) {
     return (
       <div className="dimmer">
         <div className="loader" />
@@ -103,7 +108,7 @@ const EntryList = () => {
     );
   }
   if (error) return <div>{error}</div>;
-  if (!Boolean(data.length))
+  if (isEmpty)
     return (
       <div className="empty">
         <h3>No entry found</h3>

@@ -14,7 +14,7 @@ import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/fold/comment-fold";
 import "./Mocks.scss";
-import { formQueryParams, Multimap, trimedPath } from "~utils";
+import { formQueryParams, Multimap, trimedPath, usePollAPI } from "~utils";
 
 interface Mock {
   request: Request;
@@ -152,7 +152,11 @@ const Mock = ({ value }: { value: Mock }) => (
 );
 
 const MockList = () => {
-  const [{ data, loading, error }] = useAxios<Mock[]>(trimedPath + "/mocks");
+  const [{ data, loading, error }] = usePollAPI<Mock[]>(
+    trimedPath + "/mocks",
+    {},
+    10000
+  );
   if (loading) {
     return (
       <div className="dimmer">

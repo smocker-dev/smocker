@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf ./client/dist || true",
-    "start": "yarn clean && parcel watch -d ./client/dist --public-url /assets ./client/src/index.html & make start",
+    "start": "yarn clean && parcel watch -d ./client/dist --public-url /assets ./client/src/index.html",
     "build": "yarn clean && NODE_ENV=production parcel build -d ./client/dist --public-url ./assets ./client/src/index.html"
   },
   "devDependencies": {
