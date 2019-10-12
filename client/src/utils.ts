@@ -1,5 +1,5 @@
 import { AxiosRequestConfig } from "axios";
-import useAxios, { Options, RefetchOptions, ResponseValues } from "axios-hooks";
+import useAxios, { RefetchOptions, ResponseValues } from "axios-hooks";
 import { trimEnd } from "lodash-es";
 import * as React from "react";
 
@@ -28,11 +28,12 @@ type RefetchFunc = (
 
 export function usePollAPI<T = any>(
   config: AxiosRequestConfig | string,
-  options?: Options,
   delay?: number
-): [ResponseValues<T>] {
-  const [response, refetch] = useAxios<T>(config, options);
+): [ResponseValues<T>, Boolean?, (() => void)?] {
+  const [response, refetch] = useAxios<T>(config, { manual: true });
   const savedRefetch = React.useRef<RefetchFunc>();
+  const [init, setInit] = React.useState(false);
+  const [poll, setPoll] = React.useState(false);
 
   // Remember the latest function.
   React.useEffect(() => {
@@ -41,13 +42,19 @@ export function usePollAPI<T = any>(
 
   // Set up the interval.
   React.useEffect(() => {
-    function tick() {
+    function fetch() {
       savedRefetch.current && savedRefetch.current();
     }
-    if (delay !== undefined) {
-      let id = setInterval(tick, delay);
+    (!init || poll) && fetch();
+    if (poll && Boolean(delay)) {
+      let id = setInterval(fetch, delay);
       return () => clearInterval(id);
     }
-  }, [delay]);
-  return [response];
+  }, [delay, poll, init]);
+
+  const togglePoll = React.useCallback(() => {
+    setPoll(!poll);
+    setInit(true);
+  }, [poll]);
+  return [response, poll, togglePoll];
 }

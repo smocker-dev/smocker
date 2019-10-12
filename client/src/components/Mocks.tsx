@@ -154,10 +154,10 @@ const Mock = ({ value }: { value: Mock }) => (
 const MockList = () => {
   const [{ data, loading, error }] = usePollAPI<Mock[]>(
     trimedPath + "/mocks",
-    {},
     10000
   );
-  if (loading) {
+  const isEmpty = !Boolean(data) || !Boolean(data.length);
+  if (isEmpty && loading) {
     return (
       <div className="dimmer">
         <div className="loader" />
@@ -165,10 +165,10 @@ const MockList = () => {
     );
   }
   if (error) return <div>{error}</div>;
-  if (!Boolean(data.length))
+  if (isEmpty)
     return (
       <div className="empty">
-        <h3>No mocks found</h3>
+        <h3>No mock found</h3>
       </div>
     );
   return (

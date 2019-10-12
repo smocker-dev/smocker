@@ -36,3 +36,58 @@ $color-white-dark: #dcdde1;
 
 $base-font-size: 13px;
 $base-box-shadow: 0px 1px 5px 0px rgba(0, 0, 0, 0.5);
+
+button {
+  position: relative;
+  background-color: $color-blue-dark;
+  border-radius: 3px;
+  border: none;
+  display: inline-block;
+  cursor: pointer;
+  color: $color-white-light;
+  padding: .5em;
+  text-decoration: none;
+
+  &:hover {
+    background-color: $color-blue-light;
+  }
+
+  &:active {
+    position: relative;
+    top: 1px;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &.loading {
+    color: transparent;
+
+    @keyframes spinner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    &:before {
+      content: '';
+      box-sizing: border-box;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin-top: -10px;
+      margin-left: -10px;
+      border-radius: 50%;
+      border: 2px solid $color-grey-light;
+      border-top-color: $color-white-light;
+      animation: spinner .6s linear infinite;
+    }
+  }
+}
+
+a:hover {
+  cursor: pointer;
+}
