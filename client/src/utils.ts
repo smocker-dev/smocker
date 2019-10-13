@@ -7,16 +7,58 @@ export interface Multimap {
   [key: string]: string[];
 }
 
-export const formQueryParams = (params?: Multimap) => {
+export interface StringMatcher {
+  matcher: string;
+  value: string;
+}
+
+export interface MultimapMatcher {
+  matcher: string;
+  values: Multimap;
+}
+
+export const extractMatcher = (
+  s?: StringMatcher | string | MultimapMatcher | Multimap
+): string | undefined => {
+  if (!s) {
+    return undefined;
+  }
+  const matcher = (<StringMatcher>s).matcher;
+  if (matcher) {
+    return matcher;
+  }
+  return undefined;
+};
+
+export const toString = (s: StringMatcher | string): string => {
+  if ((<StringMatcher>s).matcher) {
+    return (<StringMatcher>s).value.trim();
+  }
+  return (s as string).trim();
+};
+
+export const toMultimap = (multimap: MultimapMatcher | Multimap) => {
+  return (multimap.values || multimap) as Multimap;
+};
+
+export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
   if (!params) return "";
-  return Object.keys(params)
-    .reduce((acc: string[], key) => {
-      params[key].forEach(value => {
-        acc.push(key + "=" + encodeURIComponent(value));
-      });
-      return acc;
-    }, [])
-    .join("&");
+
+  const values = toMultimap(params);
+  let res =
+    "?" +
+    Object.keys(values)
+      .reduce((acc: string[], key) => {
+        values[key].forEach(value => {
+          acc.push(key + "=" + encodeURIComponent(value));
+        });
+        return acc;
+      }, [])
+      .join("&");
+  if (extractMatcher(params)) {
+    res = res + ` (${extractMatcher(params)})`;
+  }
+  return res;
 };
 
 export const trimedPath = trimEnd(window.basePath, "/");

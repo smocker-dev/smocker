@@ -35,11 +35,6 @@
       width: 7em;
       height: 7em;
       animation: spin 2s linear infinite;
-
-      &.small {
-        width: 2em;
-        height: 2em;
-      }
     }
 
     @keyframes spin {
@@ -54,42 +49,57 @@
   }
 
   .list {
-    margin: 2em 8em;
-    padding: 0 2em;
-    background-color: $color-white-light;
-    border-radius: 3px;
-    box-shadow: $base-box-shadow;
+    padding: 1.5em 8em;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .mock {
+      box-shadow: $base-box-shadow;
+      border-radius: 3px;
+      background-color: $color-white-light;
       position: relative;
       display: flex;
-      padding: 2em 0;
+      padding: 1em;
+      margin-top: 1.5em;
 
-      &+.mock {
-        border-top: 1px dashed $color-grey-dark;
+      strong {
+        font-weight: bolder;
       }
 
       .request,
       .response {
         flex: 50%;
         padding: 1em;
+        display: flex;
+        flex-direction: column;
 
-        &>span {
-          margin-bottom: 1em;
+        .details {
+          display: flex;
           align-items: center;
-          border-radius: 3px;
-          display: inline-flex;
-          font-size: .75rem;
-          height: 1em;
-          justify-content: center;
-          line-height: 1.5;
-          white-space: nowrap;
 
-          &+span {
-            margin-left: 0.5em;
+          &>span {
+            margin-bottom: 1em;
+            border-radius: 3px;
+            font-size: .75rem;
+            height: 1em;
+            white-space: nowrap;
+
+            &.fluid {
+              flex: 1 1 auto;
+              text-align: right;
+              font-weight: bolder;
+            }
+
+            &+span {
+              margin-left: 0.5em;
+            }
           }
         }
 
@@ -128,13 +138,13 @@
         .path {
           font-family: monospace;
           white-space: pre-wrap;
-          font-weight: bolder;
+          font-weight: bold;
           word-break: break-all;
         }
       }
 
       .response {
-        position: relative;
+        border-left: 1px dashed $color-grey-dark;
 
         .status,
         .engine {
@@ -152,17 +162,18 @@
           }
         }
 
-        .CodeMirror {
-          position: relative;
-          height: auto;
-          overflow-y: hidden;
-          padding: .5em 0;
-          margin: 1em 0 0;
-          border-radius: 3px;
+      }
 
-          .CodeMirror-scroll {
-            height: auto;
-          }
+      .CodeMirror {
+        position: relative;
+        height: auto;
+        overflow-y: hidden;
+        padding: .5em 0;
+        margin: 1em 0 0;
+        border-radius: 3px;
+
+        .CodeMirror-scroll {
+          height: auto;
         }
       }
     }

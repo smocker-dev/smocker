@@ -14,7 +14,17 @@ import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/fold/comment-fold";
 import "./Mocks.scss";
-import { formQueryParams, Multimap, trimedPath, usePollAPI } from "~utils";
+import {
+  formQueryParams,
+  Multimap,
+  trimedPath,
+  usePollAPI,
+  StringMatcher,
+  MultimapMatcher,
+  toMultimap,
+  toString,
+  extractMatcher
+} from "~utils";
 
 interface Mock {
   request: Request;
@@ -25,11 +35,11 @@ interface Mock {
 }
 
 interface Request {
-  path: string;
-  method: string;
-  body?: string;
-  query_params?: Multimap;
-  headers?: Multimap;
+  path: string | StringMatcher;
+  method: string | StringMatcher;
+  body?: string | StringMatcher;
+  query_params?: Multimap | MultimapMatcher;
+  headers?: Multimap | MultimapMatcher;
 }
 
 interface Response {
@@ -51,7 +61,7 @@ interface State {
   times_count: number;
 }
 
-const responseCodeMirrorOptions = {
+const codeMirrorOptions = {
   mode: "application/json",
   theme: "material",
   lineNumbers: true,
@@ -63,15 +73,17 @@ const responseCodeMirrorOptions = {
 
 const MockResponse = ({ response }: { response: Response }) => (
   <div className="response">
-    <span
-      className={classNames(
-        "status",
-        { info: response.status !== 666 },
-        { failure: response.status === 666 }
-      )}
-    >
-      {response.status}
-    </span>
+    <div className="details">
+      <span
+        className={classNames(
+          "status",
+          { info: response.status !== 666 },
+          { failure: response.status === 666 }
+        )}
+      >
+        {response.status}
+      </span>
+    </div>
     {response.headers && (
       <table>
         <tbody>
@@ -86,19 +98,10 @@ const MockResponse = ({ response }: { response: Response }) => (
     )}
     <CodeMirror
       value={response.body ? response.body.trim() : ""}
-      options={responseCodeMirrorOptions}
+      options={codeMirrorOptions}
     />
   </div>
 );
-
-const dynamicCodeMirrorOptions = {
-  theme: "material",
-  lineNumbers: true,
-  readOnly: true,
-  viewportMargin: Infinity,
-  foldGutter: true,
-  gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-};
 
 const MockDynamicResponse = ({ response }: { response: DynamicResponse }) => {
   let mode;
@@ -112,70 +115,120 @@ const MockDynamicResponse = ({ response }: { response: DynamicResponse }) => {
       mode = "yaml";
   }
   const options = {
-    ...dynamicCodeMirrorOptions,
+    ...codeMirrorOptions,
     mode
   };
   return (
     <div className="response">
-      <span className="engine info">Engine: </span>
-      <span>{response.engine}</span>
+      <div className="details">
+        <span className="engine info">Engine</span>
+        <span>
+          <strong>{response.engine}</strong>
+        </span>
+      </div>
       <CodeMirror value={response.script} options={options} />
     </div>
   );
 };
 
-const Mock = ({ value }: { value: Mock }) => (
-  <div className="mock">
+const MockRequest = ({ request }: { request: Request }) => {
+  const methodMatcher = extractMatcher(request.method);
+  const method = toString(request.method);
+  const pathMatcher = extractMatcher(request.path);
+  const path = toString(request.path);
+  const bodyMatcher = extractMatcher(request.body);
+  const headersMatcher = extractMatcher(request.headers);
+  return (
     <div className="request">
-      <span className="method">{value.request.method}</span>
-      <span className="path">
-        {value.request.path + formQueryParams(value.request.query_params)}
-      </span>
-      {value.request.headers && (
+      <div className="details">
+        <span className="method">
+          {methodMatcher && (
+            <strong>{methodMatcher.toUpperCase() + ": "}</strong>
+          )}
+          {method}
+        </span>
+        <span className="path">
+          {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
+          {path + formQueryParams(request.query_params)}
+        </span>
+      </div>
+      {request.headers && (
         <table>
           <tbody>
-            {Object.entries(value.request.headers).map(([key, values]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{values.join(", ")}</td>
-              </tr>
-            ))}
+            {Object.entries(toMultimap(request.headers)).map(
+              ([key, values]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>
+                    {headersMatcher && <strong>{headersMatcher + ": "}</strong>}
+                    {values.join(", ")}
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       )}
+      {request.body && (
+        <>
+          <strong>{bodyMatcher && bodyMatcher + ": "}</strong>
+          <CodeMirror
+            value={toString(request.body)}
+            options={codeMirrorOptions}
+          />
+        </>
+      )}
     </div>
-    {value.response && <MockResponse response={value.response} />}
-    {value.dynamic_response && (
-      <MockDynamicResponse response={value.dynamic_response} />
-    )}
-  </div>
-);
+  );
+};
+
+const Mock = ({ value }: { value: Mock }) => {
+  return (
+    <div className="mock">
+      <MockRequest request={value.request} />
+      {value.response && <MockResponse response={value.response} />}
+      {value.dynamic_response && (
+        <MockDynamicResponse response={value.dynamic_response} />
+      )}
+    </div>
+  );
+};
 
 const MockList = () => {
-  const [{ data, loading, error }] = usePollAPI<Mock[]>(
+  const [{ data, loading, error }, poll, togglePoll] = usePollAPI<Mock[]>(
     trimedPath + "/mocks",
     10000
   );
   const isEmpty = !Boolean(data) || !Boolean(data.length);
-  if (isEmpty && loading) {
-    return (
+  let body = null;
+  if (error) {
+    body = <p>{error}</p>;
+  } else if (isEmpty && loading) {
+    body = (
       <div className="dimmer">
         <div className="loader" />
       </div>
     );
-  }
-  if (error) return <div>{error}</div>;
-  if (isEmpty)
-    return (
+  } else if (isEmpty) {
+    body = (
       <div className="empty">
-        <h3>No mock found</h3>
+        <h3>No entry found</h3>
       </div>
     );
+  } else {
+    body = data.map((mock, index) => (
+      <Mock key={`entry-${index}`} value={mock} />
+    ));
+  }
   return (
     <div className="list">
-      {data.map((mock, index) => (
-        <Mock key={`mock-${index}`} value={mock} />
-      ))}
+      <div className="header">
+        <a></a>
+        <button className={loading ? "loading" : ""} onClick={togglePoll}>
+          {poll ? "Stop Refresh" : "Start Refresh"}
+        </button>
+      </div>
+      {body}
     </div>
   );
 };
