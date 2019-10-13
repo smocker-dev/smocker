@@ -11,6 +11,8 @@ import "codemirror/addon/fold/brace-fold";
 import "./History.scss";
 import { Multimap, formQueryParams, trimedPath, usePollAPI } from "~utils";
 import { orderBy } from "lodash-es";
+import useLocalStorage from "react-use-localstorage";
+import { DateTime, Settings } from "luxon";
 
 interface Entry {
   request: Request;
@@ -33,6 +35,9 @@ interface Response {
   date: string;
 }
 
+const dateFormat = "EEE, E MMM yyyy HH:mm:ss.SSS";
+Settings.defaultLocale = "en-US";
+
 const Entry = ({ value }: { value: Entry }) => (
   <div className="entry">
     <div className="request">
@@ -41,7 +46,9 @@ const Entry = ({ value }: { value: Entry }) => (
         <span className="path">
           {value.request.path + formQueryParams(value.request.query_params)}
         </span>
-        <span className="fluid">{value.request.date}</span>
+        <span className="fluid">
+          {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
+        </span>
       </div>
       {value.request.headers && (
         <table>
@@ -85,8 +92,9 @@ const Entry = ({ value }: { value: Entry }) => (
         >
           {value.response.status}
         </span>
-        <span>{value.response.date}</span>
-        <span className="fluid">{value.request.date}</span>
+        <span className="fluid">
+          {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
+        </span>
       </div>
       {value.response.headers && (
         <table>
@@ -123,7 +131,7 @@ const Entry = ({ value }: { value: Entry }) => (
 );
 
 const EntryList = () => {
-  const [asc, setAsc] = React.useState(true);
+  const [asc, setAsc] = useLocalStorage("history.order.request.by.date", "asc");
   const [{ data, loading, error }, poll, togglePoll] = usePollAPI<Entry[]>(
     trimedPath + "/history",
     10000
@@ -143,17 +151,18 @@ const EntryList = () => {
         <h3>No entry found</h3>
       </div>
     );
+  const onSort = () => setAsc(asc === "asc" ? "desc" : "asc");
   return (
     <div className="list">
       <div className="header">
-        <a onClick={() => setAsc(!asc)}>{`order by request date ${
-          asc ? "⏶" : "⏷"
-        }`}</a>
+        <a onClick={onSort}>
+          {`order by request date ${asc === "asc" ? "⏶" : "⏷"}`}
+        </a>
         <button className={loading ? "loading" : ""} onClick={togglePoll}>
           {poll ? "Stop poll" : "Start poll"}
         </button>
       </div>
-      {orderBy(data, "request.date", asc ? "asc" : "desc").map(
+      {orderBy(data, "request.date", asc === "asc" ? "asc" : "desc").map(
         (entry, index) => (
           <Entry key={`entry-${index}`} value={entry} />
         )

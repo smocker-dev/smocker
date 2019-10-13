@@ -786,6 +786,11 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.142.tgz#52d5daff878e36e72e299bb9c5871fd6aee55829"
   integrity sha512-ZhNS7c4D4WQ49Dr1FftQj7SwngRswOnPfxktmqSy5BettRCuum2q784jRwNTYfxH00r8+fEgRz6Da8j5DHNd1Q==
 
+"@types/luxon@^1.15.2":
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-1.15.2.tgz#528f11f7d6dc08cec0445d4bea8065a5bb6989b2"
+  integrity sha512-zHPoyVrLvNaiMRYdhmh88Rn489ZgAgbc6iLxR5Yi0VCNfeNYHcszbhJV2vDHLNrVGy35BPtWBRn4OP2F9BBvFw==
+
 "@types/node@^12.7.11":
   version "12.7.12"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.12.tgz#7c6c571cc2f3f3ac4a59a5f2bd48f5bdbc8653cc"
@@ -3277,6 +3282,11 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
+luxon@^1.19.3:
+  version "1.19.3"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.19.3.tgz#86c04a1395529b4386ae235a8fe16d0a82a0695b"
+  integrity sha512-YwTDjGRQC0QC9Iya2g2eKZfgEFqRId4ZoLHORQcfTMB/5xrTx427V7ZPjQJ1vzvhA2vJfG2bh1Kv8V8IFMWCUA==
+
 magic-string@^0.22.4:
   version "0.22.5"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.22.5.tgz#8e9cf5afddf44385c1da5bc2a6a0dbd10b03657e"
@@ -4507,6 +4517,11 @@ react-router@5.1.2:
     react-is "^16.6.0"
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
+
+react-use-localstorage@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/react-use-localstorage/-/react-use-localstorage-3.2.2.tgz#ebb74b09accc0c03397e385b49978acc2a27f631"
+  integrity sha512-7xBjtBK9gy127Yob5BaGf045VSiW3CTt/ewNnawHMxjLH+jLhAqN9LAGVO8jaMIxl0V0bLZ4WW6Zs6VtB78UcA==
 
 react@^16.10.2:
   version "16.10.2"
