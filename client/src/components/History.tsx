@@ -137,20 +137,26 @@ const EntryList = () => {
     10000
   );
   const isEmpty = !Boolean(data) || !Boolean(data.length);
-  if (isEmpty && loading) {
-    return (
+  let body = null;
+  if (error) {
+    body = <p>{error}</p>;
+  } else if (isEmpty && loading) {
+    body = (
       <div className="dimmer">
         <div className="loader" />
       </div>
     );
-  }
-  if (error) return <div>{error}</div>;
-  if (isEmpty)
-    return (
+  } else if (isEmpty) {
+    body = (
       <div className="empty">
         <h3>No entry found</h3>
       </div>
     );
+  } else {
+    body = orderBy(data, "request.date", asc === "asc" ? "asc" : "desc").map(
+      (entry, index) => <Entry key={`entry-${index}`} value={entry} />
+    );
+  }
   const onSort = () => setAsc(asc === "asc" ? "desc" : "asc");
   return (
     <div className="list">
@@ -159,14 +165,10 @@ const EntryList = () => {
           {`order by request date ${asc === "asc" ? "⏶" : "⏷"}`}
         </a>
         <button className={loading ? "loading" : ""} onClick={togglePoll}>
-          {poll ? "Stop poll" : "Start poll"}
+          {poll ? "Stop Refresh" : "Start Refresh"}
         </button>
       </div>
-      {orderBy(data, "request.date", asc === "asc" ? "asc" : "desc").map(
-        (entry, index) => (
-          <Entry key={`entry-${index}`} value={entry} />
-        )
-      )}
+      {body}
     </div>
   );
 };
