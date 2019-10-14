@@ -1,12 +1,14 @@
 # smocker
 
-<img src="docs/logo-vertical.png" width="150" align="right" alt="smocker logo" title="smocker logo, by mandyellow" />
-
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
 [![Github Tag](https://img.shields.io/github/tag/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/tags/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
 [![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
+
+<p align="center">
+<img src="docs/logo-horizontal.png" alt="smocker logo" width="800" title="smocker logo, by mandyellow" />
+</p>
 
 smocker (server mock) is a simple and efficient HTTP mock server.
 
