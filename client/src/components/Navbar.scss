@@ -1,4 +1,4 @@
-@import '~/variables.scss';
+@import "~/variables.scss";
 
 .navbar {
   display: flex;
@@ -29,12 +29,12 @@
     }
 
     &:hover {
-      background-color: rgba(black, .25);
+      background-color: rgba(black, 0.25);
     }
 
     &:active,
     &.active {
-      background-color: rgba(black, .5);
+      background-color: rgba(black, 0.5);
     }
   }
 

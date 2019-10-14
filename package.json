@@ -1,15 +1,12 @@
 {
-  "name": "smocker",
-  "version": "0.4.0",
-  "main": "client/src/index.ts",
-  "repository": "git@github.com:Thiht/smocker.git",
-  "author": "Thibaut Rousseau <thibaut.rousseau@protonmail.com>",
-  "license": "MIT",
+  "private": true,
   "scripts": {
     "clean": "rm -rf ./client/dist || true",
+    "format": "prettier --write 'client/src/**/*'",
     "start": "yarn clean && parcel watch -d ./client/dist --public-url /assets ./client/src/index.html",
     "build": "yarn clean && NODE_ENV=production parcel build -d ./client/dist --public-url ./assets ./client/src/index.html"
   },
+  "prettier": {},
   "devDependencies": {
     "@types/classnames": "^2.2.9",
     "@types/codemirror": "0.0.78",
@@ -17,7 +14,10 @@
     "@types/react": "^16.9.5",
     "@types/react-dom": "^16.9.1",
     "@types/react-router-dom": "^5.1.0",
+    "husky": ">=1",
+    "lint-staged": ">=8",
     "parcel": "^1.12.4",
+    "prettier": "1.18.2",
     "sass": "^1.23.0",
     "tslib": "^1.10.0",
     "typescript": "^3.6.3"
@@ -41,5 +41,16 @@
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }

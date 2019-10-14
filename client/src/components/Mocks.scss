@@ -1,4 +1,4 @@
-@import '~/variables.scss';
+@import "~/variables.scss";
 
 .mocks {
   min-height: 0;
@@ -84,10 +84,10 @@
           display: flex;
           align-items: center;
 
-          &>span {
+          & > span {
             margin-bottom: 1em;
             border-radius: 3px;
-            font-size: .75rem;
+            font-size: 0.75rem;
             white-space: nowrap;
 
             &.fluid {
@@ -96,7 +96,7 @@
               font-weight: bolder;
             }
 
-            &+span {
+            & + span {
               margin-left: 0.5em;
             }
           }
@@ -108,11 +108,11 @@
           border-style: hidden;
           box-shadow: 0 0 0 1px $color-grey-light;
           width: 100%;
-          background-color: rgba($color-white-dark, .125);
+          background-color: rgba($color-white-dark, 0.125);
           font-size: $base-font-size;
         }
 
-        tr+tr {
+        tr + tr {
           border-top: 1px solid $color-grey-light;
         }
 
@@ -130,7 +130,7 @@
         .method {
           border-radius: 3px;
           color: $color-white-light;
-          padding: .5em;
+          padding: 0.5em;
           background-color: $color-blue-dark;
         }
 
@@ -148,7 +148,7 @@
         .status,
         .engine {
           border-radius: 3px;
-          padding: .5em;
+          padding: 0.5em;
 
           &.info {
             color: $color-white-light;
@@ -160,14 +160,13 @@
             background-color: $color-red-dark;
           }
         }
-
       }
 
       .CodeMirror {
         position: relative;
         height: auto;
         overflow-y: hidden;
-        padding: .5em 0;
+        padding: 0.5em 0;
         margin: 1em 0 0;
         border-radius: 3px;
 
