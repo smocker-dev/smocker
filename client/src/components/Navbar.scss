@@ -9,6 +9,17 @@
   box-shadow: $base-box-shadow;
   z-index: 10;
 
+  button {
+    margin: 0 .5em;
+    border: 1px solid $color-darkgrey-light;
+    background-color: transparent;
+    padding: .25em .5em;
+
+    &:hover {
+      background-color: $color-darkgrey-dark;
+    }
+  }
+
   .menu {
     display: flex;
     flex-direction: row;

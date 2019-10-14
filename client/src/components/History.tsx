@@ -164,7 +164,10 @@ const EntryList = () => {
         <a className="order" onClick={onSort}>
           <strong>{`> Order by request date "${asc}"`}</strong>
         </a>
-        <button className={loading ? "loading" : ""} onClick={togglePoll}>
+        <button
+          className={loading ? "loading" : ""}
+          onClick={loading ? undefined : togglePoll}
+        >
           {poll ? "Stop Refresh" : "Start Refresh"}
         </button>
       </div>
