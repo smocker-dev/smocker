@@ -1,5 +1,7 @@
 # smocker
 
+<img src="docs/logo-vertical.png" width="150" align="right" alt="smocker logo" title="smocker logo, by mandyellow" />
+
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
 [![Github Tag](https://img.shields.io/github/tag/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/tags/)
@@ -119,3 +121,12 @@ Then, open another terminal and launch the integration tests:
 ```sh
 make test-integration
 ```
+
+## Authors
+
+- [Thibaut Rousseau](https://github.com/Thiht)
+- [Gwendal Leclerc](https://github.com/gwleclerc)
+
+## Contributors
+
+- [Amanda Yoshiizumi (mandyellow)](https://github.com/mandyellow): thank you for your awesome logo!
