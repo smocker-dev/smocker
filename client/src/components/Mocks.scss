@@ -83,9 +83,11 @@
         .details {
           display: flex;
           align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1em;
 
-          & > span {
-            margin-bottom: 1em;
+          span,
+          strong {
             border-radius: 3px;
             font-size: 0.75rem;
             white-space: nowrap;
@@ -96,7 +98,12 @@
               font-weight: bolder;
             }
 
-            & + span {
+            &.wrong {
+              color: $color-red-dark;
+            }
+
+            &+span,
+            &+strong {
               margin-left: 0.5em;
             }
           }
@@ -112,7 +119,7 @@
           font-size: $base-font-size;
         }
 
-        tr + tr {
+        tr+tr {
           border-top: 1px solid $color-grey-light;
         }
 

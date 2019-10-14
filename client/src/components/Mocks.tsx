@@ -71,39 +71,65 @@ const codeMirrorOptions = {
   gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
 };
 
-const MockResponse = ({ response }: { response: Response }) => (
-  <div className="response">
-    <div className="details">
-      <span
-        className={classNames(
-          "status",
-          { info: response.status !== 666 },
-          { failure: response.status === 666 }
-        )}
-      >
-        {response.status}
-      </span>
-    </div>
-    {response.headers && (
-      <table>
-        <tbody>
-          {Object.entries(response.headers).map(([key, values]) => (
-            <tr key={key}>
-              <td>{key}</td>
-              <td>{values.join(", ")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-    <CodeMirror
-      value={response.body ? response.body.trim() : ""}
-      options={codeMirrorOptions}
-    />
-  </div>
-);
+const renderTimes = (count: number, expected?: number) => {
+  if (!expected) {
+    return <strong>{"Times: " + count}</strong>;
+  }
+  if (count > expected) {
+    return (
+      <strong>
+        {"Times: "}
+        <strong className="wrong">{count}</strong>/{expected}
+      </strong>
+    );
+  }
+  return <strong>{`Times: ${count}/${expected}`}</strong>;
+};
 
-const MockDynamicResponse = ({ response }: { response: DynamicResponse }) => {
+const MockResponse = ({ mock }: { mock: Mock }) => {
+  const { response: resp, context, state } = mock;
+  const response = resp ? resp : ({} as Response);
+
+  return (
+    <div className="response">
+      <div className="details">
+        <span
+          className={classNames(
+            "status",
+            { info: response.status !== 666 },
+            { failure: response.status === 666 }
+          )}
+        >
+          {response.status}
+        </span>
+        {renderTimes(state.times_count, context.times)}
+      </div>
+      {response.headers && (
+        <table>
+          <tbody>
+            {Object.entries(response.headers).map(([key, values]) => (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>{values.join(", ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <CodeMirror
+        value={response.body ? response.body.trim() : ""}
+        options={codeMirrorOptions}
+      />
+    </div>
+  );
+};
+
+const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
+  const { dynamic_response, context, state } = mock;
+  const response = dynamic_response
+    ? dynamic_response
+    : ({} as DynamicResponse);
+
   let mode;
   switch (response.engine) {
     case "lua":
@@ -121,10 +147,13 @@ const MockDynamicResponse = ({ response }: { response: DynamicResponse }) => {
   return (
     <div className="response">
       <div className="details">
-        <span className="engine info">Engine</span>
-        <span>
-          <strong>{response.engine}</strong>
-        </span>
+        <div>
+          <span className="engine info">Engine</span>
+          <span>
+            <strong>{response.engine}</strong>
+          </span>
+        </div>
+        {renderTimes(state.times_count, context.times)}
       </div>
       <CodeMirror value={response.script} options={options} />
     </div>
@@ -141,16 +170,16 @@ const MockRequest = ({ request }: { request: Request }) => {
   return (
     <div className="request">
       <div className="details">
-        <span className="method">
-          {methodMatcher && (
-            <strong>{methodMatcher.toUpperCase() + ": "}</strong>
-          )}
-          {method}
-        </span>
-        <span className="path">
-          {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
-          {path + formQueryParams(request.query_params)}
-        </span>
+        <div>
+          <span className="method">
+            {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
+            {method}
+          </span>
+          <span className="path">
+            {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
+            {path + formQueryParams(request.query_params)}
+          </span>
+        </div>
       </div>
       {request.headers && (
         <table>
@@ -182,14 +211,12 @@ const MockRequest = ({ request }: { request: Request }) => {
   );
 };
 
-const Mock = ({ value }: { value: Mock }) => {
+const Mock = ({ mock }: { mock: Mock }) => {
   return (
     <div className="mock">
-      <MockRequest request={value.request} />
-      {value.response && <MockResponse response={value.response} />}
-      {value.dynamic_response && (
-        <MockDynamicResponse response={value.dynamic_response} />
-      )}
+      <MockRequest request={mock.request} />
+      {mock.response && <MockResponse mock={mock} />}
+      {mock.dynamic_response && <MockDynamicResponse mock={mock} />}
     </div>
   );
 };
@@ -217,7 +244,7 @@ const MockList = () => {
     );
   } else {
     body = data.map((mock, index) => (
-      <Mock key={`entry-${index}`} value={mock} />
+      <Mock key={`entry-${index}`} mock={mock} />
     ));
   }
   return (
