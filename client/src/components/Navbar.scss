@@ -11,12 +11,12 @@
 
   button {
     margin: 0 .5em;
-    border: 1px solid $color-darkgrey-light;
+    border: 1px solid $color-red-light;
     background-color: transparent;
     padding: .25em .5em;
 
     &:hover {
-      background-color: $color-darkgrey-dark;
+      background-color: $color-red-dark;
     }
   }
 
@@ -31,12 +31,17 @@
   .item {
     color: $color-grey-light;
     padding: 1em;
-    border-right: 1px solid $color-darkgrey-light;
+    border-right: 1px solid $color-red-light;
+    height: 3em;
 
     &.brand {
       text-transform: uppercase;
       font-weight: bolder;
-      color: $color-teal-dark;
+      color: $color-red-dark;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 .5em;
     }
 
     &:hover {
