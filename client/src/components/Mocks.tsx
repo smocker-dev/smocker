@@ -251,7 +251,7 @@ const MockList = () => {
       <div className="header">
         <a />
         <button
-          className={loading ? "loading" : ""}
+          className={classNames({ loading: loading }, { red: poll })}
           onClick={loading ? undefined : togglePoll}
         >
           {poll ? "Stop Refresh" : "Start Refresh"}

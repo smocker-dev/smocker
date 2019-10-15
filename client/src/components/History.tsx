@@ -165,7 +165,7 @@ const EntryList = () => {
           <strong>{`> Order by request date "${asc}"`}</strong>
         </a>
         <button
-          className={loading ? "loading" : ""}
+          className={classNames({ loading: loading }, { red: poll })}
           onClick={loading ? undefined : togglePoll}
         >
           {poll ? "Stop Refresh" : "Start Refresh"}

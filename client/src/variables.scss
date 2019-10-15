@@ -61,6 +61,14 @@ button {
     outline: none;
   }
 
+  &.red {
+    background-color: $color-red-dark;
+
+    &:hover {
+      background-color: $color-red-light;
+    }
+  }
+
   &.loading {
     color: transparent;
 

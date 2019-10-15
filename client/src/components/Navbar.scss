@@ -11,7 +11,7 @@
   height: 42px;
 
   button {
-    margin: 0 0.5em;
+    margin: 0 1em;
     border: 1px solid $color-grey-light;
     background-color: transparent;
     padding: 0.5em;
@@ -29,6 +29,7 @@
     justify-content: space-between;
     flex: 1 auto;
     height: 42px;
+
     .start,
     .end {
       display: flex;
@@ -52,9 +53,11 @@
       align-items: center;
       padding: 0 1em;
       height: 42px;
+
       &:hover {
         background-color: black;
       }
+
       img {
         margin-right: 0.5em;
       }
