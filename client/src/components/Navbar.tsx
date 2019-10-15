@@ -3,7 +3,7 @@ import { NavLink, withRouter } from "react-router-dom";
 import "./Navbar.scss";
 import useAxios from "axios-hooks";
 import { trimedPath } from "~utils";
-import Logo from "~assets/logo-horizontal.png";
+import Logo from "~assets/logo.png";
 
 export const Navbar = withRouter(({ history }) => {
   const [isReseted, setReseted] = React.useState(false);
@@ -24,11 +24,11 @@ export const Navbar = withRouter(({ history }) => {
   };
   return (
     <nav className="navbar">
-      <NavLink exact to="/" className="brand item">
-        <img width={110} src={Logo} />
-      </NavLink>
       <div className="menu">
         <div className="start">
+      <NavLink exact to="/" className="brand item">
+        <img height={32} src={Logo} />Smocker
+      </NavLink>
           <NavLink exact to="/pages/history" className="item">
             History
           </NavLink>

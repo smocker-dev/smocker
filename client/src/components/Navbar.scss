@@ -5,18 +5,20 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  background-color: $color-black-dark;
+  background-color: $color-black-light;
   box-shadow: $base-box-shadow;
   z-index: 10;
+  height: 42px;
 
   button {
     margin: 0 .5em;
-    border: 1px solid $color-red-light;
+    border: 1px solid $color-grey-light;
     background-color: transparent;
-    padding: .25em .5em;
+    padding: .5em;
 
     &:hover {
       background-color: $color-red-dark;
+      border: 1px solid $color-red-dark;
     }
   }
 
@@ -26,22 +28,36 @@
     align-items: center;
     justify-content: space-between;
     flex: 1 auto;
+    height: 42px;
+    .start,
+    .end {
+      display: flex;
+      align-items: center;
+      height: 42px;
+    }
   }
 
   .item {
-    color: $color-grey-light;
+    color: $color-white-light;
     padding: 1em;
-    border-right: 1px solid $color-red-light;
-    height: 3em;
+    border-right: 1px solid $color-grey-light;
 
     &.brand {
+      background-color: black;
       text-transform: uppercase;
       font-weight: bolder;
-      color: $color-red-dark;
+      color: white;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 .5em;
+      padding: 0 1em;
+      height: 42px;
+      &:hover {
+        background-color: black;
+      }
+      img {
+        margin-right: .5em;
+      }
     }
 
     &:hover {

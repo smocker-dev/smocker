@@ -239,7 +239,7 @@ const MockList = () => {
   } else if (isEmpty) {
     body = (
       <div className="empty">
-        <h3>No entry found</h3>
+        <h3>No mock found</h3>
       </div>
     );
   } else {
