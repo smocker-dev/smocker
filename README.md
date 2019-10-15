@@ -23,6 +23,8 @@ The documentation is available on the [project's wiki](https://github.com/Thiht/
   - [Hello, World!](#hello-world)
 - [Development](#development)
   - [Integration Tests](#integration-tests)
+- [Authors](#authors)
+- [Contributors](#contributors)
 
 ## Installation
 
