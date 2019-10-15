@@ -1,4 +1,6 @@
-# smocker
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Thiht/smocker/react/docs/logo-vertical.png" width="300" />
+</p>
 
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
