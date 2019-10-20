@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "format": "prettier --write 'client/src/**/*'",
+    "format": "prettier --write 'client/src/**/*.{ts,tsx,html,scss,json}'",
     "start": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
     "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
   },
@@ -46,7 +46,7 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,html,css,scss,json,md}": [
+    "*.{ts,tsx,html,scss,json}": [
       "prettier --write",
       "git add"
     ]

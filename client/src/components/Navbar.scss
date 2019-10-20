@@ -11,10 +11,10 @@
   height: 42px;
 
   button {
-    margin: 0 .5em;
+    margin: 0 0.5em;
     border: 1px solid $color-grey-light;
     background-color: transparent;
-    padding: .5em;
+    padding: 0.5em;
 
     &:hover {
       background-color: $color-red-dark;
@@ -56,7 +56,7 @@
         background-color: black;
       }
       img {
-        margin-right: .5em;
+        margin-right: 0.5em;
       }
     }
 

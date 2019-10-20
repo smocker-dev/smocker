@@ -88,7 +88,7 @@
           display: flex;
           align-items: center;
 
-          &>span {
+          & > span {
             margin-bottom: 1em;
             border-radius: 3px;
             font-size: 0.75rem;
@@ -100,7 +100,7 @@
               font-weight: bolder;
             }
 
-            &+span {
+            & + span {
               margin-left: 0.5em;
             }
           }
@@ -116,7 +116,7 @@
           font-size: $base-font-size;
         }
 
-        tr+tr {
+        tr + tr {
           border-top: 1px solid $color-grey-light;
         }
 

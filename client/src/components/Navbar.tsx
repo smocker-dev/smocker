@@ -26,9 +26,10 @@ export const Navbar = withRouter(({ history }) => {
     <nav className="navbar">
       <div className="menu">
         <div className="start">
-      <NavLink exact to="/" className="brand item">
-        <img height={32} src={Logo} />Smocker
-      </NavLink>
+          <NavLink exact to="/" className="brand item">
+            <img height={32} src={Logo} />
+            Smocker
+          </NavLink>
           <NavLink exact to="/pages/history" className="item">
             History
           </NavLink>
