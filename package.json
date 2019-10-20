@@ -6,26 +6,27 @@
     "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
   },
   "devDependencies": {
+    "@hot-loader/react-dom": "^16.10.2",
     "@types/classnames": "^2.2.9",
     "@types/codemirror": "0.0.78",
     "@types/lodash-es": "^4.17.3",
-    "@types/react": "^16.9.5",
-    "@types/react-dom": "^16.9.1",
+    "@types/luxon": "^1.15.2",
+    "@types/node": "^12.11.1",
+    "@types/react": "^16.9.9",
+    "@types/react-dom": "^16.9.2",
     "@types/react-router-dom": "^5.1.0",
     "husky": ">=1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
     "prettier": "1.18.2",
+    "react-hot-loader": "^4.12.15",
     "sass": "^1.23.0",
     "tslib": "^1.10.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   },
   "dependencies": {
-    "@hot-loader/react-dom": "^16.9.0",
-    "@types/luxon": "^1.15.2",
-    "@types/node": "^12.7.11",
     "axios": "^0.19.0",
-    "axios-hooks": "^1.3.0",
+    "axios-hooks": "^1.4.1",
     "classnames": "^2.2.6",
     "codemirror": "^5.49.0",
     "lodash-es": "^4.17.15",
@@ -33,7 +34,6 @@
     "react": "^16.10.2",
     "react-codemirror2": "^6.0.0",
     "react-dom": "^16.10.2",
-    "react-hot-loader": "^4.12.14",
     "react-router-dom": "^5.1.2",
     "react-use-localstorage": "^3.2.2"
   },
@@ -46,7 +46,7 @@
     }
   },
   "lint-staged": {
-    "*.{js,css,json,md}": [
+    "*.{ts,tsx,js,html,css,scss,json,md}": [
       "prettier --write",
       "git add"
     ]
