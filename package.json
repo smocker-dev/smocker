@@ -1,12 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "clean": "rm -rf ./client/dist || true",
     "format": "prettier --write 'client/src/**/*'",
-    "start": "yarn clean && parcel watch -d ./client/dist --public-url /assets ./client/src/index.html",
-    "build": "yarn clean && NODE_ENV=production parcel build -d ./client/dist --public-url ./assets ./client/src/index.html"
+    "start": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
+    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
   },
-  "prettier": {},
   "devDependencies": {
     "@types/classnames": "^2.2.9",
     "@types/codemirror": "0.0.78",
