@@ -35,7 +35,7 @@ interface Response {
   date: string;
 }
 
-const dateFormat = "EEE, E MMM yyyy HH:mm:ss.SSS";
+const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 Settings.defaultLocale = "en-US";
 
 const Entry = ({ value }: { value: Entry }) => (
