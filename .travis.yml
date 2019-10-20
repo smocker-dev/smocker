@@ -6,6 +6,9 @@ go:
 services:
   - docker
 
+before_script:
+  - nvm use
+
 script:
   - make test
   - make lint
