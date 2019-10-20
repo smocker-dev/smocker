@@ -7,6 +7,7 @@ services:
   - docker
 
 before_script:
+  - nvm install
   - nvm use
 
 script:
