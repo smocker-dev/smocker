@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "format": "prettier --write 'client/src/**/*.{ts,tsx,html,scss,json}'",
+    "format": "prettier --write 'client/**/*.{ts,tsx,html,scss,json}'",
+    "lint": "tslint -c tslint.json 'client/**/*.{ts,tsx}'",
     "start": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
     "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
   },
@@ -22,6 +23,10 @@
     "react-hot-loader": "^4.12.15",
     "sass": "^1.23.0",
     "tslib": "^1.10.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-react": "^4.1.0",
     "typescript": "^3.6.4"
   },
   "dependencies": {

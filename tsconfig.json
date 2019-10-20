@@ -12,15 +12,10 @@
     "importHelpers": true,
     "strict": true,
     "removeComments": true,
-
     "paths": {
       "~*": ["./*"]
     }
   },
-  "include": [
-    "client/src/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["client/src/**/*"],
+  "exclude": ["node_modules"]
 }

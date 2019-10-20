@@ -1,5 +1,4 @@
 import * as React from "react";
-import useAxios from "axios-hooks";
 import classNames from "classnames";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
@@ -250,7 +249,7 @@ const MockList = () => {
   return (
     <div className="list">
       <div className="header">
-        <a></a>
+        <a />
         <button
           className={loading ? "loading" : ""}
           onClick={loading ? undefined : togglePoll}

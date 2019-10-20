@@ -23,7 +23,7 @@ export const extractMatcher = (
   if (!s) {
     return undefined;
   }
-  const matcher = (<StringMatcher>s).matcher;
+  const matcher = (s as StringMatcher).matcher;
   if (matcher) {
     return matcher;
   }
@@ -31,8 +31,8 @@ export const extractMatcher = (
 };
 
 export const toString = (s: StringMatcher | string): string => {
-  if ((<StringMatcher>s).matcher) {
-    return (<StringMatcher>s).value.trim();
+  if ((s as StringMatcher).matcher) {
+    return (s as StringMatcher).value.trim();
   }
   return (s as string).trim();
 };
@@ -42,7 +42,9 @@ export const toMultimap = (multimap: MultimapMatcher | Multimap) => {
 };
 
 export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
-  if (!params) return "";
+  if (!params) {
+    return "";
+  }
 
   const values = toMultimap(params);
   let res =
@@ -71,7 +73,7 @@ type RefetchFunc = (
 export function usePollAPI<T = any>(
   config: AxiosRequestConfig | string,
   delay?: number
-): [ResponseValues<T>, Boolean?, (() => void)?] {
+): [ResponseValues<T>, boolean?, (() => void)?] {
   const [response, refetch] = useAxios<T>(config, { manual: true });
   const savedRefetch = React.useRef<RefetchFunc>();
   const [init, setInit] = React.useState(false);
@@ -85,11 +87,15 @@ export function usePollAPI<T = any>(
   // Set up the interval.
   React.useEffect(() => {
     function fetch() {
-      savedRefetch.current && savedRefetch.current();
+      if (savedRefetch.current) {
+        savedRefetch.current();
+      }
     }
-    (!init || poll) && fetch();
+    if (!init || poll) {
+      fetch();
+    }
     if (poll && Boolean(delay)) {
-      let id = setInterval(fetch, delay);
+      const id = setInterval(fetch, delay);
       return () => clearInterval(id);
     }
   }, [delay, poll, init]);
