@@ -54,6 +54,26 @@
     display: flex;
     flex-direction: column;
 
+    form {
+      margin-bottom: -2.5em;
+
+      .CodeMirror {
+        border-radius: 3px;
+      }
+
+      button {
+        margin: 1em 0.5em 0 0;
+      }
+
+      p {
+        padding: 1em;
+        background-color: $color-red-dark;
+        color: $color-white-dark;
+        margin: 1em 0 0;
+        border-radius: 3px;
+      }
+    }
+
     .header {
       display: flex;
       justify-content: space-between;

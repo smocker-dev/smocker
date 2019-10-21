@@ -65,19 +65,25 @@ export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
 
 export const trimedPath = trimEnd(window.basePath, "/");
 
-type RefetchFunc = (
+export type RefetchFunc = (
   config?: AxiosRequestConfig,
   options?: RefetchOptions
 ) => void;
 
+export interface Poll {
+  polling: boolean;
+  togglePolling: () => void;
+  refetch: RefetchFunc;
+}
+
 export function usePollAPI<T = any>(
   config: AxiosRequestConfig | string,
   delay?: number
-): [ResponseValues<T>, boolean?, (() => void)?] {
+): [ResponseValues<T>, Poll] {
   const [response, refetch] = useAxios<T>(config, { manual: true });
   const savedRefetch = React.useRef<RefetchFunc>();
   const [init, setInit] = React.useState(false);
-  const [poll, setPoll] = React.useState(false);
+  const [polling, setPolling] = React.useState(false);
 
   // Remember the latest function.
   React.useEffect(() => {
@@ -91,18 +97,18 @@ export function usePollAPI<T = any>(
         savedRefetch.current();
       }
     }
-    if (!init || poll) {
+    if (!init || polling) {
       fetch();
     }
-    if (poll && Boolean(delay)) {
+    if (polling && Boolean(delay)) {
       const id = setInterval(fetch, delay);
       return () => clearInterval(id);
     }
-  }, [delay, poll, init]);
+  }, [delay, polling, init]);
 
-  const togglePoll = React.useCallback(() => {
-    setPoll(!poll);
+  const togglePolling = React.useCallback(() => {
+    setPolling(!polling);
     setInit(true);
-  }, [poll]);
-  return [response, poll, togglePoll];
+  }, [polling]);
+  return [response, { polling, togglePolling, refetch }];
 }

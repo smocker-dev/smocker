@@ -1,9 +1,11 @@
 import * as React from "react";
 import classNames from "classnames";
-import { UnControlled as CodeMirror } from "react-codemirror2";
+import { UnControlled as CodeMirror, Controlled } from "react-codemirror2";
+import jsyaml from "js-yaml";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material.css";
 import "codemirror/addon/fold/foldgutter.css";
+import "codemirror/addon/lint/lint.css";
 import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/yaml/yaml";
 import "codemirror/mode/ruby/ruby";
@@ -12,53 +14,26 @@ import "codemirror/addon/fold/foldgutter";
 import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/fold/comment-fold";
+import "codemirror/addon/lint/lint";
+import "codemirror/addon/lint/yaml-lint";
 import "./Mocks.scss";
 import {
   formQueryParams,
-  Multimap,
   trimedPath,
   usePollAPI,
-  StringMatcher,
-  MultimapMatcher,
   toMultimap,
   toString,
   extractMatcher
 } from "~utils";
+import useAxios from "axios-hooks";
+import Context, {
+  Mock,
+  MockResponse,
+  MockDynamicResponse,
+  MockRequest
+} from "./Context";
 
-interface Mock {
-  request: Request;
-  response?: Response;
-  dynamic_response?: DynamicResponse;
-  context: Context;
-  state: State;
-}
-
-interface Request {
-  path: string | StringMatcher;
-  method: string | StringMatcher;
-  body?: string | StringMatcher;
-  query_params?: Multimap | MultimapMatcher;
-  headers?: Multimap | MultimapMatcher;
-}
-
-interface Response {
-  status: number;
-  body?: any;
-  headers?: Multimap;
-}
-
-interface DynamicResponse {
-  engine: string;
-  script: string;
-}
-
-interface Context {
-  times?: number;
-}
-
-interface State {
-  times_count: number;
-}
+window.jsyaml = jsyaml;
 
 const codeMirrorOptions = {
   mode: "application/json",
@@ -85,9 +60,11 @@ const renderTimes = (count: number, expected?: number) => {
   return <strong>{`Times: ${count}/${expected}`}</strong>;
 };
 
+const emptyResponse: any = {};
+
 const MockResponse = ({ mock }: { mock: Mock }) => {
   const { response: resp, context, state } = mock;
-  const response = resp ? resp : ({} as Response);
+  const response = resp ? resp : (emptyResponse as MockResponse);
 
   return (
     <div className="response">
@@ -99,7 +76,7 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
             { failure: response.status === 666 }
           )}
         >
-          {response.status}
+          {response.status || 200}
         </span>
         {renderTimes(state.times_count, context.times)}
       </div>
@@ -127,7 +104,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
   const { dynamic_response, context, state } = mock;
   const response = dynamic_response
     ? dynamic_response
-    : ({} as DynamicResponse);
+    : (emptyResponse as MockDynamicResponse);
 
   let mode;
   switch (response.engine) {
@@ -159,7 +136,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
   );
 };
 
-const MockRequest = ({ request }: { request: Request }) => {
+const MockRequest = ({ request }: { request: MockRequest }) => {
   const methodMatcher = extractMatcher(request.method);
   const method = toString(request.method);
   const pathMatcher = extractMatcher(request.path);
@@ -220,12 +197,76 @@ const Mock = ({ mock }: { mock: Mock }) => {
   );
 };
 
-const MockList = () => {
-  const [{ data, loading, error }, poll, togglePoll] = usePollAPI<Mock[]>(
-    trimedPath + "/mocks",
-    10000
+const NewMock = ({
+  onSave,
+  onClose
+}: {
+  onSave: () => void;
+  onClose: () => void;
+}) => {
+  const [mock, changeMock] = React.useState("");
+  const [{ data, loading, error }, postNewMock] = useAxios(
+    {
+      url: trimedPath + "/mocks",
+      method: "POST",
+      headers: { "Content-Type": "application/x-yaml" }
+    },
+    { manual: true }
   );
-  const isEmpty = !Boolean(data) || !Boolean(data.length);
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    postNewMock({ data: mock });
+  };
+  const handleCancel = (event: React.MouseEvent) => {
+    event.preventDefault();
+    onClose();
+  };
+  const handleChangeMock = (_: any, __: any, value: string) => {
+    changeMock(value);
+  };
+  if (data) {
+    onSave();
+    return null;
+  }
+  return (
+    <form onSubmit={handleSubmit}>
+      <Controlled
+        value={mock}
+        options={{
+          mode: "yaml",
+          theme: "material",
+          lineNumbers: true,
+          viewportMargin: Infinity,
+          foldGutter: true,
+          lint: true,
+          gutters: [
+            "CodeMirror-lint-markers",
+            "CodeMirror-linenumbers",
+            "CodeMirror-foldgutter"
+          ]
+        }}
+        onBeforeChange={handleChangeMock}
+      />
+      {error && error.response && <p>{error.response.data.message}</p>}
+      <button
+        className={classNames("white", { loading })}
+        onClick={handleCancel}
+      >
+        Cancel
+      </button>
+      <button className={classNames("green", { loading })}>Save</button>
+    </form>
+  );
+};
+
+export const Mocks = () => {
+  const [
+    { data, loading, error },
+    { polling, togglePolling, refetch }
+  ] = usePollAPI<Mock[]>(trimedPath + "/mocks", 10000);
+  const [displayNewMock, setDisplayNewMock] = React.useState(false);
+  const { mocks, setMocks } = React.useContext(Context);
+  const isEmpty = mocks.length === 0 && (!data || data.length === 0);
   let body = null;
   if (error) {
     body = <p>{error}</p>;
@@ -241,31 +282,44 @@ const MockList = () => {
         <h3>No mock found</h3>
       </div>
     );
+  } else if (data && data.length) {
+    setMocks([...data]);
+    data.length = 0;
   } else {
-    body = data.map((mock, index) => (
+    body = mocks.map((mock, index) => (
       <Mock key={`entry-${index}`} mock={mock} />
     ));
   }
-  return (
-    <div className="list">
-      <div className="header">
-        <a />
-        <button
-          className={classNames({ loading: loading }, { red: poll })}
-          onClick={loading ? undefined : togglePoll}
-        >
-          {poll ? "Stop Refresh" : "Start Refresh"}
-        </button>
-      </div>
-      {body}
-    </div>
-  );
-};
 
-export const Mocks = () => {
+  const handleAddNewMock = () => setDisplayNewMock(true);
+  const handleCancelNewMock = () => setDisplayNewMock(false);
+  const handleSaveNewMock = () => {
+    setDisplayNewMock(false);
+    refetch();
+  };
   return (
     <div className="mocks">
-      <MockList />
+      <div className="list">
+        {displayNewMock && (
+          <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
+        )}
+        <div className="header">
+          {!displayNewMock ? (
+            <button className="green button" onClick={handleAddNewMock}>
+              Add Mock
+            </button>
+          ) : (
+            <div />
+          )}
+          <button
+            className={classNames({ loading }, { red: polling })}
+            onClick={loading ? undefined : togglePolling}
+          >
+            {polling ? "Stop Refresh" : "Start Refresh"}
+          </button>
+        </div>
+        {body}
+      </div>
     </div>
   );
 };

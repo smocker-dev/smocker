@@ -4,8 +4,10 @@ import "./Navbar.scss";
 import useAxios from "axios-hooks";
 import { trimedPath } from "~utils";
 import Logo from "~assets/logo.png";
+import Context from "./Context";
 
-export const Navbar = withRouter(({ history }) => {
+export const Navbar = () => {
+  const { setHistory, setMocks } = React.useContext(Context);
   const [isReseted, setReseted] = React.useState(false);
   const [{ data, loading, error }, postReset] = useAxios(
     {
@@ -16,7 +18,8 @@ export const Navbar = withRouter(({ history }) => {
   );
   if (data && !isReseted) {
     setReseted(true);
-    history.push("/");
+    setHistory([]);
+    setMocks([]);
   }
   const reset = () => {
     setReseted(false);
@@ -49,4 +52,4 @@ export const Navbar = withRouter(({ history }) => {
       </div>
     </nav>
   );
-});
+};

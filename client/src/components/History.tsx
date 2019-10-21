@@ -13,27 +13,7 @@ import { Multimap, formQueryParams, trimedPath, usePollAPI } from "~utils";
 import { orderBy } from "lodash-es";
 import useLocalStorage from "react-use-localstorage";
 import { DateTime, Settings } from "luxon";
-
-interface Entry {
-  request: Request;
-  response: Response;
-}
-
-interface Request {
-  path: string;
-  method: string;
-  body?: any;
-  query_params?: Multimap;
-  headers?: Multimap;
-  date: string;
-}
-
-interface Response {
-  status: number;
-  body?: any;
-  headers?: Multimap;
-  date: string;
-}
+import Context, { Entry } from "./Context";
 
 const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 Settings.defaultLocale = "en-US";
@@ -130,13 +110,13 @@ const Entry = ({ value }: { value: Entry }) => (
   </div>
 );
 
-const EntryList = () => {
+export const History = () => {
   const [asc, setAsc] = useLocalStorage("history.order.request.by.date", "asc");
-  const [{ data, loading, error }, poll, togglePoll] = usePollAPI<Entry[]>(
-    trimedPath + "/history",
-    10000
-  );
-  const isEmpty = !Boolean(data) || !Boolean(data.length);
+  const [{ data, loading, error }, { polling, togglePolling }] = usePollAPI<
+    Entry[]
+  >(trimedPath + "/history", 10000);
+  const { history, setHistory } = React.useContext(Context);
+  const isEmpty = history.length === 0 && (!data || data.length === 0);
   let body = null;
   if (error) {
     body = <p>{error}</p>;
@@ -152,34 +132,31 @@ const EntryList = () => {
         <h3>No entry found</h3>
       </div>
     );
+  } else if (data && data.length) {
+    setHistory([...data]);
+    data.length = 0;
   } else {
-    body = orderBy(data, "request.date", asc === "asc" ? "asc" : "desc").map(
+    body = orderBy(history, "request.date", asc === "asc" ? "asc" : "desc").map(
       (entry, index) => <Entry key={`entry-${index}`} value={entry} />
     );
   }
   const onSort = () => setAsc(asc === "asc" ? "desc" : "asc");
   return (
-    <div className="list">
-      <div className="header">
-        <a className="order" onClick={onSort}>
-          <strong>{`> Order by request date "${asc}"`}</strong>
-        </a>
-        <button
-          className={classNames({ loading: loading }, { red: poll })}
-          onClick={loading ? undefined : togglePoll}
-        >
-          {poll ? "Stop Refresh" : "Start Refresh"}
-        </button>
-      </div>
-      {body}
-    </div>
-  );
-};
-
-export const History = () => {
-  return (
     <div className="history">
-      <EntryList />
+      <div className="list">
+        <div className="header">
+          <a className="order" onClick={onSort}>
+            <strong>{`> Order by request date "${asc}"`}</strong>
+          </a>
+          <button
+            className={classNames({ loading }, { red: polling })}
+            onClick={loading ? undefined : togglePolling}
+          >
+            {polling ? "Stop Refresh" : "Start Refresh"}
+          </button>
+        </div>
+        {body}
+      </div>
     </div>
   );
 };
