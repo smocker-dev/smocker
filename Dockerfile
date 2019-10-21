@@ -8,7 +8,7 @@ RUN apk add git make && \
 FROM node:10-alpine AS build-frontend
 WORKDIR /wd
 COPY . .
-RUN yarn install && \
+RUN yarn install --frozen-lockfile && \
   yarn build
 
 FROM alpine

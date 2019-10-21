@@ -55,15 +55,6 @@ start-docker:
 build-backend:
 	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
 
-build/smocker.tar.gz:
-	$(MAKE) build-backend
-	yarn install
-	yarn build
-	cd build/ ; tar cvf smocker.tar.gz *
-
-.PHONY: build
-build: build/smocker.tar.gz
-
 .PHONY: build-docker
 build-docker:
 	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
@@ -84,6 +75,17 @@ test:
 .PHONY: test-integration
 test-integration: $(VENOM)
 	venom run tests/features/*.yml
+
+# The following targets are only available for CI usage
+
+build/smocker.tar.gz:
+	$(MAKE) build-backend
+	yarn install --frozen-lockfile
+	yarn build
+	cd build/ ; tar cvf smocker.tar.gz *
+
+.PHONY: build
+build: build/smocker.tar.gz
 
 .PHONY: deploy-docker
 deploy-docker:
