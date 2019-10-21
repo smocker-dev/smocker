@@ -43,12 +43,25 @@ docker run -d \
 curl localhost:8081/version
 ```
 
+### User Interface
+
+smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
+
+<details>
+  <summary>Screenshots</summary>
+
+![History](docs/screenshot-history.png)
+
+![Mocks](docs/screenshot-mocks.png)
+
+</details>
+
 ## Usage
 
 smocker exposes two ports:
 
 - `8080` is the mock server port. It will expose the routes you register through the configuration port
-- `8081` is the configuration port. It's the port you will use to register new mocks
+- `8081` is the configuration port. It's the port you will use to register new mocks. This port also exposes a user interface.
 
 ### Hello, World!
 
@@ -110,19 +123,33 @@ For more advanced usage, please read the [project's documentation](https://githu
 
 ## Development
 
-### Integration Tests
+### Backend
 
-In order to launch integrations tests, you must first launch smocker:
+The backend is written in Go. You can use the following commands to manage the development lifecycle:
 
-```sh
-make start
-```
+- `make start`: start the backend in development mode, with live reload
+- `make build`, `make VERSION=xxx build`: compile the code and generate a binary
+- `make lint`: run static analysis on the code
+- `make format`: automatically format the backend code
+- `make test`: execute unit tests
+- `make test-integration`: execute integration tests (require the backend to be started)
 
-Then, open another terminal and launch the integration tests:
+### Frontend
 
-```sh
-make test-integration
-```
+The frontend is written with TypeScript and React. You can use the following commands to manage the development lifecycle:
+
+- `yarn install`: install the dependencies
+- `yarn start`: start the frontend in development mode, with live reload
+- `yarn build`: generate the transpiled and minified files and assets
+- `yarn lint`: run static analysis on the code
+- `yarn format`: automatically format the frontend code
+
+### Docker
+
+The application can be packaged as a standalone Docker image. You can use the following commands to manage the development lifecycle:
+
+- `make build-docker`, `make VERSION=xxx build-docker`: build the application as a Docker image
+- `make start-docker`, `make VERSION=xxx start-docker`: run a smocker Docker image
 
 ## Authors
 

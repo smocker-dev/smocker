@@ -3,7 +3,7 @@ ARG VERSION=snapshot
 WORKDIR /go/src/github.com/Thiht/smocker
 COPY . .
 RUN apk add git make && \
-  make VERSION=$VERSION RELEASE=1 build-backend
+  make VERSION=$VERSION RELEASE=1 build
 
 FROM node:10-alpine AS build-frontend
 WORKDIR /wd

@@ -24,7 +24,7 @@ DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
 
 .PHONY: default
-default: clean test lint build
+default: start
 
 REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
@@ -47,26 +47,17 @@ start: $(REFLEX)
 		--inverse-regex='^vendor|node_modules|.cache/' \
 		-- go run $(GO_LDFLAGS) main.go --log-level=info --static-files ./build
 
-.PHONY: start-docker
-start-docker:
-	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
-
-.PHONY: build-backend
-build-backend:
+.PHONY: build
+build:
 	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
-
-.PHONY: build-docker
-build-docker:
-	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
-	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
-
-.PHONY: clean
-clean:
-	rm -rf ./build
 
 .PHONY: lint
 lint: $(GOLANGCILINT)
 	golangci-lint run
+
+.PHONY: format
+format:
+	gofmt -s -w .
 
 .PHONY: test
 test:
@@ -76,16 +67,29 @@ test:
 test-integration: $(VENOM)
 	venom run tests/features/*.yml
 
+.PHONY: clean
+clean:
+	rm -rf ./build
+
+.PHONY: build-docker
+build-docker:
+	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
+	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+.PHONY: start-docker
+start-docker:
+	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
+
 # The following targets are only available for CI usage
 
 build/smocker.tar.gz:
-	$(MAKE) build-backend
+	$(MAKE) build
 	yarn install --frozen-lockfile
 	yarn build
 	cd build/ ; tar cvf smocker.tar.gz *
 
-.PHONY: build
-build: build/smocker.tar.gz
+.PHONY: release
+release: build/smocker.tar.gz
 
 .PHONY: deploy-docker
 deploy-docker:
