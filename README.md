@@ -16,11 +16,15 @@ The documentation is available on the [project's wiki](https://github.com/Thiht/
 
 - [Installation](#installation)
   - [With Docker](#with-docker)
+  - [Manual Deployment](#manual-deployment)
   - [Healthcheck](#healthcheck)
+  - [User Interface](#user-interface)
 - [Usage](#usage)
   - [Hello, World!](#hello-world)
 - [Development](#development)
-  - [Integration Tests](#integration-tests)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+  - [Docker](#docker)
 - [Authors](#authors)
 - [Contributors](#contributors)
 
@@ -35,6 +39,16 @@ docker run -d \
   -p 8081:8081 \
   --name smocker \
   thiht/smocker
+```
+
+### Manual Deployment
+
+```sh
+# This will be the deployment folder for the smocker instance
+mkdir -p /opt/smocker && cd /opt/smocker
+wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
+tar xf /tmp/smocker.tar.gz
+nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
 ```
 
 ### Healthcheck
