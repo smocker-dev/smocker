@@ -1,0 +1,61 @@
+{
+  "private": true,
+  "scripts": {
+    "format": "prettier --write 'client/**/*.{ts,tsx,html,scss,json}'",
+    "lint": "tslint -c tslint.json 'client/**/*.{ts,tsx}'",
+    "start": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
+    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
+  },
+  "devDependencies": {
+    "@hot-loader/react-dom": "^16.10.2",
+    "@types/classnames": "^2.2.9",
+    "@types/codemirror": "0.0.78",
+    "@types/js-yaml": "^3.12.1",
+    "@types/lodash-es": "^4.17.3",
+    "@types/luxon": "^1.15.2",
+    "@types/node": "^12.11.1",
+    "@types/react": "^16.9.9",
+    "@types/react-dom": "^16.9.2",
+    "@types/react-router-dom": "^5.1.0",
+    "husky": ">=1",
+    "lint-staged": ">=8",
+    "parcel": "^1.12.4",
+    "prettier": "1.18.2",
+    "react-hot-loader": "^4.12.15",
+    "sass": "^1.23.0",
+    "tslib": "^1.10.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-react": "^4.1.0",
+    "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "axios-hooks": "^1.4.1",
+    "classnames": "^2.2.6",
+    "codemirror": "^5.49.0",
+    "js-yaml": "^3.13.1",
+    "lodash-es": "^4.17.15",
+    "luxon": "^1.19.3",
+    "react": "^16.10.2",
+    "react-codemirror2": "^6.0.0",
+    "react-dom": "^16.10.2",
+    "react-router-dom": "^5.1.2",
+    "react-use-localstorage": "^3.2.2"
+  },
+  "alias": {
+    "react-dom": "@hot-loader/react-dom"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,html,scss,json}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

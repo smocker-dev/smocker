@@ -44,16 +44,25 @@ start: $(REFLEX)
 	reflex --start-service \
 		--decoration='none' \
 		--regex='\.go$$' \
-		--inverse-regex='^vendor/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=info
+		--inverse-regex='^vendor|node_modules|.cache/' \
+		-- go run $(GO_LDFLAGS) main.go --log-level=info --static-files ./build
 
 .PHONY: start-docker
 start-docker:
 	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
-.PHONY: build
-build:
+.PHONY: build-backend
+build-backend:
 	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
+
+build/smocker.tar.gz:
+	$(MAKE) build-backend
+	yarn install
+	yarn build
+	cd build/ ; tar cvf smocker.tar.gz *
+
+.PHONY: build
+build: build/smocker.tar.gz
 
 .PHONY: build-docker
 build-docker:

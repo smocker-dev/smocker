@@ -1,0 +1,182 @@
+@import "~/variables.scss";
+
+.history {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+
+    h3 {
+      color: $color-black-dark;
+    }
+  }
+
+  .dimmer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+
+    .loader {
+      border: 16px solid $color-black-dark;
+      border-top: 16px solid $color-red-dark;
+      border-radius: 50%;
+      width: 7em;
+      height: 7em;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  .list {
+    padding: 1.5em 8em;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .order {
+        text-decoration: underline;
+
+        &:hover {
+          color: $color-black-light;
+        }
+      }
+    }
+
+    .entry {
+      box-shadow: $base-box-shadow;
+      border-radius: 3px;
+      background-color: $color-white-light;
+      position: relative;
+      display: flex;
+      padding: 1em;
+      margin-top: 1.5em;
+
+      .request,
+      .response {
+        flex: 50%;
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+
+        .details {
+          display: flex;
+          align-items: center;
+
+          & > span {
+            margin-bottom: 1em;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+
+            &.fluid {
+              flex: 1 1 auto;
+              text-align: right;
+              font-weight: bolder;
+            }
+
+            & + span {
+              margin-left: 0.5em;
+            }
+          }
+        }
+
+        table {
+          border-collapse: collapse;
+          border-radius: 3px;
+          border-style: hidden;
+          box-shadow: 0 0 0 1px $color-grey-light;
+          width: 100%;
+          background-color: rgba($color-white-dark, 0.125);
+          font-size: $base-font-size;
+        }
+
+        tr + tr {
+          border-top: 1px solid $color-grey-light;
+        }
+
+        td {
+          width: 50%;
+          padding: 0.5em 0.7em;
+
+          &:nth-child(1) {
+            font-weight: bolder;
+          }
+        }
+      }
+
+      .request {
+        .method {
+          border-radius: 3px;
+          color: $color-white-light;
+          padding: 0.5em;
+          background-color: $color-blue-dark;
+        }
+
+        .path {
+          font-family: monospace;
+          white-space: pre-wrap;
+          font-weight: bold;
+          word-break: break-all;
+        }
+      }
+
+      .response {
+        border-left: 1px dashed $color-grey-dark;
+
+        .status {
+          border-radius: 3px;
+          padding: 0.5em;
+
+          &.info {
+            color: $color-white-light;
+            background-color: $color-blue-dark;
+          }
+
+          &.failure {
+            color: $color-white-light;
+            background-color: $color-red-dark;
+          }
+        }
+      }
+
+      .CodeMirror {
+        position: relative;
+        height: auto;
+        overflow-y: hidden;
+        padding: 0.5em 0;
+        margin: 1em 0 0;
+        border-radius: 3px;
+
+        .CodeMirror-scroll {
+          height: auto;
+        }
+      }
+    }
+  }
+}

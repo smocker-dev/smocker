@@ -1,11 +1,14 @@
 package server
 
 import (
+	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Thiht/smocker/config"
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
@@ -17,18 +20,32 @@ const (
 	JSONIndent           = "    "
 )
 
-func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
-	mockServer := NewMockServer(mockServerListenPort)
+// TemplateRenderer is a custom html/template renderer for Echo framework
+type TemplateRenderer struct {
+	*template.Template
+}
+
+// Render renders a template document
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.ExecuteTemplate(w, name, data)
+}
+
+var templateRenderer *TemplateRenderer
+
+func Serve(config config.Config) {
+	mockServer := NewMockServer(config.MockServerListenPort)
 
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
 	e.Use(recoverMiddleware(), loggerMiddleware())
+
 	e.GET("/mocks", func(c echo.Context) error {
 		mocks := mockServer.Mocks()
 		return respondAccordingAccept(c, mocks)
 	})
+
 	e.POST("/mocks", func(c echo.Context) error {
 		var mocks []*types.Mock
 		if err := c.Bind(&mocks); err != nil {
@@ -69,6 +86,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 			"message": "Mocks registered successfully",
 		})
 	})
+
 	e.POST("/mocks/verify", func(c echo.Context) error {
 		mocks := mockServer.Mocks()
 		failedMocks := types.Mocks{}
@@ -90,6 +108,7 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 		}
 		return respondAccordingAccept(c, response)
 	})
+
 	e.GET("/history", func(c echo.Context) error {
 		filter := c.QueryParam("filter")
 		history, err := mockServer.History(filter)
@@ -99,18 +118,38 @@ func Serve(mockServerListenPort, configListenPort int, buildParams echo.Map) {
 		}
 		return respondAccordingAccept(c, history)
 	})
+
 	e.POST("/reset", func(c echo.Context) error {
 		mockServer.Reset()
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "Reset successful",
 		})
 	})
+
 	e.GET("/version", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, buildParams)
+		return c.JSON(http.StatusOK, config.Build)
 	})
 
-	log.WithField("port", configListenPort).Info("Starting config server")
-	if err := e.Start(":" + strconv.Itoa(configListenPort)); err != nil {
+	e.Static("/assets", config.StaticFiles)
+
+	e.GET("/*", func(c echo.Context) error {
+		// In development mode, infex.html might not be available yet
+		if templateRenderer == nil {
+			template, err := template.ParseFiles(config.StaticFiles + "/index.html")
+			if err != nil {
+				return c.String(http.StatusNotFound, "index is building...")
+			}
+			templateRenderer := &TemplateRenderer{template}
+			e.Renderer = templateRenderer
+		}
+		return c.Render(http.StatusOK, "index.html", echo.Map{
+			"basePath": "/",
+			"version":  config.Build.BuildVersion,
+		})
+	})
+
+	log.WithField("port", config.ConfigListenPort).Info("Starting config server")
+	if err := e.Start(":" + strconv.Itoa(config.ConfigListenPort)); err != nil {
 		log.WithError(err).Fatal("Config server execution failed")
 	}
 }

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./client/src",
+    "allowSyntheticDefaultImports": true,
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es6", "dom"],
+    "sourceMap": true,
+    "allowJs": false,
+    "jsx": "react",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "strict": true,
+    "removeComments": true,
+    "paths": {
+      "~*": ["./*"]
+    }
+  },
+  "include": ["client/src/**/*"],
+  "exclude": ["node_modules"]
+}

@@ -6,6 +6,10 @@ go:
 services:
   - docker
 
+before_script:
+  - nvm install
+  - nvm use
+
 script:
   - make test
   - make lint
@@ -25,8 +29,7 @@ deploy:
 
   - provider: releases
     api_key: $GITHUB_TOKEN
-    file_glob: true
-    file: build/*
+    file: build/smocker.tar.gz
     skip_cleanup: true
     on:
       tags: true

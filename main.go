@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
+	"github.com/Thiht/smocker/config"
 	"github.com/Thiht/smocker/server"
-	"github.com/labstack/echo"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
 )
@@ -13,19 +13,21 @@ var (
 	appName, buildVersion, buildCommit, buildDate string // nolint
 )
 
-type config struct {
-	logLevel             string
-	configListenPort     int
-	mockServerListenPort int
-}
+func parseConfig() (c config.Config) {
+	c.Build = config.Build{
+		AppName:      appName,
+		BuildVersion: buildVersion,
+		BuildCommit:  buildCommit,
+		BuildDate:    buildDate,
+	}
 
-func parseConfig() (c config) {
 	// Use a prefix for environment variables
 	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "SMOCKER", flag.ExitOnError)
 
-	flag.StringVar(&c.logLevel, "log-level", "info", "")
-	flag.IntVar(&c.configListenPort, "config-listen-port", 8081, "")
-	flag.IntVar(&c.mockServerListenPort, "mock-server-listen-port", 8080, "")
+	flag.StringVar(&c.LogLevel, "log-level", "info", "Available levels: panic, fatal, error, warning, info, debug, trace")
+	flag.IntVar(&c.ConfigListenPort, "config-listen-port", 8081, "")
+	flag.IntVar(&c.MockServerListenPort, "mock-server-listen-port", 8080, "")
+	flag.StringVar(&c.StaticFiles, "static-files", ".", "The location of the static files to serve (index.html, etc.)")
 
 	flag.Parse()
 	return
@@ -48,11 +50,6 @@ func setupLogger(logLevel string) {
 
 func main() {
 	c := parseConfig()
-	setupLogger(c.logLevel)
-	server.Serve(c.mockServerListenPort, c.configListenPort, echo.Map{
-		"appName":      appName,
-		"buildVersion": buildVersion,
-		"buildCommit":  buildCommit,
-		"buildDate":    buildDate,
-	})
+	setupLogger(c.LogLevel)
+	server.Serve(c)
 }

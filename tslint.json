@@ -1,0 +1,19 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:latest",
+    "tslint-react",
+    "tslint-eslint-rules",
+    "tslint-config-prettier"
+  ],
+  "jsRules": {},
+  "rules": {
+    "interface-name": false,
+    "jsx-boolean-value": false,
+    "no-submodule-imports": [true, "codemirror", "~assets", "~components"],
+    "object-literal-sort-keys": false,
+    "ordered-imports": false,
+    "no-implicit-dependencies": false
+  },
+  "rulesDirectory": []
+}
