@@ -123,6 +123,7 @@
         td {
           width: 50%;
           padding: 0.5em 0.7em;
+          word-break: break-all;
 
           &:nth-child(1) {
             font-weight: bolder;
