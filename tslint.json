@@ -10,7 +10,16 @@
   "rules": {
     "interface-name": false,
     "jsx-boolean-value": false,
-    "no-submodule-imports": [true, "codemirror", "~assets", "~components"],
+    "no-submodule-imports": [
+      true,
+      "codemirror",
+      "~assets",
+      "~components",
+      "~modules",
+      "rxjs",
+      "fp-ts",
+      "io-ts"
+    ],
     "object-literal-sort-keys": false,
     "ordered-imports": false,
     "no-implicit-dependencies": false

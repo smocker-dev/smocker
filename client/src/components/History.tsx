@@ -9,11 +9,15 @@ import "codemirror/addon/fold/foldcode";
 import "codemirror/addon/fold/foldgutter";
 import "codemirror/addon/fold/brace-fold";
 import "./History.scss";
-import { Multimap, formQueryParams, trimedPath, usePollAPI } from "~utils";
+import { formQueryParams, usePoll } from "~utils";
 import { orderBy } from "lodash-es";
 import useLocalStorage from "react-use-localstorage";
 import { DateTime, Settings } from "luxon";
-import Context, { Entry } from "./Context";
+import { Entry, History, Error } from "~modules/types";
+import { connect } from "react-redux";
+import { AppState } from "~modules/reducers";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
 
 const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 Settings.defaultLocale = "en-US";
@@ -110,16 +114,20 @@ const Entry = ({ value }: { value: Entry }) => (
   </div>
 );
 
-export const History = () => {
+interface Props {
+  loading: boolean;
+  history: History;
+  error: Error | null;
+  fetch: () => any;
+}
+
+const History = ({ history, loading, error, fetch }: Props) => {
   const [asc, setAsc] = useLocalStorage("history.order.request.by.date", "asc");
-  const [{ data, loading, error }, { polling, togglePolling }] = usePollAPI<
-    Entry[]
-  >(trimedPath + "/history", 10000);
-  const { history, setHistory } = React.useContext(Context);
-  const isEmpty = history.length === 0 && (!data || data.length === 0);
+  const [polling, togglePolling] = usePoll(fetch, 10000);
+  const isEmpty = history.length === 0;
   let body = null;
   if (error) {
-    body = <p>{error}</p>;
+    body = <pre className="error">{error.message}</pre>;
   } else if (isEmpty && loading) {
     body = (
       <div className="dimmer">
@@ -132,9 +140,6 @@ export const History = () => {
         <h3>No entry found</h3>
       </div>
     );
-  } else if (data && data.length) {
-    setHistory([...data]);
-    data.length = 0;
   } else {
     body = orderBy(history, "request.date", asc === "asc" ? "asc" : "desc").map(
       (entry, index) => <Entry key={`entry-${index}`} value={entry} />
@@ -146,7 +151,11 @@ export const History = () => {
       <div className="list">
         <div className="header">
           <a className="order" onClick={onSort}>
-            <strong>{`> Order by request date "${asc}"`}</strong>
+            <strong>
+              {`> Order by request date: "${
+                asc === "asc" ? "oldest first" : "newest first"
+              }"`}
+            </strong>
           </a>
           <button
             className={classNames({ loading }, { red: polling })}
@@ -160,3 +169,14 @@ export const History = () => {
     </div>
   );
 };
+
+export default connect(
+  (state: AppState) => ({
+    loading: state.history.loading,
+    history: state.history.list,
+    error: state.history.error
+  }),
+  (dispatch: Dispatch<Actions>) => ({
+    fetch: () => dispatch(actions.fetchHistory.request())
+  })
+)(History);

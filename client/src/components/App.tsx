@@ -6,27 +6,38 @@ import {
   Route,
   Redirect
 } from "react-router-dom";
-import { Navbar } from "./Navbar";
-import { History } from "./History";
+import Navbar from "./Navbar";
+import History from "./History";
 import "./App.scss";
-import { Mocks } from "./Mocks";
-import Context, { Entry, Mock } from "./Context";
+import Mocks from "./Mocks";
+import { createEpicMiddleware } from "redux-observable";
+import { createStore, applyMiddleware } from "redux";
+import rootReducer from "~modules/reducers";
+import rootEpic from "~modules/epics";
+import { Actions } from "~modules/actions";
+import { Provider } from "react-redux";
 
-const App = () => {
-  const [history, setHistory] = React.useState<Entry[]>([]);
-  const [mocks, setMocks] = React.useState<Mock[]>([]);
-  return (
-    <Context.Provider value={{ history, setHistory, mocks, setMocks }}>
-      <Router>
-        <Navbar />
-        <Switch>
-          <Route exact path="/pages/history" component={History} />
-          <Route exact path="/pages/mocks" component={Mocks} />
-          <Redirect to="/pages/history" />
-        </Switch>
-      </Router>
-    </Context.Provider>
-  );
-};
+import { composeWithDevTools } from "redux-devtools-extension";
 
+const epicMiddleware = createEpicMiddleware<Actions>();
+
+const store = createStore(
+  rootReducer,
+  composeWithDevTools(applyMiddleware(epicMiddleware))
+);
+
+epicMiddleware.run(rootEpic);
+
+const App = () => (
+  <Provider store={store}>
+    <Router>
+      <Navbar />
+      <Switch>
+        <Route exact path="/pages/history" component={History} />
+        <Route exact path="/pages/mocks" component={Mocks} />
+        <Redirect to="/pages/history" />
+      </Switch>
+    </Router>
+  </Provider>
+);
 export default hot(module)(App);

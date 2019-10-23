@@ -16,12 +16,15 @@
     "@types/node": "^12.11.1",
     "@types/react": "^16.9.9",
     "@types/react-dom": "^16.9.2",
+    "@types/react-redux": "^7.1.5",
     "@types/react-router-dom": "^5.1.0",
+    "@types/redux": "^3.6.0",
     "husky": ">=1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
     "prettier": "1.18.2",
     "react-hot-loader": "^4.12.15",
+    "redux-devtools-extension": "^2.13.8",
     "sass": "^1.23.0",
     "tslib": "^1.10.0",
     "tslint": "^5.20.0",
@@ -31,18 +34,24 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
-    "axios": "^0.19.0",
-    "axios-hooks": "^1.4.1",
     "classnames": "^2.2.6",
     "codemirror": "^5.49.0",
+    "fp-ts": "^2.1.1",
+    "io-ts": "^2.0.1",
+    "io-ts-reporters": "^1.0.0",
     "js-yaml": "^3.13.1",
     "lodash-es": "^4.17.15",
     "luxon": "^1.19.3",
     "react": "^16.10.2",
     "react-codemirror2": "^6.0.0",
     "react-dom": "^16.10.2",
+    "react-redux": "^7.1.1",
     "react-router-dom": "^5.1.2",
-    "react-use-localstorage": "^3.2.2"
+    "react-use-localstorage": "^3.2.2",
+    "redux": "^4.0.4",
+    "redux-observable": "^1.2.0",
+    "rxjs": "^6.5.3",
+    "typesafe-actions": "^4.4.2"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

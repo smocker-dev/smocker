@@ -1,30 +1,18 @@
 import * as React from "react";
-import { NavLink, withRouter } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "./Navbar.scss";
-import useAxios from "axios-hooks";
-import { trimedPath } from "~utils";
 import Logo from "~assets/logo.png";
-import Context from "./Context";
+import { connect } from "react-redux";
+import { AppState } from "~modules/reducers";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
 
-export const Navbar = () => {
-  const { setHistory, setMocks } = React.useContext(Context);
-  const [isReseted, setReseted] = React.useState(false);
-  const [{ data, loading, error }, postReset] = useAxios(
-    {
-      url: trimedPath + "/reset",
-      method: "POST"
-    },
-    { manual: true }
-  );
-  if (data && !isReseted) {
-    setReseted(true);
-    setHistory([]);
-    setMocks([]);
-  }
-  const reset = () => {
-    setReseted(false);
-    postReset();
-  };
+interface Props {
+  loading: boolean;
+  reset: () => void;
+}
+
+const Navbar = ({ loading, reset }: Props) => {
   return (
     <nav className="navbar">
       <div className="menu">
@@ -44,7 +32,6 @@ export const Navbar = () => {
           <button
             className={loading ? "loading" : ""}
             onClick={loading ? undefined : reset}
-            title={error && error.message}
           >
             Reset
           </button>
@@ -53,3 +40,12 @@ export const Navbar = () => {
     </nav>
   );
 };
+
+export default connect(
+  (state: AppState) => ({
+    loading: state.history.loading || state.mocks.loading
+  }),
+  (dispatch: Dispatch<Actions>) => ({
+    reset: () => dispatch(actions.reset.request())
+  })
+)(Navbar);
