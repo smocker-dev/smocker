@@ -11,6 +11,8 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "removeComments": true,
     "paths": {
       "~*": ["./*"]

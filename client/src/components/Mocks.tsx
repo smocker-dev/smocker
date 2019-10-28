@@ -19,19 +19,23 @@ import "codemirror/addon/lint/yaml-lint";
 import "./Mocks.scss";
 import {
   formQueryParams,
-  trimedPath,
-  usePollAPI,
   toMultimap,
   toString,
-  extractMatcher
+  extractMatcher,
+  usePoll
 } from "~utils";
-import useAxios from "axios-hooks";
-import Context, {
+import {
   Mock,
   MockResponse,
   MockDynamicResponse,
-  MockRequest
-} from "./Context";
+  MockRequest,
+  Mocks,
+  Error
+} from "~modules/types";
+import { connect } from "react-redux";
+import { AppState } from "~modules/reducers";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
 
 window.jsyaml = jsyaml;
 
@@ -146,7 +150,7 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   return (
     <div className="request">
       <div className="details">
-        <div>
+        <div className="group">
           <span className="method">
             {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
             {method}
@@ -199,23 +203,19 @@ const Mock = ({ mock }: { mock: Mock }) => {
 
 const NewMock = ({
   onSave,
-  onClose
+  onClose,
+  error,
+  loading
 }: {
-  onSave: () => void;
+  onSave: (mocks: string) => void;
   onClose: () => void;
+  error: Error | null;
+  loading: boolean;
 }) => {
   const [mock, changeMock] = React.useState("");
-  const [{ data, loading, error }, postNewMock] = useAxios(
-    {
-      url: trimedPath + "/mocks",
-      method: "POST",
-      headers: { "Content-Type": "application/x-yaml" }
-    },
-    { manual: true }
-  );
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    postNewMock({ data: mock });
+    onSave(mock);
   };
   const handleCancel = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -224,10 +224,6 @@ const NewMock = ({
   const handleChangeMock = (_: any, __: any, value: string) => {
     changeMock(value);
   };
-  if (data) {
-    onSave();
-    return null;
-  }
   return (
     <form onSubmit={handleSubmit}>
       <Controlled
@@ -247,7 +243,7 @@ const NewMock = ({
         }}
         onBeforeChange={handleChangeMock}
       />
-      {error && error.response && <p>{error.response.data.message}</p>}
+      {error && <pre className="error">{error.message}</pre>}
       <button
         className={classNames("white", { loading })}
         onClick={handleCancel}
@@ -259,17 +255,21 @@ const NewMock = ({
   );
 };
 
-export const Mocks = () => {
-  const [
-    { data, loading, error },
-    { polling, togglePolling, refetch }
-  ] = usePollAPI<Mock[]>(trimedPath + "/mocks", 10000);
+interface Props {
+  loading: boolean;
+  mocks: Mocks;
+  error: Error | null;
+  fetch: () => any;
+  addMocks: (mocks: string) => any;
+}
+
+const Mocks = ({ loading, mocks, error, fetch, addMocks }: Props) => {
+  const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
-  const { mocks, setMocks } = React.useContext(Context);
-  const isEmpty = mocks.length === 0 && (!data || data.length === 0);
+  const isEmpty = mocks.length === 0;
   let body = null;
   if (error) {
-    body = <p>{error}</p>;
+    body = <pre className="error">{error.message}</pre>;
   } else if (isEmpty && loading) {
     body = (
       <div className="dimmer">
@@ -282,9 +282,6 @@ export const Mocks = () => {
         <h3>No mock found</h3>
       </div>
     );
-  } else if (data && data.length) {
-    setMocks([...data]);
-    data.length = 0;
   } else {
     body = mocks.map((mock, index) => (
       <Mock key={`entry-${index}`} mock={mock} />
@@ -293,15 +290,20 @@ export const Mocks = () => {
 
   const handleAddNewMock = () => setDisplayNewMock(true);
   const handleCancelNewMock = () => setDisplayNewMock(false);
-  const handleSaveNewMock = () => {
+  const handleSaveNewMock = (newMocks: string) => {
     setDisplayNewMock(false);
-    refetch();
+    addMocks(newMocks);
   };
   return (
     <div className="mocks">
       <div className="list">
         {displayNewMock && (
-          <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
+          <NewMock
+            onSave={handleSaveNewMock}
+            onClose={handleCancelNewMock}
+            error={error}
+            loading={loading}
+          />
         )}
         <div className="header">
           {!displayNewMock ? (
@@ -323,3 +325,15 @@ export const Mocks = () => {
     </div>
   );
 };
+
+export default connect(
+  (state: AppState) => ({
+    loading: state.mocks.loading,
+    mocks: state.mocks.list,
+    error: state.mocks.error
+  }),
+  (dispatch: Dispatch<Actions>) => ({
+    fetch: () => dispatch(actions.fetchMocks.request()),
+    addMocks: (mocks: string) => dispatch(actions.addMocks.request(mocks))
+  })
+)(Mocks);
