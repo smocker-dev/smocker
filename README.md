@@ -61,14 +61,9 @@ curl localhost:8081/version
 
 smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
-<details>
-  <summary>Screenshots</summary>
-
 ![History](docs/screenshot-history.png)
 
 ![Mocks](docs/screenshot-mocks.png)
-
-</details>
 
 ## Usage
 
@@ -146,7 +141,8 @@ The backend is written in Go. You can use the following commands to manage the d
 - `make lint`: run static analysis on the code
 - `make format`: automatically format the backend code
 - `make test`: execute unit tests
-- `make test-integration`: execute integration tests (require the backend to be started)
+- `make test-integration`: execute integration tests (require the backend to be started on the default ports)
+- `make docs`: regenerate documentation assets (require the whole application to be started on the default ports)
 
 ### Frontend
 

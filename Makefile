@@ -67,6 +67,12 @@ test:
 test-integration: $(VENOM)
 	venom run tests/features/*.yml
 
+.PHONY: docs
+docs:
+	yarn --cwd docs/ install
+	venom run tests/features/use_mocks.yml
+	node docs/refresh-screenshots.js
+
 .PHONY: clean
 clean:
 	rm -rf ./build
