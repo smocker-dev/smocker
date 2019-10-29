@@ -9,12 +9,10 @@ import (
 	"net"
 	"net/http"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -43,13 +41,13 @@ func (w *bodyDumpResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req := c.Request()
-			if req == nil {
+			if c.Request() == nil {
 				return fmt.Errorf("empty request")
 			}
 
-			request := types.HTTPRequestToRequest(req)
+			request := types.HTTPRequestToRequest(c.Request())
 			request.Date = time.Now()
+
 			responseBody := new(bytes.Buffer)
 			mw := io.MultiWriter(c.Response().Writer, responseBody)
 			writer := &bodyDumpResponseWriter{Writer: mw, ResponseWriter: c.Response().Writer}
@@ -59,20 +57,17 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				return err
 			}
 
-			response := c.Response()
 			var body interface{}
-			var tmp map[string]interface{}
-			if err := json.Unmarshal(responseBody.Bytes(), &tmp); err != nil {
+			if err := json.Unmarshal(responseBody.Bytes(), &body); err != nil {
 				body = responseBody.String()
-			} else {
-				body = tmp
 			}
+
 			s.history = append(s.history, types.Entry{
 				Request: request,
 				Response: types.Response{
-					Status:  response.Status,
+					Status:  c.Response().Status,
 					Body:    body,
-					Headers: types.HTTPHeaderToMapStringSlice(response.Header()),
+					Headers: types.HTTPHeaderToMapStringSlice(c.Response().Header()),
 					Date:    time.Now(),
 				},
 			})
@@ -84,8 +79,8 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 func loggerMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req := c.Request()
-			res := c.Response()
+			req, res := c.Request(), c.Response()
+
 			start := time.Now()
 			if err := next(c); err != nil {
 				c.Error(err)
@@ -113,14 +108,15 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				"status":    res.Status,
 				"latency":   end.Sub(start).String(),
 				"bytes-in":  bytesIn,
-				"bytes-out": strconv.FormatInt(res.Size, 10),
+				"bytes-out": res.Size,
 			})
 
-			if res.Status < 400 {
+			switch {
+			case res.Status < 400:
 				entry.Info("Handled request")
-			} else if res.Status < 500 {
+			case res.Status < 500:
 				entry.Warn("Handled request")
-			} else {
+			default:
 				entry.Error("Handled request")
 			}
 
@@ -129,39 +125,19 @@ func loggerMiddleware() echo.MiddlewareFunc {
 	}
 }
 
-// recoverMiddleware returns a middleware which recovers from panics anywhere in the chain
-// and handles the control to the centralized HTTPErrorHandler.
+// Same as echo's RecoverWithConfig middleware, with DefaultRecoverConfig
 func recoverMiddleware() echo.MiddlewareFunc {
-	return recoverWithConfig(middleware.DefaultRecoverConfig)
-}
-
-// See: https://github.com/labstack/echo/blob/master/middleware/recover.go#L49. but use logrus
-func recoverWithConfig(config middleware.RecoverConfig) echo.MiddlewareFunc {
-	// Defaults
-	if config.Skipper == nil {
-		config.Skipper = middleware.DefaultRecoverConfig.Skipper
-	}
-	if config.StackSize == 0 {
-		config.StackSize = middleware.DefaultRecoverConfig.StackSize
-	}
-
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if config.Skipper(c) {
-				return next(c)
-			}
-
 			defer func() {
 				if r := recover(); r != nil {
 					err, ok := r.(error)
 					if !ok {
 						err = fmt.Errorf("%v", r)
 					}
-					stack := make([]byte, config.StackSize)
-					length := runtime.Stack(stack, !config.DisableStackAll)
-					if !config.DisablePrintStack {
-						log.WithError(err).Errorf("[PANIC RECOVER] %s", stack[:length])
-					}
+					stack := make([]byte, 4<<10) // 4 KB
+					length := runtime.Stack(stack, true)
+					log.WithError(err).Errorf("[PANIC RECOVER] %s", stack[:length])
 					c.Error(err)
 				}
 			}()

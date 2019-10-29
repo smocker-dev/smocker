@@ -9,7 +9,7 @@ const (
 	LuaEngineID            Engine = "lua"
 )
 
-var TemplateEngines = []Engine{GoTemplateEngineID, GoTemplateYamlEngineID, GoTemplateJsonEngineID, LuaEngineID}
+var TemplateEngines = [...]Engine{GoTemplateEngineID, GoTemplateYamlEngineID, GoTemplateJsonEngineID, LuaEngineID}
 
 func (e Engine) IsValid() bool {
 	for _, existingEngine := range TemplateEngines {

@@ -44,11 +44,11 @@ func (m *Mock) Validate() error {
 	}
 
 	if m.DynamicResponse != nil && !m.DynamicResponse.Engine.IsValid() {
-		return fmt.Errorf("The dynamic response engine must be equal to one of the followings: %v", TemplateEngines)
+		return fmt.Errorf("The dynamic response engine must be one of the following: %v", TemplateEngines)
 	}
 
 	if m.Context != nil && m.Context.Times < 0 {
-		return fmt.Errorf("The times field in mock context must be greater or equal to 0")
+		return fmt.Errorf("The times field in mock context must be greater than or equal to 0")
 	}
 
 	return nil
@@ -64,24 +64,19 @@ type MockRequest struct {
 
 func (mr MockRequest) Match(req Request) bool {
 	matchPath := mr.Path.Match(req.Path)
-	log.WithField("match", matchPath).Debug("Is matching request path")
 	matchMethod := mr.Method.Match(req.Method)
-	log.WithField("match", matchMethod).Debug("Is matching request method")
-	matchBody := true
-	if mr.Body != nil {
-		matchBody = mr.Body.Match(req.BodyString)
-		log.WithField("match", matchBody).Debug("Is matching request body")
-	}
-	matchQueryParams := true
-	if mr.QueryParams != nil {
-		matchQueryParams = mr.QueryParams.Match(req.QueryParams)
-		log.WithField("match", matchQueryParams).Debug("Is matching request query parameters")
-	}
-	matchHeaders := true
-	if mr.Headers != nil {
-		matchHeaders = mr.Headers.Match(req.Headers)
-		log.WithField("match", matchHeaders).Debug("Is matching request headers")
-	}
+	matchBody := mr.Body == nil || mr.Body.Match(req.BodyString)
+	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
+	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
+
+	log.WithFields(log.Fields{
+		"matchPath":        matchPath,
+		"matchMethod":      matchMethod,
+		"matchBody":        matchBody,
+		"matchQueryParams": matchQueryParams,
+		"matchHeaders":     matchHeaders,
+	}).Debug("Match results")
+
 	return matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
 }
 
