@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="docs/logo-horizontal.png" alt="smocker" height="100" title="smocker logo by mandyellow" />
+  <img src="docs/logo/logo-horizontal.png" alt="smocker" height="100" title="smocker logo by mandyellow" />
 </h1>
 
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
