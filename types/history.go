@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -18,20 +19,20 @@ type Entry struct {
 }
 
 type Request struct {
-	Path        string         `json:"path"`
-	Method      string         `json:"method"`
-	Body        interface{}    `json:"body,omitempty" yaml:"body,omitempty"`
-	BodyString  string         `json:"-" yaml:"-"`
-	QueryParams MapStringSlice `json:"query_params,omitempty" yaml:"query_params,omitempty"`
-	Headers     MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
-	Date        time.Time      `json:"date" yaml:"date"`
+	Path        string      `json:"path"`
+	Method      string      `json:"method"`
+	Body        interface{} `json:"body,omitempty" yaml:"body,omitempty"`
+	BodyString  string      `json:"-" yaml:"-"`
+	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
+	Headers     http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Date        time.Time   `json:"date" yaml:"date"`
 }
 
 type Response struct {
-	Status  int            `json:"status"`
-	Body    interface{}    `json:"body,omitempty" yaml:"body,omitempty"`
-	Headers MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
-	Date    time.Time      `json:"date" yaml:"date"`
+	Status  int         `json:"status"`
+	Body    interface{} `json:"body,omitempty" yaml:"body,omitempty"`
+	Headers http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Date    time.Time   `json:"date" yaml:"date"`
 }
 
 func HTTPRequestToRequest(req *http.Request) Request {
@@ -56,8 +57,8 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		Method:      req.Method,
 		Body:        body,
 		BodyString:  string(bodyBytes),
-		QueryParams: URLValuesToMapStringSlice(req.URL.Query()),
-		Headers:     HTTPHeaderToMapStringSlice(req.Header),
+		QueryParams: req.URL.Query(),
+		Headers:     req.Header,
 		Date:        time.Now(),
 	}
 }

@@ -88,7 +88,7 @@ func (sm StringMatcher) Match(value string) bool {
 	}
 
 	if res := matcher(value, sm.Value); res != "" {
-		log.Debugf("Value does not match:\n%s", res)
+		log.WithField("result", res).Debug("Value doesn't match")
 		return false
 	}
 
@@ -174,7 +174,7 @@ type MultiMapMatcher struct {
 	Values  MapStringSlice
 }
 
-func (mm MultiMapMatcher) Match(values MapStringSlice) bool {
+func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 	matcher := asserts[mm.Matcher]
 	if matcher == nil {
 		log.WithField("matcher", mm.Matcher).Error("Invalid matcher")
@@ -189,7 +189,10 @@ func (mm MultiMapMatcher) Match(values MapStringSlice) bool {
 
 		for i, value := range matchingValues {
 			if res := matcher(expectedValues[i], value); res != "" {
-				log.Debugf("Value of key '%s' does not match:\n%s", key, res)
+				log.WithFields(log.Fields{
+					"key":    key,
+					"result": res,
+				}).Debug("Value doesn't match")
 				return false
 			}
 		}
