@@ -2,8 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"net/http"
-	"net/url"
 )
 
 // StringSlice is a type that can unmarshal a string as a slice string
@@ -47,19 +45,3 @@ func (ss *StringSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type MapStringSlice map[string]StringSlice
-
-func HTTPHeaderToMapStringSlice(headers http.Header) MapStringSlice {
-	ret := MapStringSlice{}
-	for key, values := range headers {
-		ret[key] = StringSlice(values)
-	}
-	return ret
-}
-
-func URLValuesToMapStringSlice(urlValues url.Values) MapStringSlice {
-	ret := MapStringSlice{}
-	for key, values := range urlValues {
-		ret[key] = StringSlice(values)
-	}
-	return ret
-}

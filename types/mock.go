@@ -95,6 +95,7 @@ type DynamicMockResponse struct {
 type MockContext struct {
 	Times int `json:"times,omitempty" yaml:"times,omitempty"`
 }
+
 type MockState struct {
 	TimesCount   int       `json:"times_count" yaml:"times_count"`
 	CreationDate time.Time `json:"creation_date" yaml:"creation_date"`
