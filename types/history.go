@@ -12,6 +12,7 @@ import (
 )
 
 type History []Entry
+type Sessions []History
 
 type Entry struct {
 	MockID   string   `json:"mock_id,omitempty"`

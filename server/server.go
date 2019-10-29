@@ -127,11 +127,21 @@ func Serve(config config.Config) {
 		}
 		return respondAccordingAccept(c, history)
 	})
+	e.GET("/sessions", func(c echo.Context) error {
+		history := mockServer.Sessions()
+		return respondAccordingAccept(c, history)
+	})
 
 	e.POST("/reset", func(c echo.Context) error {
 		mockServer.Reset()
 		return c.JSON(http.StatusOK, echo.Map{
 			"message": "Reset successful",
+		})
+	})
+	e.POST("/clear", func(c echo.Context) error {
+		mockServer.Clear()
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "Purge successful",
 		})
 	})
 

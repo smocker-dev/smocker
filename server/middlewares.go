@@ -80,7 +80,8 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 
 			mockID, _ := c.Get(types.MockIDKey).(string)
 
-			s.history = append(s.history, types.Entry{
+			history := s.sessions[len(s.sessions)-1]
+			s.sessions[len(s.sessions)-1] = append(history, types.Entry{
 				MockID:  mockID,
 				Request: request,
 				Response: types.Response{

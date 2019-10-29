@@ -19,21 +19,23 @@ type MockServer interface {
 	Mocks() types.Mocks
 	Mock(id string) *types.Mock
 	History(filterPath string) (types.History, error)
+	Sessions() types.Sessions
 	Reset()
+	Clear()
 }
 
 type mockServer struct {
-	server  *echo.Echo
-	mocks   types.Mocks
-	history types.History
-	mu      sync.Mutex
+	server   *echo.Echo
+	mocks    types.Mocks
+	sessions types.Sessions
+	mu       sync.Mutex
 }
 
 func NewMockServer(port int) MockServer {
 	s := &mockServer{
-		server:  echo.New(),
-		mocks:   types.Mocks{},
-		history: types.History{},
+		server:   echo.New(),
+		mocks:    types.Mocks{},
+		sessions: types.Sessions{{}},
 	}
 
 	s.server.HideBanner = true
@@ -184,7 +186,8 @@ func (s *mockServer) History(filterPath string) (types.History, error) {
 	if err != nil {
 		return res, err
 	}
-	for _, entry := range s.history {
+	history := s.sessions[len(s.sessions)-1]
+	for _, entry := range history {
 		if regex.Match([]byte(entry.Request.Path)) {
 			res = append(res, entry)
 		}
@@ -192,9 +195,22 @@ func (s *mockServer) History(filterPath string) (types.History, error) {
 	return res, nil
 }
 
+func (s *mockServer) Sessions() types.Sessions {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sessions
+}
+
 func (s *mockServer) Reset() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.mocks = types.Mocks{}
-	s.history = types.History{}
+	s.sessions = append(s.sessions, types.History{})
+}
+
+func (s *mockServer) Clear() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mocks = types.Mocks{}
+	s.sessions = types.Sessions{}
 }
