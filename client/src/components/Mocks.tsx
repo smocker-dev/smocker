@@ -43,6 +43,7 @@ const codeMirrorOptions = {
   mode: "application/json",
   theme: "material",
   lineNumbers: true,
+  lineWrapping: true,
   readOnly: true,
   viewportMargin: Infinity,
   foldGutter: true,
@@ -127,7 +128,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
   return (
     <div className="response">
       <div className="details">
-        <div>
+        <div className="group">
           <span className="engine info">Engine</span>
           <span>
             <strong>{response.engine}</strong>
@@ -136,6 +137,24 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
         {renderTimes(state.times_count, context.times)}
       </div>
       <CodeMirror value={response.script} options={options} />
+    </div>
+  );
+};
+
+const MockProxy = ({ mock }: { mock: Mock }) => {
+  const { proxy, context, state } = mock;
+  const host = proxy ? proxy.host : "";
+  return (
+    <div className="response">
+      <div className="details">
+        <div className="group">
+          <span className="status info">Redirect To</span>
+          <span>
+            <strong>{host}</strong>
+          </span>
+        </div>
+        {renderTimes(state.times_count, context.times)}
+      </div>
     </div>
   );
 };
@@ -197,6 +216,7 @@ const Mock = ({ mock }: { mock: Mock }) => {
       <MockRequest request={mock.request} />
       {mock.response && <MockResponse mock={mock} />}
       {mock.dynamic_response && <MockDynamicResponse mock={mock} />}
+      {mock.proxy && <MockProxy mock={mock} />}
     </div>
   );
 };
@@ -232,6 +252,7 @@ const NewMock = ({
           mode: "yaml",
           theme: "material",
           lineNumbers: true,
+          lineWrapping: true,
           viewportMargin: Infinity,
           foldGutter: true,
           lint: true,

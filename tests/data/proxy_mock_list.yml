@@ -1,0 +1,10 @@
+- request:
+    path: /posts/1
+  proxy:
+    host: http://jsonplaceholder.typicode.com
+- request:
+    path: /todos
+    query_params:
+      userId: "1"
+  proxy:
+    host: http://jsonplaceholder.typicode.com

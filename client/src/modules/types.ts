@@ -73,6 +73,11 @@ const MockDynamicResponseCodec = t.type({
 });
 export type MockDynamicResponse = t.TypeOf<typeof MockDynamicResponseCodec>;
 
+const MockProxyCodec = t.type({
+  host: t.string
+});
+export type MockProxy = t.TypeOf<typeof MockProxyCodec>;
+
 const MockContextCodec = t.type({
   times: t.union([t.number, t.undefined])
 });
@@ -87,6 +92,7 @@ const MockCodec = t.type({
   request: MockRequestCodec,
   response: t.union([MockResponseCodec, t.undefined]),
   dynamic_response: t.union([MockDynamicResponseCodec, t.undefined]),
+  proxy: t.union([MockProxyCodec, t.undefined]),
   context: MockContextCodec,
   state: MockStateCodec
 });
