@@ -83,7 +83,15 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 						"request": actualRequest,
 					})
 				}
-			} else {
+			} else if mock.Proxy != nil {
+				response, err = mock.Proxy.Redirect(actualRequest)
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, echo.Map{
+						"message": err.Error(),
+						"request": actualRequest,
+					})
+				}
+			} else if mock.Response != nil {
 				response = mock.Response
 			}
 			matchingMock.State.TimesCount++

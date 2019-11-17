@@ -3,7 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -18,15 +20,16 @@ type Mock struct {
 	Context         *MockContext         `json:"context,omitempty" yaml:"context,omitempty"`
 	State           *MockState           `json:"state,omitempty" yaml:"state,omitempty"`
 	DynamicResponse *DynamicMockResponse `json:"dynamic_response,omitempty" yaml:"dynamic_response,omitempty"`
+	Proxy           *MockProxy           `json:"proxy,omitempty" yaml:"proxy,omitempty"`
 }
 
 func (m *Mock) Validate() error {
-	if m.Response == nil && m.DynamicResponse == nil {
-		return errors.New("The route must define at least a response or a dynamic response")
+	if m.Response == nil && m.DynamicResponse == nil && m.Proxy == nil {
+		return errors.New("The route must define at least a response, a dynamic response or a proxy")
 	}
 
-	if m.Response != nil && m.DynamicResponse != nil {
-		return errors.New("The route must define either a response or a dynamic response, not both")
+	if m.Response != nil && m.DynamicResponse != nil && m.Proxy != nil {
+		return errors.New("The route must define either a response, a dynamic response or a proxy, not multiple of them")
 	}
 
 	m.Request.Path.Value = strings.TrimSpace(m.Request.Path.Value)
@@ -90,6 +93,44 @@ type MockResponse struct {
 type DynamicMockResponse struct {
 	Engine Engine `json:"engine" yaml:"engine"`
 	Script string `json:"script" yaml:"script"`
+}
+
+type MockProxy struct {
+	Host  string        `json:"host" yaml:"host"`
+	Delay time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+}
+
+func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
+	proxyReq, err := http.NewRequest(req.Method, mp.Host+req.Path, strings.NewReader(req.BodyString))
+	if err != nil {
+		return nil, err
+	}
+	proxyReq.Header = req.Headers
+	query := url.Values{}
+	for key, values := range req.QueryParams {
+		query[key] = values
+	}
+	proxyReq.URL.RawQuery = query.Encode()
+	client := &http.Client{}
+	resp, err := client.Do(proxyReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	respHeader := MapStringSlice{}
+	for key, values := range resp.Header {
+		respHeader[key] = values
+	}
+	return &MockResponse{
+		Status:  resp.StatusCode,
+		Body:    string(body),
+		Headers: respHeader,
+		Delay:   mp.Delay,
+	}, nil
 }
 
 type MockContext struct {

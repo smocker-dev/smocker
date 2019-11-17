@@ -107,3 +107,26 @@ testcases:
           - result.bodyjson.bodyjson2.dynamic_response.engine ShouldEqual go_template_yaml
           - result.bodyjson.bodyjson1.dynamic_response.engine ShouldEqual go_template_json
           - result.bodyjson.bodyjson0.dynamic_response.engine ShouldEqual go_template_json
+
+  - name: Add proxy mocks
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/proxy_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 2
+          - result.bodyjson.bodyjson1.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
+          - result.bodyjson.bodyjson0.proxy.host ShouldEqual https://jsonplaceholder.typicode.com

@@ -3,9 +3,11 @@ package server
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"runtime"
@@ -57,9 +59,23 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				return err
 			}
 
+			responseBytes := responseBody.Bytes()
+			if c.Response().Header().Get("Content-Encoding") == "gzip" {
+				r, err := gzip.NewReader(responseBody)
+				if err != nil {
+					log.WithError(err).Error("Unable to uncompress response body")
+				} else {
+					responseBytes, err = ioutil.ReadAll(r)
+					if err != nil {
+						log.WithError(err).Error("Unable to read uncompressed response body")
+						responseBytes = responseBody.Bytes()
+					}
+				}
+			}
+
 			var body interface{}
-			if err := json.Unmarshal(responseBody.Bytes(), &body); err != nil {
-				body = responseBody.String()
+			if err := json.Unmarshal(responseBytes, &body); err != nil {
+				body = string(responseBytes)
 			}
 
 			s.history = append(s.history, types.Entry{

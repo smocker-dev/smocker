@@ -95,7 +95,7 @@
 
       .request,
       .response {
-        flex: 50%;
+        width: 50%;
         padding: 1em;
         display: flex;
         flex-direction: column;
@@ -105,6 +105,9 @@
           align-items: center;
           justify-content: space-between;
           margin-bottom: 1em;
+          &:only-child {
+            margin-bottom: 0em;
+          }
 
           .group {
             display: flex;

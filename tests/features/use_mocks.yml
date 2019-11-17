@@ -11,6 +11,7 @@ testcases:
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 666
+
   - name: Use basic mock
     steps:
       - type: http
@@ -74,6 +75,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5
+
   - name: Use matcher mock list
     steps:
       - type: http
@@ -120,6 +122,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5
+
   - name: Use dynamic mock list
     steps:
       - type: http
@@ -168,3 +171,30 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test6"
+
+  - name: Use proxy mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/proxy_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/posts/1
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.id ShouldEqual 1
+          - result.bodyjson.body ShouldNotBeBlank
+          - result.bodyjson.title ShouldNotBeBlank
+      - type: http
+        method: GET
+        url: http://localhost:8080/todos?userId=1
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 20
