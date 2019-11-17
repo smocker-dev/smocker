@@ -29,7 +29,7 @@ func (m *Mock) Validate() error {
 	}
 
 	if m.Response != nil && m.DynamicResponse != nil && m.Proxy != nil {
-		return errors.New("The route must define either a response, a dynamic response or a proxy, not both")
+		return errors.New("The route must define either a response, a dynamic response or a proxy, not multiple of them")
 	}
 
 	m.Request.Path.Value = strings.TrimSpace(m.Request.Path.Value)

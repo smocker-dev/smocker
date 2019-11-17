@@ -128,5 +128,5 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 2
-          - result.bodyjson.bodyjson1.proxy.host ShouldEqual http://jsonplaceholder.typicode.com
-          - result.bodyjson.bodyjson0.proxy.host ShouldEqual http://jsonplaceholder.typicode.com
+          - result.bodyjson.bodyjson1.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
+          - result.bodyjson.bodyjson0.proxy.host ShouldEqual https://jsonplaceholder.typicode.com

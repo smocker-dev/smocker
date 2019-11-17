@@ -61,8 +61,16 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 
 			responseBytes := responseBody.Bytes()
 			if c.Response().Header().Get("Content-Encoding") == "gzip" {
-				r, _ := gzip.NewReader(responseBody)
-				responseBytes, _ = ioutil.ReadAll(r)
+				r, err := gzip.NewReader(responseBody)
+				if err != nil {
+					log.WithError(err).Error("Unable to uncompress response body")
+				} else {
+					responseBytes, err = ioutil.ReadAll(r)
+					if err != nil {
+						log.WithError(err).Error("Unable to read uncompressed response body")
+						responseBytes = responseBody.Bytes()
+					}
+				}
 			}
 
 			var body interface{}
