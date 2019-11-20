@@ -52,7 +52,9 @@ func NewMockServer(port int) MockServer {
 
 func (s *mockServer) genericHandler(c echo.Context) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
+	mocks := make(types.Mocks, len(s.mocks))
+	copy(mocks, s.mocks)
+	s.mu.Unlock()
 
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
@@ -66,7 +68,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		err          error
 	)
 	exceededMocks := types.Mocks{}
-	for _, mock := range s.mocks {
+	for _, mock := range mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
 			if matchingMock.Context.Times > 0 && matchingMock.State.TimesCount >= matchingMock.Context.Times {
