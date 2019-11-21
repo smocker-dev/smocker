@@ -47,6 +47,9 @@ func Serve(config config.Config) {
 	})
 
 	e.POST("/mocks", func(c echo.Context) error {
+		if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
+			mockServer.Reset()
+		}
 		var mocks []*types.Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {

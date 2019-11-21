@@ -69,6 +69,7 @@
 
       .order {
         text-decoration: underline;
+        margin: 0 0.5em;
 
         &:hover {
           color: $color-black-light;
@@ -139,15 +140,15 @@
         }
       }
 
-      .request {
-        .method {
+      .request .details > span {
+        &.method {
           border-radius: 3px;
           color: $color-white-light;
           padding: 0.5em;
           background-color: $color-blue-dark;
         }
 
-        .path {
+        &.path {
           font-family: monospace;
           white-space: pre-wrap;
           font-weight: bold;

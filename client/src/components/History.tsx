@@ -124,7 +124,11 @@ interface Props {
 }
 
 const History = ({ history, loading, error, fetch }: Props) => {
-  const [asc, setAsc] = useLocalStorage("history.order.request.by.date", "asc");
+  const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
+  const [entryField, setEntryField] = useLocalStorage(
+    "history.order.by.entry.field",
+    "response"
+  );
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const isEmpty = history.length === 0;
   let body = null;
@@ -143,22 +147,29 @@ const History = ({ history, loading, error, fetch }: Props) => {
       </div>
     );
   } else {
-    body = orderBy(history, "request.date", asc === "asc" ? "asc" : "desc").map(
+    body = orderBy(history, `${entryField}.date`, order as any).map(
       (entry, index) => <Entry key={`entry-${index}`} value={entry} />
     );
   }
-  const onSort = () => setAsc(asc === "asc" ? "desc" : "asc");
+  const onSort = () =>
+    setEntryField(entryField === "request" ? "response" : "request");
+  const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
   return (
     <div className="history">
       <div className="list">
         <div className="header">
-          <a className="order" onClick={onSort}>
-            <strong>
-              {`> Order by request date: "${
-                asc === "asc" ? "oldest first" : "newest first"
-              }"`}
-            </strong>
-          </a>
+          <span>
+            > Order by
+            <a className="order" onClick={onSort}>
+              <strong>{`"${entryField}"`}</strong>
+            </a>
+            date:
+            <a className="order" onClick={onSortDate}>
+              <strong>
+                {`"${order === "asc" ? "oldest first" : "newest first"}"`}
+              </strong>
+            </a>
+          </span>
           <button
             className={classNames({ loading }, { red: polling })}
             onClick={loading ? undefined : togglePolling}
