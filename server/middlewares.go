@@ -113,6 +113,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				bytesIn = "0"
 			}
 
+			headers := fmt.Sprintf("%+v", req.Header)
 			entry := log.WithFields(log.Fields{
 				"start":     start.Format(time.RFC3339),
 				"end":       end.Format(time.RFC3339),
@@ -121,6 +122,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				"uri":       req.RequestURI,
 				"method":    req.Method,
 				"path":      p,
+				"hearders":  headers,
 				"status":    res.Status,
 				"latency":   end.Sub(start).String(),
 				"bytes-in":  bytesIn,

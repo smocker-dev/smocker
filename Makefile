@@ -23,6 +23,8 @@ DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 # A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
 DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
 
+LEVEL=debug
+
 .PHONY: default
 default: start
 
@@ -45,7 +47,7 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=info --static-files ./build
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build
 
 .PHONY: build
 build:

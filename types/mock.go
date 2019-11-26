@@ -72,15 +72,20 @@ func (mr MockRequest) Match(req Request) bool {
 	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
 
-	log.WithFields(log.Fields{
-		"matchPath":        matchPath,
-		"matchMethod":      matchMethod,
-		"matchBody":        matchBody,
-		"matchQueryParams": matchQueryParams,
-		"matchHeaders":     matchHeaders,
-	}).Debug("Match results")
-
-	return matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
+	match := matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
+	if match {
+		log.Trace("Mock is matching")
+	} else {
+		log.Trace("Mock does not match")
+		log.WithFields(log.Fields{
+			"matchPath":        matchPath,
+			"matchMethod":      matchMethod,
+			"matchBody":        matchBody,
+			"matchQueryParams": matchQueryParams,
+			"matchHeaders":     matchHeaders,
+		}).Trace("Match results")
+	}
+	return match
 }
 
 type MockResponse struct {
@@ -111,6 +116,7 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		query[key] = values
 	}
 	proxyReq.URL.RawQuery = query.Encode()
+	log.Debugf("Redirecting to %s", proxyReq.URL.String())
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
 	if err != nil {

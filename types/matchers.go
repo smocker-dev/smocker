@@ -88,7 +88,7 @@ func (sm StringMatcher) Match(value string) bool {
 	}
 
 	if res := matcher(value, sm.Value); res != "" {
-		log.WithField("result", res).Debug("Value doesn't match")
+		log.Tracef("Value doesn't match:\n%s", res)
 		return false
 	}
 
@@ -190,9 +190,8 @@ func (mm MultiMapMatcher) Match(values map[string][]string) bool {
 		for i, value := range matchingValues {
 			if res := matcher(expectedValues[i], value); res != "" {
 				log.WithFields(log.Fields{
-					"key":    key,
-					"result": res,
-				}).Debug("Value doesn't match")
+					"key": key,
+				}).Tracef("Value doesn't match:\n%s", res)
 				return false
 			}
 		}
