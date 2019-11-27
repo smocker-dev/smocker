@@ -78,7 +78,10 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				body = string(responseBytes)
 			}
 
+			mockID, _ := c.Get(types.MockIDKey).(string)
+
 			s.history = append(s.history, types.Entry{
+				MockID:  mockID,
 				Request: request,
 				Response: types.Response{
 					Status:  c.Response().Status,
@@ -113,6 +116,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				bytesIn = "0"
 			}
 
+			headers := fmt.Sprintf("%+v", req.Header)
 			entry := log.WithFields(log.Fields{
 				"start":     start.Format(time.RFC3339),
 				"end":       end.Format(time.RFC3339),
@@ -121,6 +125,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				"uri":       req.RequestURI,
 				"method":    req.Method,
 				"path":      p,
+				"headers":   headers,
 				"status":    res.Status,
 				"latency":   end.Sub(start).String(),
 				"bytes-in":  bytesIn,

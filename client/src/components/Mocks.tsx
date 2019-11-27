@@ -30,14 +30,19 @@ import {
   MockDynamicResponse,
   MockRequest,
   Mocks,
-  Error
+  Error,
+  dateFormat
 } from "~modules/types";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
+import { withRouter, RouteComponentProps } from "react-router";
+import { Settings, DateTime } from "luxon";
+import { Link } from "react-router-dom";
 
 window.jsyaml = jsyaml;
+Settings.defaultLocale = "en-US";
 
 const codeMirrorOptions = {
   mode: "application/json",
@@ -213,10 +218,21 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
 const Mock = ({ mock }: { mock: Mock }) => {
   return (
     <div className="mock">
-      <MockRequest request={mock.request} />
-      {mock.response && <MockResponse mock={mock} />}
-      {mock.dynamic_response && <MockDynamicResponse mock={mock} />}
-      {mock.proxy && <MockProxy mock={mock} />}
+      <div className="meta">
+        <div>
+          <span className="label">ID:</span>
+          <Link to={`/pages/mocks/${mock.state.id}`}>{mock.state.id}</Link>
+        </div>
+        <span className="date">
+          {DateTime.fromISO(mock.state.creation_date).toFormat(dateFormat)}
+        </span>
+      </div>
+      <div className="content">
+        <MockRequest request={mock.request} />
+        {mock.response && <MockResponse mock={mock} />}
+        {mock.dynamic_response && <MockDynamicResponse mock={mock} />}
+        {mock.proxy && <MockProxy mock={mock} />}
+      </div>
     </div>
   );
 };
@@ -276,7 +292,11 @@ const NewMock = ({
   );
 };
 
-interface Props {
+interface OwnProps {
+  mock_id?: string;
+}
+
+interface Props extends RouteComponentProps<OwnProps> {
   loading: boolean;
   mocks: Mocks;
   error: Error | null;
@@ -284,7 +304,7 @@ interface Props {
   addMocks: (mocks: string) => any;
 }
 
-const Mocks = ({ loading, mocks, error, fetch, addMocks }: Props) => {
+const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const isEmpty = mocks.length === 0;
@@ -304,9 +324,12 @@ const Mocks = ({ loading, mocks, error, fetch, addMocks }: Props) => {
       </div>
     );
   } else {
-    body = mocks.map((mock, index) => (
-      <Mock key={`entry-${index}`} mock={mock} />
-    ));
+    body = mocks
+      .filter(mock => {
+        const mock_id = match.params.mock_id;
+        return !mock_id || mock.state.id == mock_id;
+      })
+      .map(mock => <Mock key={`entry-${mock.state.id}`} mock={mock} />);
   }
 
   const handleAddNewMock = () => setDisplayNewMock(true);
@@ -318,7 +341,7 @@ const Mocks = ({ loading, mocks, error, fetch, addMocks }: Props) => {
   return (
     <div className="mocks">
       <div className="list">
-        {displayNewMock && (
+        {displayNewMock && !match.params.mock_id && (
           <NewMock
             onSave={handleSaveNewMock}
             onClose={handleCancelNewMock}
@@ -326,35 +349,39 @@ const Mocks = ({ loading, mocks, error, fetch, addMocks }: Props) => {
             loading={loading}
           />
         )}
-        <div className="header">
-          {!displayNewMock ? (
-            <button className="green button" onClick={handleAddNewMock}>
-              Add Mock
+        {!match.params.mock_id && (
+          <div className="header">
+            {!displayNewMock ? (
+              <button className="green button" onClick={handleAddNewMock}>
+                Add Mock
+              </button>
+            ) : (
+              <div />
+            )}
+            <button
+              className={classNames({ loading }, { red: polling })}
+              onClick={loading ? undefined : togglePolling}
+            >
+              {polling ? "Stop Refresh" : "Start Refresh"}
             </button>
-          ) : (
-            <div />
-          )}
-          <button
-            className={classNames({ loading }, { red: polling })}
-            onClick={loading ? undefined : togglePolling}
-          >
-            {polling ? "Stop Refresh" : "Start Refresh"}
-          </button>
-        </div>
+          </div>
+        )}
         {body}
       </div>
     </div>
   );
 };
 
-export default connect(
-  (state: AppState) => ({
-    loading: state.mocks.loading,
-    mocks: state.mocks.list,
-    error: state.mocks.error
-  }),
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: () => dispatch(actions.fetchMocks.request()),
-    addMocks: (mocks: string) => dispatch(actions.addMocks.request(mocks))
-  })
-)(Mocks);
+export default withRouter(
+  connect(
+    (state: AppState) => ({
+      loading: state.mocks.loading,
+      mocks: state.mocks.list,
+      error: state.mocks.error
+    }),
+    (dispatch: Dispatch<Actions>) => ({
+      fetch: () => dispatch(actions.fetchMocks.request()),
+      addMocks: (mocks: string) => dispatch(actions.addMocks.request(mocks))
+    })
+  )(Mocks)
+);

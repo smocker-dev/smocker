@@ -35,6 +35,7 @@ const App = () => (
       <Switch>
         <Route exact path="/pages/history" component={History} />
         <Route exact path="/pages/mocks" component={Mocks} />
+        <Route exact path="/pages/mocks/:mock_id" component={Mocks} />
         <Redirect to="/pages/history" />
       </Switch>
     </Router>

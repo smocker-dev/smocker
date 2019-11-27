@@ -13,13 +13,13 @@ import { formQueryParams, usePoll } from "~utils";
 import { orderBy } from "lodash-es";
 import useLocalStorage from "react-use-localstorage";
 import { DateTime, Settings } from "luxon";
-import { Entry, History, Error } from "~modules/types";
+import { Entry, History, Error, dateFormat } from "~modules/types";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
+import { Link } from "react-router-dom";
 
-const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 Settings.defaultLocale = "en-US";
 
 const Entry = ({ value }: { value: Entry }) => (
@@ -30,7 +30,7 @@ const Entry = ({ value }: { value: Entry }) => (
         <span className="path">
           {value.request.path + formQueryParams(value.request.query_params)}
         </span>
-        <span className="fluid">
+        <span className="date">
           {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
         </span>
       </div>
@@ -67,6 +67,12 @@ const Entry = ({ value }: { value: Entry }) => (
       )}
     </div>
     <div className="response">
+      {value.mock_id && (
+        <div className="mock">
+          <span className="label">Mock</span>
+          <Link to={`/pages/mocks/${value.mock_id}`}>{value.mock_id}</Link>
+        </div>
+      )}
       <div className="details">
         <span
           className={classNames(
@@ -77,7 +83,7 @@ const Entry = ({ value }: { value: Entry }) => (
         >
           {value.response.status}
         </span>
-        <span className="fluid">
+        <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
         </span>
       </div>
@@ -124,7 +130,11 @@ interface Props {
 }
 
 const History = ({ history, loading, error, fetch }: Props) => {
-  const [asc, setAsc] = useLocalStorage("history.order.request.by.date", "asc");
+  const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
+  const [entryField, setEntryField] = useLocalStorage(
+    "history.order.by.entry.field",
+    "response"
+  );
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const isEmpty = history.length === 0;
   let body = null;
@@ -143,22 +153,29 @@ const History = ({ history, loading, error, fetch }: Props) => {
       </div>
     );
   } else {
-    body = orderBy(history, "request.date", asc === "asc" ? "asc" : "desc").map(
+    body = orderBy(history, `${entryField}.date`, order as any).map(
       (entry, index) => <Entry key={`entry-${index}`} value={entry} />
     );
   }
-  const onSort = () => setAsc(asc === "asc" ? "desc" : "asc");
+  const onSort = () =>
+    setEntryField(entryField === "request" ? "response" : "request");
+  const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
   return (
     <div className="history">
       <div className="list">
         <div className="header">
-          <a className="order" onClick={onSort}>
-            <strong>
-              {`> Order by request date: "${
-                asc === "asc" ? "oldest first" : "newest first"
-              }"`}
-            </strong>
-          </a>
+          <span>
+            > Order by
+            <a id="entryField-order" className="order" onClick={onSort}>
+              <strong>{`"${entryField}"`}</strong>
+            </a>
+            date:
+            <a id="date-order" className="order" onClick={onSortDate}>
+              <strong>
+                {`"${order === "asc" ? "oldest first" : "newest first"}"`}
+              </strong>
+            </a>
+          </span>
           <button
             className={classNames({ loading }, { red: polling })}
             onClick={loading ? undefined : togglePolling}

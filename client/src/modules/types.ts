@@ -4,6 +4,8 @@ import * as t from "io-ts";
 import { reporter } from "io-ts-reporters";
 import { Observable, of, throwError } from "rxjs";
 
+export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
+
 export const ErrorCodec = t.type({
   message: t.any
 });
@@ -43,6 +45,7 @@ const EntryResponseCodec = t.type({
 export type EntryResponse = t.TypeOf<typeof EntryResponseCodec>;
 
 const EntryCodec = t.type({
+  mock_id: t.union([t.undefined, t.string]),
   request: EntryRequestCodec,
   response: EntryResponseCodec
 });
@@ -84,7 +87,9 @@ const MockContextCodec = t.type({
 export type MockContext = t.TypeOf<typeof MockContextCodec>;
 
 const MockStateCodec = t.type({
-  times_count: t.number
+  times_count: t.number,
+  creation_date: t.string,
+  id: t.string
 });
 export type MockState = t.TypeOf<typeof MockStateCodec>;
 

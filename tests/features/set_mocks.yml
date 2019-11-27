@@ -21,7 +21,8 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 1
-          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson0.request.method.matcher ShouldEqual ShouldMatch
+          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
 
   - name: Add basic mock list
     steps:
@@ -45,11 +46,39 @@ testcases:
           - result.bodyjson.__len__ ShouldEqual 5
 
           # Mocks are stored as a stack
-          - result.bodyjson.bodyjson4.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson4.request.method.value ShouldEqual .*
           - result.bodyjson.bodyjson3.request.method ShouldEqual POST
           - result.bodyjson.bodyjson2.request.method ShouldEqual DELETE
-          - result.bodyjson.bodyjson1.request.method ShouldEqual GET
-          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson1.request.method.value ShouldEqual .*
+          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
+
+  - name: Add basic mock with reset after a basic mock list
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/basic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.bodyjson.__len__ ShouldEqual 5
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks?reset=true
+        bodyFile: ../data/basic_mock.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.bodyjson.__len__ ShouldEqual 1
 
   - name: Add mocks with matchers
     steps:

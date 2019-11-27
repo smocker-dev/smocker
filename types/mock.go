@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const MockIDKey = "MockID"
+
 type Mocks []*Mock
 
 type Mock struct {
@@ -34,16 +36,15 @@ func (m *Mock) Validate() error {
 
 	m.Request.Path.Value = strings.TrimSpace(m.Request.Path.Value)
 	if m.Request.Path.Value == "" {
-		return errors.New("The request must define at least a path")
+		m.Request.Path.Matcher = "ShouldMatch"
+		m.Request.Path.Value = ".*"
+
 	}
 
 	m.Request.Method.Value = strings.TrimSpace(m.Request.Method.Value)
 	if m.Request.Method.Value == "" {
-		// Fallback to GET
-		m.Request.Method = StringMatcher{
-			Matcher: DefaultMatcher,
-			Value:   http.MethodGet,
-		}
+		m.Request.Method.Matcher = "ShouldMatch"
+		m.Request.Method.Value = ".*"
 	}
 
 	if m.DynamicResponse != nil && !m.DynamicResponse.Engine.IsValid() {
@@ -72,15 +73,16 @@ func (mr MockRequest) Match(req Request) bool {
 	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
 
-	log.WithFields(log.Fields{
+	match := matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
+	logEntry := log.WithFields(log.Fields{
 		"matchPath":        matchPath,
 		"matchMethod":      matchMethod,
 		"matchBody":        matchBody,
 		"matchQueryParams": matchQueryParams,
 		"matchHeaders":     matchHeaders,
-	}).Debug("Match results")
-
-	return matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
+	})
+	logEntry.Trace("Is matching: ", match)
+	return match
 }
 
 type MockResponse struct {
@@ -111,6 +113,7 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		query[key] = values
 	}
 	proxyReq.URL.RawQuery = query.Encode()
+	log.Debugf("Redirecting to %s", proxyReq.URL.String())
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
@@ -138,6 +141,7 @@ type MockContext struct {
 }
 
 type MockState struct {
+	ID           string    `json:"id" yaml:"id"`
 	TimesCount   int       `json:"times_count" yaml:"times_count"`
 	CreationDate time.Time `json:"creation_date" yaml:"creation_date"`
 }

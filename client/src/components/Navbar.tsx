@@ -21,10 +21,10 @@ const Navbar = ({ loading, reset }: Props) => {
             <img height={32} src={Logo} />
             Smocker
           </NavLink>
-          <NavLink exact to="/pages/history" className="item">
+          <NavLink to="/pages/history" className="item">
             History
           </NavLink>
-          <NavLink exact to="/pages/mocks" className="item">
+          <NavLink to="/pages/mocks" className="item">
             Mocks
           </NavLink>
         </div>

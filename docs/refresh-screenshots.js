@@ -10,13 +10,12 @@ const path = require("path");
   });
 
   await page.goto("http://localhost:8081/pages/history");
-  await page.waitFor(3000);
+  await page.click("#date-order")
   await page.screenshot({
     path: path.join(__dirname, "screenshot-history.png")
   });
 
   await page.goto("http://localhost:8081/pages/mocks");
-  await page.waitFor(3000);
   await page.screenshot({ path: path.join(__dirname, "screenshot-mocks.png") });
 
   await browser.close();
