@@ -74,18 +74,14 @@ func (mr MockRequest) Match(req Request) bool {
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
 
 	match := matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
-	if match {
-		log.Trace("Mock is matching")
-	} else {
-		log.Trace("Mock does not match")
-		log.WithFields(log.Fields{
-			"matchPath":        matchPath,
-			"matchMethod":      matchMethod,
-			"matchBody":        matchBody,
-			"matchQueryParams": matchQueryParams,
-			"matchHeaders":     matchHeaders,
-		}).Trace("Match results")
-	}
+	logEntry := log.WithFields(log.Fields{
+		"matchPath":        matchPath,
+		"matchMethod":      matchMethod,
+		"matchBody":        matchBody,
+		"matchQueryParams": matchQueryParams,
+		"matchHeaders":     matchHeaders,
+	})
+	logEntry.Trace("Is matching: ", match)
 	return match
 }
 

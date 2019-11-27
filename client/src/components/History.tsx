@@ -166,11 +166,11 @@ const History = ({ history, loading, error, fetch }: Props) => {
         <div className="header">
           <span>
             > Order by
-            <a className="order" onClick={onSort}>
+            <a id="entryField-order" className="order" onClick={onSort}>
               <strong>{`"${entryField}"`}</strong>
             </a>
             date:
-            <a className="order" onClick={onSortDate}>
+            <a id="date-order" className="order" onClick={onSortDate}>
               <strong>
                 {`"${order === "asc" ? "oldest first" : "newest first"}"`}
               </strong>

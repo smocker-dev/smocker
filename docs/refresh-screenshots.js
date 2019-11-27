@@ -10,7 +10,7 @@ const path = require("path");
   });
 
   await page.goto("http://localhost:8081/pages/history");
-  await page.click("a.order:nth-child(2) > strong:nth-child(1)")
+  await page.click("#date-order")
   await page.screenshot({
     path: path.join(__dirname, "screenshot-history.png")
   });

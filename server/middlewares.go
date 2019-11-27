@@ -125,7 +125,7 @@ func loggerMiddleware() echo.MiddlewareFunc {
 				"uri":       req.RequestURI,
 				"method":    req.Method,
 				"path":      p,
-				"hearders":  headers,
+				"headers":   headers,
 				"status":    res.Status,
 				"latency":   end.Sub(start).String(),
 				"bytes-in":  bytesIn,
