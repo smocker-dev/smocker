@@ -21,7 +21,8 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 1
-          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson0.request.method.matcher ShouldEqual ShouldMatch
+          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
 
   - name: Add basic mock list
     steps:
@@ -45,11 +46,11 @@ testcases:
           - result.bodyjson.__len__ ShouldEqual 5
 
           # Mocks are stored as a stack
-          - result.bodyjson.bodyjson4.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson4.request.method.value ShouldEqual .*
           - result.bodyjson.bodyjson3.request.method ShouldEqual POST
           - result.bodyjson.bodyjson2.request.method ShouldEqual DELETE
-          - result.bodyjson.bodyjson1.request.method ShouldEqual GET
-          - result.bodyjson.bodyjson0.request.method ShouldEqual GET
+          - result.bodyjson.bodyjson1.request.method.value ShouldEqual .*
+          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
 
   - name: Add basic mock with reset after a basic mock list
     steps:

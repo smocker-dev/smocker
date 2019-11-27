@@ -36,16 +36,15 @@ func (m *Mock) Validate() error {
 
 	m.Request.Path.Value = strings.TrimSpace(m.Request.Path.Value)
 	if m.Request.Path.Value == "" {
-		return errors.New("The request must define at least a path")
+		m.Request.Path.Matcher = "ShouldMatch"
+		m.Request.Path.Value = ".*"
+
 	}
 
 	m.Request.Method.Value = strings.TrimSpace(m.Request.Method.Value)
 	if m.Request.Method.Value == "" {
-		// Fallback to GET
-		m.Request.Method = StringMatcher{
-			Matcher: DefaultMatcher,
-			Value:   http.MethodGet,
-		}
+		m.Request.Method.Matcher = "ShouldMatch"
+		m.Request.Method.Value = ".*"
 	}
 
 	if m.DynamicResponse != nil && !m.DynamicResponse.Engine.IsValid() {
