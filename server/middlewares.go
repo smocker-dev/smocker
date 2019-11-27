@@ -78,7 +78,10 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 				body = string(responseBytes)
 			}
 
+			mockID, _ := c.Get(types.MockIDKey).(string)
+
 			s.history = append(s.history, types.Entry{
+				MockID:  mockID,
 				Request: request,
 				Response: types.Response{
 					Status:  c.Response().Status,

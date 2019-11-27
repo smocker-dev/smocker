@@ -14,6 +14,7 @@ import (
 type History []Entry
 
 type Entry struct {
+	MockID   string   `json:"mock_id,omitempty"`
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
 }

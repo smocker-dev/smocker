@@ -17,6 +17,7 @@ import (
 type MockServer interface {
 	AddMock(*types.Mock)
 	Mocks() types.Mocks
+	Mock(id string) *types.Mock
 	History(filterPath string) (types.History, error)
 	Reset()
 }
@@ -99,6 +100,7 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 				response = mock.Response
 			}
 			matchingMock.State.TimesCount++
+			c.Set(types.MockIDKey, matchingMock.State.ID)
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -161,6 +163,17 @@ func (s *mockServer) Mocks() types.Mocks {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.mocks
+}
+
+func (s *mockServer) Mock(id string) *types.Mock {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, mock := range s.mocks {
+		if mock.State.ID == id {
+			return mock
+		}
+	}
+	return nil
 }
 
 func (s *mockServer) History(filterPath string) (types.History, error) {

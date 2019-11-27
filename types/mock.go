@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const MockIDKey = "MockID"
+
 type Mocks []*Mock
 
 type Mock struct {
@@ -144,6 +146,7 @@ type MockContext struct {
 }
 
 type MockState struct {
+	ID           string    `json:"id" yaml:"id"`
 	TimesCount   int       `json:"times_count" yaml:"times_count"`
 	CreationDate time.Time `json:"creation_date" yaml:"creation_date"`
 }

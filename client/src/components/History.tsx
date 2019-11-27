@@ -13,13 +13,13 @@ import { formQueryParams, usePoll } from "~utils";
 import { orderBy } from "lodash-es";
 import useLocalStorage from "react-use-localstorage";
 import { DateTime, Settings } from "luxon";
-import { Entry, History, Error } from "~modules/types";
+import { Entry, History, Error, dateFormat } from "~modules/types";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
+import { Link } from "react-router-dom";
 
-const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 Settings.defaultLocale = "en-US";
 
 const Entry = ({ value }: { value: Entry }) => (
@@ -30,7 +30,7 @@ const Entry = ({ value }: { value: Entry }) => (
         <span className="path">
           {value.request.path + formQueryParams(value.request.query_params)}
         </span>
-        <span className="fluid">
+        <span className="date">
           {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
         </span>
       </div>
@@ -67,6 +67,12 @@ const Entry = ({ value }: { value: Entry }) => (
       )}
     </div>
     <div className="response">
+      {value.mock_id && (
+        <div className="mock">
+          <span className="label">Mock</span>
+          <Link to={`/pages/mocks/${value.mock_id}`}>{value.mock_id}</Link>
+        </div>
+      )}
       <div className="details">
         <span
           className={classNames(
@@ -77,7 +83,7 @@ const Entry = ({ value }: { value: Entry }) => (
         >
           {value.response.status}
         </span>
-        <span className="fluid">
+        <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
         </span>
       </div>

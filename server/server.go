@@ -10,6 +10,7 @@ import (
 
 	"github.com/Thiht/smocker/config"
 	"github.com/Thiht/smocker/types"
+	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -42,7 +43,15 @@ func Serve(config config.Config) {
 	e.Use(recoverMiddleware(), loggerMiddleware())
 
 	e.GET("/mocks", func(c echo.Context) error {
-		mocks := mockServer.Mocks()
+		id := c.QueryParam("id")
+		var mocks types.Mocks
+		if id != "" {
+			if mock := mockServer.Mock(id); mock != nil {
+				mocks = types.Mocks{mock}
+			}
+		} else {
+			mocks = mockServer.Mocks()
+		}
 		return respondAccordingAccept(c, mocks)
 	})
 
@@ -78,6 +87,7 @@ func Serve(config config.Config) {
 		for _, mock := range mocks {
 			mock.State = &types.MockState{
 				CreationDate: time.Now(),
+				ID:           uuid.New().String(),
 			}
 			if mock.Context == nil {
 				mock.Context = &types.MockContext{}

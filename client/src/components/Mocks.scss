@@ -86,6 +86,7 @@
       background-color: $color-white-light;
       position: relative;
       display: flex;
+      flex-direction: column;
       padding: 1em;
       margin-top: 1.5em;
 
@@ -93,111 +94,133 @@
         font-weight: bolder;
       }
 
-      .request,
-      .response {
-        width: 50%;
-        padding: 1em;
+      .meta {
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+        padding: 1em;
+        margin-bottom: 1em;
+        border-bottom: 1px dashed $color-grey-dark;
 
-        .details {
+        .label {
+          font-weight: bolder;
+          margin-right: 0.5em;
+        }
+
+        .date {
+          flex: 1 1 auto;
+          text-align: right;
+          font-weight: bolder;
+        }
+      }
+
+      .content {
+        display: flex;
+        flex-direction: row;
+        .request,
+        .response {
+          width: 50%;
+          padding: 1em;
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1em;
-          &:only-child {
-            margin-bottom: 0em;
-          }
+          flex-direction: column;
 
-          .group {
+          .details {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1em;
+            &:only-child {
+              margin-bottom: 0em;
+            }
+
+            .group {
+              display: flex;
+              align-items: center;
+            }
+
+            span,
+            strong {
+              border-radius: 3px;
+              font-size: 0.75rem;
+              white-space: nowrap;
+
+              &.fluid {
+                flex: 1 1 auto;
+                text-align: right;
+                font-weight: bolder;
+              }
+
+              &.wrong {
+                color: $color-red-dark;
+              }
+
+              & + span,
+              & + strong {
+                margin-left: 0.5em;
+              }
+            }
           }
 
-          span,
-          strong {
+          table {
+            border-collapse: collapse;
             border-radius: 3px;
-            font-size: 0.75rem;
-            white-space: nowrap;
+            border-style: hidden;
+            box-shadow: 0 0 0 1px $color-grey-light;
+            width: 100%;
+            background-color: rgba($color-white-dark, 0.125);
+            font-size: $base-font-size;
+          }
 
-            &.fluid {
-              flex: 1 1 auto;
-              text-align: right;
+          tr + tr {
+            border-top: 1px solid $color-grey-light;
+          }
+
+          td {
+            width: 50%;
+            padding: 0.5em 0.7em;
+            word-break: break-all;
+
+            &:nth-child(1) {
               font-weight: bolder;
             }
-
-            &.wrong {
-              color: $color-red-dark;
-            }
-
-            & + span,
-            & + strong {
-              margin-left: 0.5em;
-            }
           }
         }
 
-        table {
-          border-collapse: collapse;
-          border-radius: 3px;
-          border-style: hidden;
-          box-shadow: 0 0 0 1px $color-grey-light;
-          width: 100%;
-          background-color: rgba($color-white-dark, 0.125);
-          font-size: $base-font-size;
-        }
-
-        tr + tr {
-          border-top: 1px solid $color-grey-light;
-        }
-
-        td {
-          width: 50%;
-          padding: 0.5em 0.7em;
-          word-break: break-all;
-
-          &:nth-child(1) {
-            font-weight: bolder;
-          }
-        }
-      }
-
-      .request .details .group {
-        .method {
-          border-radius: 3px;
-          color: $color-white-light;
-          padding: 0.5em;
-          background-color: $color-blue-dark;
-        }
-
-        .path {
-          font-family: monospace;
-          white-space: pre-wrap;
-          font-weight: bold;
-          word-break: break-all;
-        }
-      }
-
-      .response {
-        border-left: 1px dashed $color-grey-dark;
-
-        .status,
-        .engine {
-          border-radius: 3px;
-          padding: 0.5em;
-
-          &.info {
+        .request .details .group {
+          .method {
+            border-radius: 3px;
             color: $color-white-light;
+            padding: 0.5em;
             background-color: $color-blue-dark;
           }
 
-          &.failure {
-            color: $color-white-light;
-            background-color: $color-red-dark;
+          .path {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-weight: bold;
+            word-break: break-all;
+          }
+        }
+
+        .response {
+          border-left: 1px dashed $color-grey-dark;
+
+          .status,
+          .engine {
+            border-radius: 3px;
+            padding: 0.5em;
+
+            &.info {
+              color: $color-white-light;
+              background-color: $color-blue-dark;
+            }
+
+            &.failure {
+              color: $color-white-light;
+              background-color: $color-red-dark;
+            }
           }
         }
       }
-
       .CodeMirror {
         position: relative;
         height: auto;
