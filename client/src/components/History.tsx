@@ -19,10 +19,11 @@ import { AppState } from "~modules/reducers";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { Link } from "react-router-dom";
+import ReactPaginate from "react-paginate";
 
 Settings.defaultLocale = "en-US";
 
-const Entry = ({ value }: { value: Entry }) => (
+const Entry = React.memo(({ value }: { value: Entry }) => (
   <div className="entry">
     <div className="request">
       <div className="details">
@@ -50,7 +51,8 @@ const Entry = ({ value }: { value: Entry }) => (
         <CodeMirror
           value={
             value.response.body
-              ? JSON.stringify(value.request.body, undefined, "  ")
+              ? JSON.stringify(value.request.body, undefined, "  ") ||
+                value.request.body
               : ""
           }
           options={{
@@ -103,7 +105,8 @@ const Entry = ({ value }: { value: Entry }) => (
         <CodeMirror
           value={
             value.response.body
-              ? JSON.stringify(value.response.body, undefined, "  ")
+              ? JSON.stringify(value.response.body, undefined, "  ") ||
+                value.response.body
               : ""
           }
           options={{
@@ -120,7 +123,7 @@ const Entry = ({ value }: { value: Entry }) => (
       )}
     </div>
   </div>
-);
+));
 
 interface Props {
   loading: boolean;
@@ -135,6 +138,8 @@ const History = ({ history, loading, error, fetch }: Props) => {
     "history.order.by.entry.field",
     "response"
   );
+  const numberPerPage = 10;
+  const [page, setPage] = React.useState(0);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const isEmpty = history.length === 0;
   let body = null;
@@ -153,8 +158,34 @@ const History = ({ history, loading, error, fetch }: Props) => {
       </div>
     );
   } else {
-    body = orderBy(history, `${entryField}.date`, order as any).map(
-      (entry, index) => <Entry key={`entry-${index}`} value={entry} />
+    const pageCount = Math.ceil(history.length / numberPerPage);
+    const entries = orderBy(history, `${entryField}.date`, order as any).slice(
+      Math.max(page * numberPerPage, 0),
+      Math.min((page + 1) * numberPerPage, history.length)
+    );
+    const onChangePage = ({ selected }: any) => setPage(selected);
+    body = (
+      <>
+        {entries.map((entry, index) => (
+          <Entry key={`entry-${index}`} value={entry} />
+        ))}
+        {pageCount > 1 && (
+          <div className="pagination">
+            <ReactPaginate
+              previousLabel="<"
+              nextLabel=">"
+              breakLabel="..."
+              breakClassName="break"
+              pageCount={Math.ceil(history.length / numberPerPage)}
+              initialPage={page}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={2}
+              onPageChange={onChangePage}
+              activeLinkClassName="active"
+            />
+          </div>
+        )}
+      </>
     );
   }
   const onSort = () =>

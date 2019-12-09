@@ -25,6 +25,8 @@ DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
 
 LEVEL=debug
 
+SUITE=*.yml
+
 .PHONY: default
 default: start
 
@@ -67,7 +69,7 @@ test:
 
 .PHONY: test-integration
 test-integration: $(VENOM)
-	venom run tests/features/*.yml
+	venom run tests/features/$(SUITE)
 
 .PHONY: docs
 docs:

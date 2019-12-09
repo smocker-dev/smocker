@@ -40,6 +40,7 @@ import { Actions, actions } from "~modules/actions";
 import { withRouter, RouteComponentProps } from "react-router";
 import { Settings, DateTime } from "luxon";
 import { Link } from "react-router-dom";
+import ReactPaginate from "react-paginate";
 
 window.jsyaml = jsyaml;
 Settings.defaultLocale = "en-US";
@@ -204,7 +205,9 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
       )}
       {request.body && (
         <>
-          <strong>{bodyMatcher && bodyMatcher + ": "}</strong>
+          <strong className="body-matcher">
+            {bodyMatcher && bodyMatcher + ": "}
+          </strong>
           <CodeMirror
             value={toString(request.body)}
             options={codeMirrorOptions}
@@ -305,6 +308,8 @@ interface Props extends RouteComponentProps<OwnProps> {
 }
 
 const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
+  const numberPerPage = 10;
+  const [page, setPage] = React.useState(0);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const isEmpty = mocks.length === 0;
@@ -324,12 +329,39 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
       </div>
     );
   } else {
-    body = mocks
-      .filter(mock => {
-        const mock_id = match.params.mock_id;
-        return !mock_id || mock.state.id == mock_id;
-      })
-      .map(mock => <Mock key={`entry-${mock.state.id}`} mock={mock} />);
+    const filteredMocks = mocks.filter(mock => {
+      const mock_id = match.params.mock_id;
+      return !mock_id || mock.state.id == mock_id;
+    });
+    const pageCount = Math.ceil(filteredMocks.length / numberPerPage);
+    const paginatedMocks = filteredMocks.slice(
+      Math.max(page * numberPerPage, 0),
+      Math.min((page + 1) * numberPerPage, filteredMocks.length)
+    );
+    const onChangePage = ({ selected }: any) => setPage(selected);
+    body = (
+      <>
+        {paginatedMocks.map(mock => (
+          <Mock key={`mock-${mock.state.id}`} mock={mock} />
+        ))}
+        {pageCount > 1 && (
+          <div className="pagination">
+            <ReactPaginate
+              previousLabel="<"
+              nextLabel=">"
+              breakLabel="..."
+              breakClassName="break"
+              pageCount={pageCount}
+              initialPage={page}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={2}
+              onPageChange={onChangePage}
+              activeLinkClassName="active"
+            />
+          </div>
+        )}
+      </>
+    );
   }
 
   const handleAddNewMock = () => setDisplayNewMock(true);
