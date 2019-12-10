@@ -128,7 +128,17 @@ func Serve(config config.Config) {
 		return respondAccordingAccept(c, history)
 	})
 	e.GET("/sessions", func(c echo.Context) error {
+
 		history := mockServer.Sessions()
+		if include, _ := strconv.ParseBool(c.QueryParam("include_empty")); !include {
+			trimedHistory := types.Sessions{}
+			for _, tmp := range history {
+				if len(tmp) > 0 {
+					trimedHistory = append(trimedHistory, tmp)
+				}
+			}
+			history = trimedHistory
+		}
 		return respondAccordingAccept(c, history)
 	})
 
