@@ -4,7 +4,11 @@
     "format": "prettier --write 'client/**/*.{ts,tsx,html,scss,json}'",
     "lint": "tslint -c tslint.json 'client/**/*.{ts,tsx}'",
     "start": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
-    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html"
+    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "docs:generate": "node docs/refresh-screenshots.js",
+    "peers": "install-peers -f"
   },
   "devDependencies": {
     "@hot-loader/react-dom": "^16.10.2",
@@ -21,6 +25,7 @@
     "@types/react-router-dom": "^5.1.0",
     "@types/redux": "^3.6.0",
     "husky": ">=1",
+    "install-peers-cli": "^2.1.1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
     "prettier": "^1.19.1",
@@ -32,7 +37,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-eslint-rules": "^5.4.0",
     "tslint-react": "^4.1.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.6.4",
+    "vuepress": "^1.2.0"
   },
   "dependencies": {
     "classnames": "^2.2.6",
@@ -54,6 +60,9 @@
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
     "typesafe-actions": "^5.1.0"
+  },
+  "peerDependencies": {
+    "puppeteer": "^2.0.0"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="docs/logo/logo-horizontal.png" alt="smocker" height="100" title="smocker logo by mandyellow" />
+  <img src="docs/assets/logo/logo-horizontal.png" alt="smocker" height="100" title="smocker logo by mandyellow" />
 </h1>
 
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
@@ -61,9 +61,9 @@ curl localhost:8081/version
 
 smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
-![History](docs/screenshot-history.png)
+![History](docs/assets/screenshot-history.png)
 
-![Mocks](docs/screenshot-mocks.png)
+![Mocks](docs/assets/screenshot-mocks.png)
 
 ## Usage
 
