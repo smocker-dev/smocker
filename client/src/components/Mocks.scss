@@ -241,10 +241,15 @@
   }
 
   .pagination {
-    margin-top: 1em;
+    margin-top: 1.5em;
     display: flex;
     flex-direction: row;
     justify-content: center;
+
+    &.start {
+      margin-top: 0;
+    }
+
     ul {
       box-shadow: $base-box-shadow;
       background-color: $color-white-light;
@@ -252,19 +257,24 @@
       padding: 0;
       margin: 0;
       display: inline-block;
+
       li {
         display: inline-block;
         border-left: 1px dotted $color-grey-light;
+
         &:first-child() {
           border-left: none;
         }
+
         a {
           display: inline-block;
           padding: 1em;
+
           &.active {
             font-weight: bolder;
             background-color: rgba($color-white-dark, 0.75);
           }
+
           &:hover {
             background-color: rgba($color-white-dark, 0.25);
             font-weight: bold;

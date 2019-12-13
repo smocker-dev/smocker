@@ -141,6 +141,13 @@ const History = ({ history, loading, error, fetch }: Props) => {
   const numberPerPage = 10;
   const [page, setPage] = React.useState(0);
   const [polling, togglePolling] = usePoll(fetch, 10000);
+  const ref = React.createRef<any>();
+  React.useLayoutEffect(() => {
+    if (ref.current) {
+      ref.current.scrollTo(0, 0);
+    }
+    return;
+  }, [page]);
   const isEmpty = history.length === 0;
   let body = null;
   if (error) {
@@ -164,27 +171,27 @@ const History = ({ history, loading, error, fetch }: Props) => {
       Math.min((page + 1) * numberPerPage, history.length)
     );
     const onChangePage = ({ selected }: any) => setPage(selected);
+    const pagination = (
+      <ReactPaginate
+        previousLabel="<"
+        nextLabel=">"
+        breakLabel="..."
+        breakClassName="break"
+        pageCount={Math.ceil(history.length / numberPerPage)}
+        forcePage={page}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={2}
+        onPageChange={onChangePage}
+        activeLinkClassName="active"
+      />
+    );
     body = (
       <>
+        {pageCount > 1 && <div className="pagination start">{pagination}</div>}
         {entries.map((entry, index) => (
           <Entry key={`entry-${index}`} value={entry} />
         ))}
-        {pageCount > 1 && (
-          <div className="pagination">
-            <ReactPaginate
-              previousLabel="<"
-              nextLabel=">"
-              breakLabel="..."
-              breakClassName="break"
-              pageCount={Math.ceil(history.length / numberPerPage)}
-              initialPage={page}
-              marginPagesDisplayed={2}
-              pageRangeDisplayed={2}
-              onPageChange={onChangePage}
-              activeLinkClassName="active"
-            />
-          </div>
-        )}
+        {pageCount > 1 && <div className="pagination">{pagination}</div>}
       </>
     );
   }
@@ -192,7 +199,7 @@ const History = ({ history, loading, error, fetch }: Props) => {
     setEntryField(entryField === "request" ? "response" : "request");
   const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
   return (
-    <div className="history">
+    <div className="history" ref={ref}>
       <div className="list">
         <div className="header">
           <span>

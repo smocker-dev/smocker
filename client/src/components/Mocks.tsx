@@ -312,6 +312,13 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
   const [page, setPage] = React.useState(0);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
+  const ref = React.createRef<any>();
+  React.useLayoutEffect(() => {
+    if (ref.current) {
+      ref.current.scrollTo(0, 0);
+    }
+    return;
+  }, [page]);
   const isEmpty = mocks.length === 0;
   let body = null;
   if (error) {
@@ -331,7 +338,7 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
   } else {
     const filteredMocks = mocks.filter(mock => {
       const mock_id = match.params.mock_id;
-      return !mock_id || mock.state.id == mock_id;
+      return !mock_id || mock.state.id === mock_id;
     });
     const pageCount = Math.ceil(filteredMocks.length / numberPerPage);
     const paginatedMocks = filteredMocks.slice(
@@ -339,27 +346,27 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
       Math.min((page + 1) * numberPerPage, filteredMocks.length)
     );
     const onChangePage = ({ selected }: any) => setPage(selected);
+    const pagination = (
+      <ReactPaginate
+        previousLabel="<"
+        nextLabel=">"
+        breakLabel="..."
+        breakClassName="break"
+        pageCount={pageCount}
+        forcePage={page}
+        marginPagesDisplayed={2}
+        pageRangeDisplayed={2}
+        onPageChange={onChangePage}
+        activeLinkClassName="active"
+      />
+    );
     body = (
       <>
+        {pageCount > 1 && <div className="pagination start">{pagination}</div>}
         {paginatedMocks.map(mock => (
           <Mock key={`mock-${mock.state.id}`} mock={mock} />
         ))}
-        {pageCount > 1 && (
-          <div className="pagination">
-            <ReactPaginate
-              previousLabel="<"
-              nextLabel=">"
-              breakLabel="..."
-              breakClassName="break"
-              pageCount={pageCount}
-              initialPage={page}
-              marginPagesDisplayed={2}
-              pageRangeDisplayed={2}
-              onPageChange={onChangePage}
-              activeLinkClassName="active"
-            />
-          </div>
-        )}
+        {pageCount > 1 && <div className="pagination">{pagination}</div>}
       </>
     );
   }
@@ -371,7 +378,7 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
     addMocks(newMocks);
   };
   return (
-    <div className="mocks">
+    <div className="mocks" ref={ref}>
       <div className="list">
         {displayNewMock && !match.params.mock_id && (
           <NewMock
