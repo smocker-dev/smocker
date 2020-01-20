@@ -61,9 +61,9 @@ curl localhost:8081/version
 
 smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
-![History](docs/assets/screenshot-history.png)
+![History](docs/.vuepress/public/screenshot-history.png)
 
-![Mocks](docs/assets/screenshot-mocks.png)
+![Mocks](docs/.vuepress/public/screenshot-mocks.png)
 
 ## Usage
 

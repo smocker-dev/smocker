@@ -8,7 +8,7 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:generate": "node docs/refresh-screenshots.js",
-    "peers": "install-peers -f"
+    "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
   },
   "devDependencies": {
     "@hot-loader/react-dom": "^16.10.2",
@@ -25,7 +25,6 @@
     "@types/react-router-dom": "^5.1.0",
     "@types/redux": "^3.6.0",
     "husky": ">=1",
-    "install-peers-cli": "^2.1.1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
     "prettier": "^1.19.1",
