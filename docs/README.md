@@ -1,13 +1,13 @@
 ---
 home: true
-heroImage: /logo.png
+heroImage: /logo/logo-vertical.png
 heroText: null
 tagline: A simple and efficient HTTP mock server
 actionText: Get Started →
 actionLink: /guide/
 features:
 - title: Simplicity First
-  details: Minimal setup with markdown-centered project structure helps you focus on writing.
+  details: Minimal setup with yaml files.
 - title: Vue-Powered
   details: Enjoy the dev experience of Vue + webpack, use Vue components in markdown, and develop custom themes with Vue.
 - title: Performant
