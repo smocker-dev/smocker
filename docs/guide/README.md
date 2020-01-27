@@ -1,4 +1,4 @@
-## What is Smocker?
+# What is Smocker?
 
 **Smocker** (server mock) is a simple and efficient HTTP mock server.
 
@@ -10,7 +10,7 @@ Smocker really shines in a **microservice environment with an API gateway**. On 
 <tr>
 <td>
 
-### Production environment, with an API gateway
+**Production environment, with an API gateway**
 
 ```mermaid
 graph LR
@@ -24,7 +24,7 @@ graph LR
 
 <td>
 
-### Test environment, with Smocker
+**Test environment, with Smocker**
 
 ```mermaid
 graph LR
