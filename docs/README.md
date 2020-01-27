@@ -7,7 +7,7 @@ actionText: Get Started →
 actionLink: /guide/
 features:
 - title: Simplicity First
-  details: Minimal setup with yaml files.
+  details: Minimal setup with YAML files.
 - title: Vue-Powered
   details: Enjoy the dev experience of Vue + webpack, use Vue components in markdown, and develop custom themes with Vue.
 - title: Performant
