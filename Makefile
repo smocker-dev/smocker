@@ -73,7 +73,6 @@ test-integration: $(VENOM)
 
 .PHONY: docs
 docs:
-	yarn peers
 	venom run tests/features/verify_mocks.yml
 	yarn docs:generate
 

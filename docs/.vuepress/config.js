@@ -1,8 +1,9 @@
 const path = require("path");
 
 module.exports = {
-  title: 'smocker',
+  title: "smocker",
   chainWebpack: (config, _) => {
-    config.resolve.alias.set('@root', path.resolve(__dirname, ".."))
-  }
-}
+    config.resolve.alias.set("@root", path.resolve(__dirname, ".."));
+  },
+  plugins: ["vuepress-plugin-mermaidjs"]
+};
