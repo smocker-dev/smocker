@@ -2,6 +2,7 @@ const path = require("path");
 
 module.exports = {
   title: "Smocker",
+  description: "Smocker is a simple and efficient HTTP mock server.",
   head: [
     [
       "link",
