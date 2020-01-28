@@ -10136,6 +10136,11 @@ vuepress-plugin-mermaidjs@^1.2.0:
   dependencies:
     mermaid "^8.4.2"
 
+vuepress-plugin-one-click-copy@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/vuepress-plugin-one-click-copy/-/vuepress-plugin-one-click-copy-1.0.1.tgz#05a21723132504140d5eff0a2b2a6007d0cd3b06"
+  integrity sha512-kUP4bLOks9arB3KpWwLn/BJGKuRYMW04UBiXaL8EI6RENy0ed8w2d8pNF8M0RbJcxxUFoC5ga+wmi+MM6S1WLg==
+
 vuepress-plugin-smooth-scroll@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/vuepress-plugin-smooth-scroll/-/vuepress-plugin-smooth-scroll-0.0.3.tgz#6eff2d4c186cca917cc9f7df2b0af7de7c8c6438"
