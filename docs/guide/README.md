@@ -6,9 +6,8 @@ The goal of Smocker is to help you **mock the HTTP dependencies of your applicat
 
 Smocker really shines in a **microservice environment with an API gateway**. On your development or test infrastructure, you just need to deploy Smocker instead of your API gateway and have your application use it as the gateway.
 
-<table>
-<tr>
-<td>
+<div class="row wrap around-justified">
+<div class="text-center">
 
 **Production environment, with an API gateway**
 
@@ -20,9 +19,8 @@ graph LR
   GW --> M3[Microservice 3]
 ```
 
-</td>
-
-<td>
+</div>
+<div class="text-center">
 
 **Test environment, with Smocker**
 
@@ -40,9 +38,8 @@ graph LR
   style S stroke:#b51629,stroke-width:4px
 ```
 
-</td>
-</tr>
-</table>
+</div>
+</div>
 
 Smocker provides several powerful ways to setup your testing environment:
 

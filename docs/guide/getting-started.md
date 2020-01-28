@@ -22,6 +22,7 @@ docker run -d \
 mkdir -p /opt/smocker && cd /opt/smocker
 wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz
+rm /tmp/smocker.tar.gz
 nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
 ```
 
@@ -32,4 +33,3 @@ To check that Smocker started successfully, just run the following command:
 ```sh
 curl localhost:8081/version
 ```
-
