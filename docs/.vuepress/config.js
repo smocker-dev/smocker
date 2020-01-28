@@ -6,12 +6,14 @@ module.exports = {
     config.resolve.alias.set("@root", path.resolve(__dirname, ".."));
   },
   themeConfig: {
+    logo: "/logo/logo-h50.png",
+    nav: [{ text: "GitHub", link: "https://github.com/Thiht/smocker" }],
     sidebar: [
       {
         title: "Guide",
         collapsable: false,
         sidebarDepth: 1,
-        children: ["/guide/", "/guide/getting-started"]
+        children: ["/guide/", "/guide/getting-started", "/guide/real-life"]
       }
     ]
   },
