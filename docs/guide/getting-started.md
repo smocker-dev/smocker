@@ -18,7 +18,7 @@ docker run -d \
 ### Manual Deployment
 
 ```sh
-# This will be the deployment folder for the smocker instance
+# This will be the deployment folder for the Smocker instance
 mkdir -p /opt/smocker && cd /opt/smocker
 wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz

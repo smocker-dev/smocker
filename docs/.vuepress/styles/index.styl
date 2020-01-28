@@ -1,33 +1,50 @@
+$border-color = #bbb
+
 .theme-default-content:not(.custom)
-  max-width 1100px
-  text-align justify
+  max-width: 1100px
+  text-align: justify
 
   .row, .column
-    display flex
+    display: flex
     &.wrap
-      flex-wrap wrap
+      flex-wrap: wrap
     &.around-justified
-      justify-content space-around
+      justify-content: space-around
     &.justified
-      justify-content space-between
+      justify-content: space-between
     &.center-justified
-      justify-content center
+      justify-content: center
     &.start-align
-      align-items flex-start
+      align-items: flex-start
     &.center-align
-      align-items center
+      align-items: center
     &.end-align
-      align-items flex-end
+      align-items: flex-end
 
   .row
-    flex-direction row
+    flex-direction: row
 
   .column
-    flex-direction column
+    flex-direction: column
 
   .text-center
-    text-align center
+    text-align: center
 
-  img
-    border 1px solid #aaa
-    box-shadow 10px 10px 5px -4px rgba(0 0 0 0.50)
+  img, .figure
+    border: 1px solid $border-color
+    border-radius: 3px
+    box-shadow: 10px 10px 5px -4px rgba(0, 0, 0, .50)
+
+  .figure
+    box-shadow: 5px 5px 5px -4px rgba(0, 0, 0, .50)
+    margin: .5em
+    max-width: 45%
+    @media screen and (max-width: 1024px)
+       max-width: 100%
+    padding: .5em
+
+    svg
+      width: 100%
+
+#message-container .message .text
+  height: 22px
