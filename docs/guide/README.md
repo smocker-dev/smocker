@@ -4,7 +4,7 @@
 
 The goal of Smocker is to help you **mock the HTTP dependencies of your application**. It's a great tool for **integration tests automation**.
 
-Smocker really shines in a **microservice environment with an API gateway**. On your development or test infrastructure, you just need to deploy Smocker instead of your API gateway and have your application use it as the gateway.
+Smocker really shines in a **microservice environment with an API gateway**. On your development or test infrastructure, you just need to deploy it instead of your API gateway and have your application use it as the gateway.
 
 <div class="row wrap around-justified">
 <div class="text-center figure">
@@ -45,7 +45,7 @@ graph LR
     S --> M2
   end
 
-  S --proxy host--> M3
+  S --forward request--> M3
 
   style S stroke:#b51629,stroke-width:2px
 ```
@@ -53,7 +53,7 @@ graph LR
 </div>
 </div>
 
-But it can also be used as a **http proxy** using the `http_proxy` environment variable
+Smocker can also be used as an **HTTP proxy** through the commonly used `http_proxy` environment variable.
 
 <div class="row wrap around-justified">
 <div class="text-center figure">
@@ -66,38 +66,32 @@ graph LR
   M1([Microservice 1])
   M2([Microservice 2])
   M3([Microservice 3])
-  M4([Microservice 4])
 
   App --> M1
   App --> M2
   App --> M3
-  App --> M4
 ```
 
 </div>
 <div class="text-center figure">
 
-**Test environment, with Smocker using "http_proxy"**
+**Test environment, with Smocker using `http_proxy`**
 
 ```mermaid
 graph LR
   App([Your Application])
   M1([Mocked Microservice 1])
   M2([Mocked Microservice 2])
-  M3([Mocked Microservice 3])
-  M4([Microservice 4])
+  M3([Microservice 3])
   S(Smocker)
-
 
   subgraph Smocker
     S --> M1
     S --> M2
-    S --> M3
   end
 
   App ==http_proxy==> S
-  S --proxy follow--> M4
-  App -.-> M4
+  S --forward request--> M3
 
   style S stroke:#b51629,stroke-width:2px
 ```

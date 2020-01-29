@@ -63,7 +63,7 @@ module.exports = {
         title: "Guide",
         collapsable: false,
         sidebarDepth: 1,
-        children: ["/guide/", "/guide/getting-started", "/guide/real-life"]
+        children: ["/guide/", "/guide/installation", "/guide/getting-started", "/guide/real-life"]
       }
     ]
   },
