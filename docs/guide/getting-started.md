@@ -1,5 +1,9 @@
 # Getting Started
 
+::: warning Work in Progress
+This page is not terminated yet.
+:::
+
 Smocker exposes two ports:
 
 - `8080` is the mock server port. It will expose the routes you register through the configuration port.
