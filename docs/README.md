@@ -1,7 +1,7 @@
 ---
 pageClass: homepage
 home: true
-heroImage: /logo/logo-vertical.png
+heroImage: /logo/logo-h280.png
 heroAlt: Smocker - server mock
 heroText: ~
 tagline: A simple and efficient HTTP mock server

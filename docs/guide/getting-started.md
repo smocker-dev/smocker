@@ -28,12 +28,15 @@ Content-Length: 206
 </details>
 
 If you refresh Smocker's user interface, you will see:
+
 - on the left, the request you made: method `GET`, path `/hello/world`, and curl headers,
 - on the right, the response of Smocker: error code `666`, and informations on the error.
 
 **TODO: insert screenshot**
 
+::: tip Note
 Smocker reserves the non HTTP status codes from `600` to `699`. This is because we need an out of protocol way to report Smocker errors, which are different from the standard protocol errors.
+:::
 
 To register our first mock, we will use the user interface. Switch to the "Mocks" page and click on the "Add Mock" button.
 
