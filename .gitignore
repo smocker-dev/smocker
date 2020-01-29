@@ -3,3 +3,4 @@ build/
 node_modules/
 client/dist/
 .cache/
+docs/.vuepress/dist/
