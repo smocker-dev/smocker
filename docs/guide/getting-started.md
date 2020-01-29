@@ -1,35 +1,86 @@
 # Getting Started
 
-## Installation
+Smocker exposes two ports:
 
-Smocker can be installed either with [Docker](https://www.docker.com/) or manually on any Linux system, depending on your needs.
+- `8080` is the mock server port. It will expose the routes you register through the configuration port.
+- `8081` is the configuration port. It's the port you will use to register new mocks. This port also exposes a user interface.
 
-### With Docker
+To get a better understanding of how Smocker works, let's open its user interface on the browser. With the default configuration, it will be available on [localhost:8081](http://localhost:8081/)
 
-```sh
-docker run -d \
-  --restart=always \
-  -p 8080:8080 \
-  -p 8081:8081 \
-  --name smocker \
-  thiht/smocker
+**TODO: insert screenshot**
+
+By default, Smocker shows the history of the calls made to the mock server. As we just started it, nothing is displayed yet.
+
+Let's see how Smocker reacts when we try to call a non existing route. Run the following command in a terminal:
+
+<details>
+<summary><code>curl -i localhost:8080/hello/world</code></summary>
+
+```
+HTTP/1.1 666 status code 666
+Content-Type: application/json; charset=UTF-8
+Date: Wed, 29 Jan 2020 17:25:31 GMT
+Content-Length: 206
+
+{"message":"No mock found matching the request","request":{"path":"/hello/world","method":"GET","body":"","headers":{"Accept":["*/*"],"User-Agent":["curl/7.54.0"]},"date":"2020-01-29T17:25:31.956225978Z"}}
 ```
 
-### Manual Deployment
+</details>
 
-```sh
-# This will be the deployment folder for the Smocker instance
-mkdir -p /opt/smocker && cd /opt/smocker
-wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
-tar xf /tmp/smocker.tar.gz
-rm /tmp/smocker.tar.gz
-nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
+If you refresh Smocker's user interface, you will see:
+- on the left, the request you made: method `GET`, path `/hello/world`, and curl headers,
+- on the right, the response of Smocker: error code `666`, and informations on the error.
+
+**TODO: insert screenshot**
+
+Smocker reserves the non HTTP status codes from `600` to `699`. This is because we need an out of protocol way to report Smocker errors, which are different from the standard protocol errors.
+
+To register our first mock, we will use the user interface. Switch to the "Mocks" page and click on the "Add Mock" button.
+
+Mocks are defined using the YAML format. Register the following mock:
+
+```yml
+- request:
+    method: GET
+    path: /hello/world
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "hello": "Hello, World!"
+      }
 ```
 
-### Healthcheck
+This mock simply states that when an HTTP `GET` call is made on the `/hello/world` path, the mock server must return a basic JSON document.
 
-To check that Smocker started successfully, just run the following command:
+Now, execute the previous call one more time:
 
-```sh
-curl localhost:8081/version
+<details>
+<summary><code>curl -i localhost:8080/hello/world</code></summary>
+
 ```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Wed, 29 Jan 2020 17:40:52 GMT
+Content-Length: 30
+
+{
+  "hello": "Hello, World!"
+}
+```
+
+</details>
+
+Once you refresh the user interface, you should notice that this last call is present in the history and that Smocker replied with the response we declared instead of an error!
+
+**TODO: insert screenshot**
+
+This covers the basic usage of Smocker, but was just the beginning! The [Real Life Usage](./real-life.md) covers many more topics:
+
+- Advanced filters,
+- Automation,
+- Dynamic calls,
+- Proxies,
+- Contexts,
+- and everything you might need to mock your whole environment!
