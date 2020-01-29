@@ -107,6 +107,6 @@ Smocker provides several powerful ways to setup your testing environment:
 
 Smocker also has a great **user interface** which we use extensively to write tests iteratively.
 
-![Smocker's user interface - Mocks](/screenshot-mocks.png)
+![Smocker's user interface - Mocks](/screenshots/screenshot-mocks.png)
 
-![Smocker's user interface - History](/screenshot-history.png)
+![Smocker's user interface - History](/screenshots/screenshot-history.png)
