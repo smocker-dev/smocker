@@ -159,3 +159,17 @@ testcases:
           - result.bodyjson.__len__ ShouldEqual 2
           - result.bodyjson.bodyjson1.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
           - result.bodyjson.bodyjson0.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        body: >
+          - request:
+              path: /todos
+            proxy:
+              host: https://jsonplaceholder.typicode.com
+              follow: true
+        assertions:
+          - result.statuscode ShouldEqual 400
+          - result.bodyjson.message ShouldEqual "The proxy mock must define only one field among host or follow"

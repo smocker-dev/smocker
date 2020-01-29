@@ -198,3 +198,21 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 20
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        body: >
+          - request:
+              path: /todos
+            proxy:
+              follow: true
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8080/todos
+        assertions:
+          - result.statuscode ShouldEqual 500
+          - result.bodyjson.message ShouldEqual "No host to follow"

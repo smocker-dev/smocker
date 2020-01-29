@@ -20,8 +20,10 @@ type Entry struct {
 }
 
 type Request struct {
-	Path        string      `json:"path"`
-	Method      string      `json:"method"`
+	URL         string      `json:"url" yaml:"url"`
+	Host        string      `json:"host" yaml:"host"`
+	Path        string      `json:"path" yaml:"path"`
+	Method      string      `json:"method" yaml:"method"`
 	Body        interface{} `json:"body,omitempty" yaml:"body,omitempty"`
 	BodyString  string      `json:"-" yaml:"-"`
 	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
@@ -54,6 +56,8 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		body = tmp
 	}
 	return Request{
+		URL:         req.URL.String(),
+		Host:        req.URL.Host,
 		Path:        req.URL.Path,
 		Method:      req.Method,
 		Body:        body,

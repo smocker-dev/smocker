@@ -51,6 +51,10 @@ func (m *Mock) Validate() error {
 		return fmt.Errorf("The dynamic response engine must be one of the following: %v", TemplateEngines)
 	}
 
+	if m.Proxy != nil && !m.Proxy.IsValid() {
+		return fmt.Errorf("The proxy mock must define only one field among host or follow")
+	}
+
 	if m.Context != nil && m.Context.Times < 0 {
 		return fmt.Errorf("The times field in mock context must be greater than or equal to 0")
 	}
@@ -98,21 +102,42 @@ type DynamicMockResponse struct {
 }
 
 type MockProxy struct {
-	Host  string        `json:"host" yaml:"host"`
-	Delay time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+	Host   string        `json:"host" yaml:"host"`
+	Follow bool          `json:"follow" yaml:"follow"`
+	Delay  time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+}
+
+func (mp MockProxy) IsValid() bool {
+	isHost := mp.Host != ""
+	isFollow := mp.Follow
+	if isHost != isFollow { // != here is a boolean xor operator
+		return true
+	}
+	return false
 }
 
 func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
-	proxyReq, err := http.NewRequest(req.Method, mp.Host+req.Path, strings.NewReader(req.BodyString))
-	if err != nil {
-		return nil, err
-	}
-	proxyReq.Header = req.Headers
 	query := url.Values{}
 	for key, values := range req.QueryParams {
 		query[key] = values
 	}
-	proxyReq.URL.RawQuery = query.Encode()
+	var dest string
+	if mp.Follow {
+		if req.Host == "" {
+			return nil, fmt.Errorf("No host to follow")
+		}
+		dest = req.URL
+	} else if mp.Host != "" {
+		dest = mp.Host + req.Path
+	}
+	proxyReq, err := http.NewRequest(req.Method, dest, strings.NewReader(req.BodyString))
+	if err != nil {
+		return nil, err
+	}
+	proxyReq.Header = req.Headers
+	if proxyReq.URL.RawQuery == "" {
+		proxyReq.URL.RawQuery = query.Encode()
+	}
 	log.Debugf("Redirecting to %s", proxyReq.URL.String())
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
