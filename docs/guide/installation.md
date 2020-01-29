@@ -15,6 +15,10 @@ docker run -d \
 
 ## Manual Deployment
 
+::: tip Note
+The official binaries are currently built for Linux only. This is not a hard limit though, as the source code should be fully compatible with most of the standard platforms.
+:::
+
 ```sh
 # This will be the deployment folder for the Smocker instance
 mkdir -p /opt/smocker && cd /opt/smocker
