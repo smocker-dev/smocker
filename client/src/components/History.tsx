@@ -1,25 +1,25 @@
-import * as React from "react";
 import classNames from "classnames";
-import { UnControlled as CodeMirror } from "react-codemirror2";
-import "codemirror/lib/codemirror.css";
-import "codemirror/theme/material.css";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/mode/javascript/javascript";
+import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/foldcode";
 import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/brace-fold";
-import "./History.scss";
-import { formQueryParams, usePoll } from "~utils";
+import "codemirror/addon/fold/foldgutter.css";
+import "codemirror/lib/codemirror.css";
+import "codemirror/mode/javascript/javascript";
+import "codemirror/theme/material.css";
 import { orderBy } from "lodash-es";
-import useLocalStorage from "react-use-localstorage";
 import { DateTime, Settings } from "luxon";
-import { Entry, History, Error, dateFormat } from "~modules/types";
+import * as React from "react";
+import { UnControlled as CodeMirror } from "react-codemirror2";
+import ReactPaginate from "react-paginate";
 import { connect } from "react-redux";
-import { AppState } from "~modules/reducers";
+import { Link } from "react-router-dom";
+import useLocalStorage from "react-use-localstorage";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
-import { Link } from "react-router-dom";
-import ReactPaginate from "react-paginate";
+import { AppState } from "~modules/reducers";
+import { dateFormat, Entry, Error, History } from "~modules/types";
+import { formQueryParams, usePoll } from "~utils";
+import "./History.scss";
 
 Settings.defaultLocale = "en-US";
 
@@ -50,7 +50,7 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
       {value.request.body && (
         <CodeMirror
           value={
-            value.response.body
+            value.request.body
               ? JSON.stringify(value.request.body, undefined, "  ") ||
                 value.request.body
               : ""
