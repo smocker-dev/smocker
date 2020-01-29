@@ -11,7 +11,7 @@ Smocker exposes two ports:
 
 To get a better understanding of how Smocker works, let's open its user interface on the browser. With the default configuration, it will be available on [localhost:8081](http://localhost:8081/)
 
-**TODO: insert screenshot**
+![Smocker's user interface - Empty History](/screenshots/screenshot-empty-history.png)
 
 By default, Smocker shows the history of the calls made to the mock server. As we just started it, nothing is displayed yet.
 
@@ -36,7 +36,7 @@ If you refresh Smocker's user interface, you will see:
 - on the left, the request you made: method `GET`, path `/hello/world`, and curl headers,
 - on the right, the response of Smocker: error code `666`, and informations on the error.
 
-**TODO: insert screenshot**
+![Smocker's user interface - History with an undeclared mock response](/screenshots/screenshot-hello-world-666.png)
 
 ::: tip Note
 Smocker reserves the non HTTP status codes from `600` to `699`. This is because we need an out of protocol way to report Smocker errors, which are different from the standard protocol errors.
@@ -81,7 +81,7 @@ Content-Length: 30
 
 Once you refresh the user interface, you should notice that this last call is present in the history and that Smocker replied with the response we declared instead of an error!
 
-**TODO: insert screenshot**
+![Smocker's user interface - History with an valid mock response](/screenshots/screenshot-hello-world-200.png)
 
 This covers the basic usage of Smocker, but was just the beginning! The [Real Life Usage](./real-life.md) covers many more topics:
 
