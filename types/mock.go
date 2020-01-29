@@ -110,10 +110,7 @@ type MockProxy struct {
 func (mp MockProxy) IsValid() bool {
 	isHost := mp.Host != ""
 	isFollow := mp.Follow
-	if isHost != isFollow { // != here is a boolean xor operator
-		return true
-	}
-	return false
+	return isHost != isFollow // != here is a boolean xor operator
 }
 
 func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
