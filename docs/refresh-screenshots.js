@@ -10,14 +10,20 @@ const path = require("path");
   });
 
   await page.goto("http://localhost:8081/pages/history");
-  await page.click("#date-order")
+  await page.click("#date-order");
   await page.screenshot({
-    path: path.join(__dirname, "assets/screenshot-history.png")
+    path: path.join(
+      __dirname,
+      ".vuepress/public/screenshots/screenshot-history.png"
+    )
   });
 
   await page.goto("http://localhost:8081/pages/mocks");
   await page.screenshot({
-    path: path.join(__dirname, "assets/screenshot-mocks.png")
+    path: path.join(
+      __dirname,
+      ".vuepress/public/screenshots/screenshot-mocks.png"
+    )
   });
 
   await browser.close();
