@@ -63,7 +63,22 @@ module.exports = {
         title: "Guide",
         collapsable: false,
         sidebarDepth: 1,
-        children: ["/guide/", "/guide/installation", "/guide/getting-started", "/guide/real-life"]
+        children: [
+          "/guide/",
+          "/guide/installation",
+          "/guide/getting-started",
+          "/guide/real-life"
+        ]
+      },
+      {
+        title: "Technical Documentation",
+        collapsable: false,
+        sidebarDepth: 1,
+        children: [
+          "/technical-documentation/api",
+          "/technical-documentation/mock-definition",
+          "/technical-documentation/matchers"
+        ]
       }
     ]
   },
