@@ -18,7 +18,9 @@ graph LR
   M2([Microservice 2])
   M3([Microservice 3])
   GW(API Gateway)
+  E[External Service]
 
+  App --> E
   App --> GW
   GW --> M1
   GW --> M2
@@ -32,22 +34,24 @@ graph LR
 
 ```mermaid
 graph LR
+  E[External Service]
   App([Your Application])
   M1([Mocked Microservice 1])
   M2([Mocked Microservice 2])
   M3([Microservice 3])
   S(Smocker)
 
+  App --> E
   App --> S
 
-  subgraph Smocker
+  subgraph " "
     S --> M1
     S --> M2
   end
 
   S --forward request--> M3
 
-  style S stroke:#b51629,stroke-width:2px
+  style S stroke:#b51629,stroke-width:3px
 ```
 
 </div>
@@ -62,11 +66,13 @@ Smocker can also be used as an **HTTP proxy** through the commonly used `http_pr
 
 ```mermaid
 graph LR
+  E[External Service]
   App([Your Application])
   M1([Microservice 1])
   M2([Microservice 2])
   M3([Microservice 3])
 
+  App --> E
   App --> M1
   App --> M2
   App --> M3
@@ -80,20 +86,28 @@ graph LR
 ```mermaid
 graph LR
   App([Your Application])
-  M1([Mocked Microservice 1])
-  M2([Mocked Microservice 2])
-  M3([Microservice 3])
-  S(Smocker)
 
-  subgraph Smocker
+  subgraph " "
+    S(Smocker)
+    M1([Mocked Microservice 1])
+    M2([Mocked Microservice 2])
     S --> M1
     S --> M2
   end
 
-  App ==http_proxy==> S
-  S --forward request--> M3
+  subgraph transparent-1
+    M3([Microservice 3])
+    S --forward request--> M3
+  end
 
-  style S stroke:#b51629,stroke-width:2px
+  subgraph transparent-2
+    E[External Service]
+    S --forward request--> E
+  end
+
+  App ==http_proxy==> S
+
+  style S stroke:#b51629,stroke-width:3px
 ```
 
 </div>
