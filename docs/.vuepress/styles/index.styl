@@ -37,14 +37,19 @@ $border-color = #bbb
 
   .figure
     box-shadow: 5px 5px 5px -4px rgba(0, 0, 0, .50)
+    display: flex
+    flex-direction: column
     margin: .5em
     max-width: 45%
     @media screen and (max-width: 1024px)
        max-width: 100%
     padding: .5em
 
-    svg
-      width: 100%
+    div
+      flex: auto
+      svg
+        height: 100%
+        width: 100%
 
 #message-container .message .text
   height: 22px

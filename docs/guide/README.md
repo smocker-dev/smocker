@@ -13,10 +13,16 @@ Smocker really shines in a **microservice environment with an API gateway**. On 
 
 ```mermaid
 graph LR
-  App[Your Application] --> GW[API Gateway]
-  GW --> M1[Microservice 1]
-  GW --> M2[Microservice 2]
-  GW --> M3[Microservice 3]
+  App([Your Application])
+  M1([Microservice 1])
+  M2([Microservice 2])
+  M3([Microservice 3])
+  GW(API Gateway)
+
+  App --> GW
+  GW --> M1
+  GW --> M2
+  GW --> M3
 ```
 
 </div>
@@ -26,16 +32,74 @@ graph LR
 
 ```mermaid
 graph LR
-  App[Your Application] --> S
+  App([Your Application])
+  M1([Mocked Microservice 1])
+  M2([Mocked Microservice 2])
+  M3([Microservice 3])
+  S(Smocker)
+
+  App --> S
 
   subgraph Smocker
-  S[Smocker] --> M1[Mock Microservice 1]
-  S --> M2[Mock Microservice 2]
+    S --> M1
+    S --> M2
   end
 
-  S -- Proxy --> M3[Microservice 3]
+  S --proxy host--> M3
 
-  style S stroke:#b51629,stroke-width:4px
+  style S stroke:#b51629,stroke-width:2px
+```
+
+</div>
+</div>
+
+But it can also be used as a **http proxy** using the `http_proxy` environment variable
+
+<div class="row wrap around-justified">
+<div class="text-center figure">
+
+**Production environment**
+
+```mermaid
+graph LR
+  App([Your Application])
+  M1([Microservice 1])
+  M2([Microservice 2])
+  M3([Microservice 3])
+  M4([Microservice 4])
+
+  App --> M1
+  App --> M2
+  App --> M3
+  App --> M4
+```
+
+</div>
+<div class="text-center figure">
+
+**Test environment, with Smocker using "http_proxy"**
+
+```mermaid
+graph LR
+  App([Your Application])
+  M1([Mocked Microservice 1])
+  M2([Mocked Microservice 2])
+  M3([Mocked Microservice 3])
+  M4([Microservice 4])
+  S(Smocker)
+
+
+  subgraph Smocker
+    S --> M1
+    S --> M2
+    S --> M3
+  end
+
+  App ==http_proxy==> S
+  S --proxy follow--> M4
+  App -.-> M4
+
+  style S stroke:#b51629,stroke-width:2px
 ```
 
 </div>
