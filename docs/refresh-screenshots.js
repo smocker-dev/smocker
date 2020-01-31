@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 const path = require("path");
 const axios = require("axios");
 
-const screenshots_dir = path.join(__dirname, ".vuepress/public/screenshots/");
+const screenshotsDir = path.join(__dirname, ".vuepress/public/screenshots/");
 const smockerAdminHost = "http://localhost:8081";
 const smockerServerHost = "http://localhost:8080";
 
@@ -35,7 +35,7 @@ const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
   }, selector);
 
   return await page.screenshot({
-    path: screenshots_dir + name,
+    path: screenshotsDir + name,
     clip: {
       x: rect.left - padding,
       y: rect.top - padding,
@@ -46,7 +46,7 @@ const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
 };
 
 const screenshotPage = async (page, name) => {
-  return await page.screenshot({ path: screenshots_dir + name });
+  return await page.screenshot({ path: screenshotsDir + name });
 };
 
 async function main() {
@@ -64,7 +64,8 @@ async function main() {
     headers: { "Content-Type": "application/x-yaml" }
   });
   await page.goto(smockerAdminHost + "/pages/mocks");
-  await page.screenshot({ path: screenshots_dir + "screenshot-mocks.png" });
+  await page.waitForSelector('.list', {visible: true});
+  await page.screenshot({ path: screenshotsDir + "screenshot-mocks.png" });
 
   // Screenshot history
   await axios.get(smockerServerHost + "/hello/world");
@@ -72,6 +73,7 @@ async function main() {
     await axios.post(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
   await page.goto(smockerAdminHost + "/pages/history");
+  await page.waitForSelector('.list', {visible: true});
   await screenshotPage(page, "screenshot-history.png");
 
   // Screenshot history cards
@@ -84,6 +86,7 @@ async function main() {
     await axios.delete(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
   await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+  await page.waitForSelector('.list', {visible: true});
   await screenshotElement({
     page,
     name: "screenshot-hello-world-666.png",
