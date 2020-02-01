@@ -115,9 +115,9 @@ graph LR
 
 Smocker provides several powerful ways to setup your testing environment:
 
-- **Static mocks** return a static response for a given request. It's the most basic behavior of Smocker,
-- **Dynamic mocks** return a response with variable parts. Dynamic mocks can be declared using [Go templates](https://golang.org/pkg/html/template/) or [Lua](https://www.lua.org/),
-- **Proxies** just forward the request to an actual server, because mocking is not always suitable for testing.
+- [**Static mocks**](/technical-documentation/mock-definition.html#format-of-response-section) return a static response for a given request. It's the most basic behavior of Smocker,
+- [**Dynamic mocks**](/technical-documentation/mock-definition.html#format-of-dynamic-response-section) return a response with variable parts. Dynamic mocks can be declared using [Go templates](https://golang.org/pkg/html/template/) or [Lua](https://www.lua.org/),
+- [**Proxies**](/technical-documentation/mock-definition.html#format-of-proxy-section) just forward the request to an actual server, because mocking is not always suitable for testing.
 
 Smocker also has a great **user interface** which we use extensively to write tests iteratively.
 
