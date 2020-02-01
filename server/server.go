@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -16,10 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	MIMEApplicationXYaml = "application/x-yaml"
-	JSONIndent           = "    "
-)
+const MIMEApplicationXYaml = "application/x-yaml"
 
 // TemplateRenderer is a custom html/template renderer for Echo framework
 type TemplateRenderer struct {
@@ -43,39 +41,37 @@ func Serve(config config.Config) {
 	e.Use(recoverMiddleware(), loggerMiddleware())
 
 	e.GET("/mocks", func(c echo.Context) error {
-		id := c.QueryParam("id")
-		var mocks types.Mocks
-		if id != "" {
-			if mock := mockServer.Mock(id); mock != nil {
-				mocks = types.Mocks{mock}
+		if id := c.QueryParam("id"); id != "" {
+			mock := mockServer.Mock(id)
+			if mock == nil {
+				return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("No mock found with ID %q", id))
 			}
-		} else {
-			mocks = mockServer.Mocks()
+			return respondAccordingAccept(c, types.Mocks{mock})
 		}
-		return respondAccordingAccept(c, mocks)
+		return respondAccordingAccept(c, mockServer.Mocks())
 	})
 
 	e.POST("/mocks", func(c echo.Context) error {
 		if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
 			mockServer.Reset()
 		}
+
 		var mocks []*types.Mock
 		if err := c.Bind(&mocks); err != nil {
 			if err != echo.ErrUnsupportedMediaType {
 				log.WithError(err).Error("Failed to parse payload")
-				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+				return err
 			}
 
 			// echo doesn't support YAML yet
 			req := c.Request()
 			contentType := req.Header.Get(echo.HeaderContentType)
-			// If no Content-Type setted we parse as yaml by default
 			if contentType == "" || strings.Contains(strings.ToLower(contentType), MIMEApplicationXYaml) {
 				if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
 			} else {
-				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+				return echo.NewHTTPError(http.StatusUnsupportedMediaType, err.Error())
 			}
 		}
 
@@ -179,5 +175,5 @@ func respondAccordingAccept(c echo.Context, body interface{}) error {
 		_, err = c.Response().Write(out)
 		return err
 	}
-	return c.JSONPretty(http.StatusOK, body, JSONIndent)
+	return c.JSONPretty(http.StatusOK, body, "    ")
 }

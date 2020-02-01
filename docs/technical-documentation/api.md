@@ -1,16 +1,13 @@
 # API
 
-::: warning Work in Progress
-This page is not terminated yet. \
-TODO: add return status codes, request headers
-:::
+Smocker's API is started on the port `8081` by default. This page lists all the administration endpoints of the server.
 
 ## Reset Smocker
 
-This method clears Smocker's mocks and history of calls.
+Clear the mocks and the history of calls.
 
-- **Endpoint**: `POST :8081/reset`
-- **Response**:
+- **Endpoint**: `POST /reset`
+- **Sample Response**:
 
 ```json
 {
@@ -20,16 +17,24 @@ This method clears Smocker's mocks and history of calls.
 
 ## Add Mocks
 
-This method adds a list of mocks into Smocker.
-
-- **Endpoint**: `POST :8081/mocks`
+- **Endpoint**: `POST /mocks`
 - **Query Parameters**:
 
-| Name    | Values          | Description                                              |
-| ------- | --------------- | -------------------------------------------------------- |
-| `reset` | `true`, `false` | _Optional_, used to reset on Smocker before adding mocks |
+| Name    | Values          | Description                                                                     |
+| ------- | --------------- | ------------------------------------------------------------------------------- |
+| `reset` | `true`, `false` | _Optional_ (defaults to `false`), used to reset on Smocker before adding mocks. |
 
-- **Body Example**:
+- **Headers**:
+
+| Name           | Values                                   | Description                                                                  |
+| -------------- | ---------------------------------------- | ---------------------------------------------------------------------------- |
+| `Content-Type` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/x-yaml`), the mime type of the payload. |
+
+- **Errors**:
+  - `400 Bad Request`, if the payload cannot be parsed accordingly to the declared `Content-Type`,
+  - `400 Bad Request`, if the payload contains semantically invalid mocks,
+  - `415 Unsupported Media Type`, if the declared `Content-Type` is not supported.
+- **Sample Body**:
 
 ```yaml
 - request:
@@ -57,7 +62,7 @@ This method adds a list of mocks into Smocker.
       }
 ```
 
-- **Response**:
+- **Sample Response**:
 
 ```json
 {
@@ -65,7 +70,7 @@ This method adds a list of mocks into Smocker.
 }
 ```
 
-::: tip
+::: tip Note
 Mocks will be added one after the other. \
 Smocker stores its mocks in a **stack** and when a call comes, it will unstack them one by one to find a matching mock. \
 Therefore, the **last mock** in the list will be considered by Smocker as having the **highest priority**.
@@ -73,10 +78,22 @@ Therefore, the **last mock** in the list will be considered by Smocker as having
 
 ## Get Mocks
 
-This method retrieves the list of mocks present into Smocker.
+- **Endpoint**: `GET /mocks`
+- **Query Parameters**:
 
-- **Endpoint**: `GET :8081/mocks`
-- **Response**:
+| Name | Description                                 |
+| ---- | ------------------------------------------- |
+| `id` | _Optional_, the ID of the mock to retrieve. |
+
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+  - `404 Not Found`, if no mock with the given ID could be found.
+- **Sample Response**:
 
 ```json
 [
@@ -123,16 +140,22 @@ This method retrieves the list of mocks present into Smocker.
 ]
 ```
 
-::: tip
-The mocks will be ordered from highest to the lowest priority.
+::: tip Note
+The mocks will be ordered from highest to lowest priority.
 :::
 
 ## Verify Mocks
 
-This method will verify that the mocks have been called the right number of times according their `context`.
+Verify that the mocks have been called the right number of times according their `context`.
 
-- **Endpoint**: `POST :8081/mocks/verify`
-- **Response**:
+- **Endpoint**: `POST /mocks/verify`
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Sample Response**:
 
 ```json
 {
@@ -140,7 +163,7 @@ This method will verify that the mocks have been called the right number of time
 }
 ```
 
-**or**
+- **Sample Response**:
 
 ```json
 {
@@ -173,11 +196,25 @@ This method will verify that the mocks have been called the right number of time
 
 ## Get History
 
-This method will retrieve the history of calls made to smoker.
+Retrieve the history of calls made to smoker.
 For each call, the history entry will contain the **request**, the **response**, and if a matching mock has been found, its **ID**.
 
-- **Endpoint**: `GET :8081/history`
-- **Response**:
+- **Endpoint**: `GET /history`
+- **Query Parameters**:
+
+| Name     | Description                                                                        |
+| -------- | ---------------------------------------------------------------------------------- |
+| `filter` | _Optional_, a regex used to filter on the **request path** of the history entries. |
+
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+  - `400 Bad Request`, if the filter is an invalid regular expression.
+- **Sample Response**:
 
 ```json
 [
@@ -220,4 +257,20 @@ For each call, the history entry will contain the **request**, the **response**,
     }
   }
 ]
+```
+
+## Healthcheck
+
+Check that Smocker is up and running. The version data of the currently deployed instance are also returned.
+
+- **Endpoint**: `GET /version`
+- **Sample Response**:
+
+```json
+{
+  "app_name": "smocker",
+  "build_version": "0.4.0",
+  "build_commit": "b12ba66b13b9719b29afc58e6f1953367b78ecfd",
+  "build_date": "2019-11-27T10:38:53+0000"
+}
 ```
