@@ -116,7 +116,7 @@ func Serve(config config.Config) {
 		if verified {
 			response["message"] = "All mocks match expectations"
 		} else {
-			response["message"] = "Some mocks doesn't match expectations"
+			response["message"] = "Some mocks don't match expectations"
 			response["mocks"] = failedMocks
 		}
 		return respondAccordingAccept(c, response)

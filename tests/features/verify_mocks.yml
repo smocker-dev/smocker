@@ -90,6 +90,6 @@ testcases:
         url: http://localhost:8081/mocks/verify
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.message ShouldEqual "Some mocks doesn't match expectations"
+          - result.bodyjson.message ShouldEqual "Some mocks don't match expectations"
           - result.bodyjson.verified ShouldBeFalse
           - result.bodyjson.mocks.__len__ ShouldEqual 2
