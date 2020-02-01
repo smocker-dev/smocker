@@ -67,7 +67,8 @@ module.exports = {
           "/guide/",
           "/guide/installation",
           "/guide/getting-started",
-          "/guide/real-life"
+          "/guide/real-life",
+          "/guide/tooling"
         ]
       },
       {

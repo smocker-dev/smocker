@@ -1,6 +1,6 @@
 # Tooling
 
-Smocker mocks are written using simple YAML files. To simplify the writing process, we provide a [JSON Schema](https://json-schema.org/) that you can integrate with your editor of choice to benefit from real time validation and completion
+Smocker mocks are written using simple YAML files. To simplify the writing process, we provide a [JSON Schema](https://json-schema.org/) that you can integrate with your editor of choice to benefit from real time validation and completion.
 
 ## Visual Studio Code
 
