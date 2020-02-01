@@ -187,15 +187,15 @@ Tips:
 
 ## Format of `proxy` section
 
-`proxy` is a way to redirect calls to another destination. It's a key feature, when you want to use smocker as an API gateway.
-Basically, proxy mocks will be used to configure the way smocker redirect calls between your services.
+`proxy` is a way to redirect calls to another destination. It's a key feature, when you want to use Smocker as an API gateway.
+Basically, proxy mocks will be used to configure the way Smocker redirect calls between your services.
 
 It has the following format:
 
 ```yaml
 proxy:
   host: # destination URL
-  follow: # usefull when using smocker as an http proxy, a follow proxy will pass requests to their original destination
+  follow: # usefull when using Smocker as an http proxy, a follow proxy will pass requests to their original destination
 
   # A proxy mock is either a "host" or a "follow" but cannot be both
 ```
