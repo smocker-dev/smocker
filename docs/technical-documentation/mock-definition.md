@@ -4,9 +4,9 @@
 This page is not terminated yet.
 :::
 
-A mock has one of the following formats:
+A mock must respect this format:
 
-- Static response:
+- Common parts
 
 ```yaml
 - request:
@@ -15,6 +15,12 @@ A mock has one of the following formats:
   context:
     # A "context" (optional) defines particularities about the current mock,
     # for instance it could help you define a mock that can only be called 3 times
+```
+
+- Static response:
+
+```yaml
+- ... # common parts
   response:
     # A "response" will be returned as is when the client request matches
     # the "request" declaration
@@ -23,20 +29,23 @@ A mock has one of the following formats:
 - Dynamic response:
 
 ```yaml
-- request:
-  # A "request" defines characteristics (method, path, query parameters...)
-  # that must be matched in order to return the associated response
-  context:
-    # A "context" (optional) defines particularities about the current mock,
-    # for instance it could help you define a mock that can only be called 3 times
+- ... # common parts
   dynamic_response:
     # A "dynamic_response" will be computed from the request made by the client
     # when it matches the "request" declaration
 ```
 
-## Format of the `request`
+- Proxy:
 
-The request has the following format:
+```yaml
+- ... # common parts
+  proxy:
+    # A "proxy" will redirect the call to another destination
+```
+
+## Format of `request` section
+
+`request` has the following format:
 
 ```yaml
 request:
@@ -71,9 +80,18 @@ request:
 
 The list of the available matchers is available [Matchers page](https://github.com/Thiht/smocker/wiki/Matchers).
 
-## Format of the `response`
+## Format of `context` section
 
-The response has the following format:
+`context` is optional in a mock. It has the following format:
+
+```yaml
+context:
+  times: 5 # optional number, defines how many times the mock can be called
+```
+
+## Format of `response` section
+
+`response` has the following format:
 
 ```yaml
 response:
@@ -89,14 +107,14 @@ response:
 
 The response is returned as is when the request matches. Note that [YAML allows multi-line strings](https://stackoverflow.com/a/3790497), which is very useful for writing JSON bodies.
 
-## Format of the `dynamic_response`
+## Format of `dynamic_response` section
 
-Dynamic responses are a way to generate a response depending on data from the request. This is a powerful feature when used with the request matchers. Dynamic responses can be generated in two different ways:
+`dynamic_response` is a way to generate a response depending on data from the request. This is a powerful feature when used with the request matchers. Dynamic responses can be generated in two different ways:
 
 - [Go templates](https://golang.org/pkg/text/template/)
 - [Lua](https://devhints.io/lua) scripts
 
-They have the following format:
+It has the following format:
 
 ```yaml
 dynamic_response:
@@ -167,11 +185,17 @@ Tips:
 - In associative tables, keys containing a `-` (such as `Content-Type`) must be wrapped: `{ ["Content-Type"] = ... }`
 - You can write multi-line strings (for the `body` for instance) using double square braces instead of quotes: `[[ ... ]]`
 
-## Format of the `context`
+## Format of `proxy` section
 
-The `context` is optional in a mock. It has the following format:
+`proxy` is a way to redirect calls to another destination. It's a key feature, when you want to use smocker as an API gateway.
+Basically, proxy mocks will be used to configure the way smocker redirect calls between your services.
+
+It has the following format:
 
 ```yaml
-context:
-  times: 5 # optional number, defines how many times the mock can be called
+proxy:
+  host: # destination URL
+  follow: # usefull when using smocker as an http proxy, a follow proxy will pass requests to their original destination
+
+  # A proxy mock is either a "host" or a "follow" but cannot be both
 ```
