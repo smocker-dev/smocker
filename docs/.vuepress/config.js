@@ -82,9 +82,6 @@ module.exports = {
       }
     ]
   },
-  markdown: {
-    lineNumbers: true
-  },
   plugins: [
     "vuepress-plugin-mermaidjs",
     "one-click-copy",
