@@ -9,7 +9,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
 [![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
 
-smocker (server mock) is a simple and efficient HTTP mock server.
+Smocker (server mock) is a simple and efficient HTTP mock server.
 
 The documentation is available on the [project's wiki](https://github.com/Thiht/smocker/wiki).
 
@@ -45,7 +45,7 @@ docker run -d \
 ### Manual Deployment
 
 ```sh
-# This will be the deployment folder for the smocker instance
+# This will be the deployment folder for the Smocker instance
 mkdir -p /opt/smocker && cd /opt/smocker
 wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz
@@ -60,7 +60,7 @@ curl localhost:8081/version
 
 ### User Interface
 
-smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
+Smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
 ![History](docs/.vuepress/public/screenshots/screenshot-history.png)
 
@@ -68,7 +68,7 @@ smocker exposes a configuration user interface. You can access it in your web br
 
 ## Usage
 
-smocker exposes two ports:
+Smocker exposes two ports:
 
 - `8080` is the mock server port. It will expose the routes you register through the configuration port
 - `8081` is the configuration port. It's the port you will use to register new mocks. This port also exposes a user interface.
@@ -160,7 +160,7 @@ The frontend is written with TypeScript and React. You can use the following com
 The application can be packaged as a standalone Docker image. You can use the following commands to manage the development lifecycle:
 
 - `make build-docker`, `make VERSION=xxx build-docker`: build the application as a Docker image
-- `make start-docker`, `make VERSION=xxx start-docker`: run a smocker Docker image
+- `make start-docker`, `make VERSION=xxx start-docker`: run a Smocker Docker image
 
 ## Authors
 
