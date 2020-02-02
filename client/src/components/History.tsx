@@ -19,6 +19,7 @@ import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
 import { formQueryParams, usePoll } from "~utils";
+import { Empty, Button, PageHeader, Alert, Tag, Divider } from "antd";
 import "./History.scss";
 
 Settings.defaultLocale = "en-US";
@@ -27,7 +28,7 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
   <div className="entry">
     <div className="request">
       <div className="details">
-        <span className="method">{value.request.method}</span>
+        <Tag color="blue">{value.request.method}</Tag>
         <span className="path">
           {value.request.path + formQueryParams(value.request.query_params)}
         </span>
@@ -58,7 +59,6 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           options={{
             mode: "application/json",
             theme: "material",
-            lineNumbers: true,
             lineWrapping: true,
             readOnly: true,
             viewportMargin: Infinity,
@@ -69,21 +69,14 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
       )}
     </div>
     <div className="response">
-      {value.mock_id && (
-        <div className="mock">
-          <span className="label">Mock</span>
-          <Link to={`/pages/mocks/${value.mock_id}`}>{value.mock_id}</Link>
-        </div>
-      )}
       <div className="details">
-        <span
-          className={classNames(
-            "status",
-            { info: value.response.status !== 666 },
-            { failure: value.response.status === 666 }
-          )}
-        >
+        <Tag color={value.response.status === 666 ? "red" : "blue"}>
           {value.response.status}
+        </Tag>
+        <span>
+          {value.mock_id && (
+            <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
+          )}
         </span>
         <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
@@ -112,12 +105,11 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           options={{
             mode: "application/json",
             theme: "material",
-            lineNumbers: true,
             lineWrapping: true,
             readOnly: true,
             viewportMargin: Infinity,
             foldGutter: true,
-            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            gutters: ["CodeMirror-foldgutter"]
           }}
         />
       )}
@@ -151,19 +143,9 @@ const History = ({ history, loading, error, fetch }: Props) => {
   const isEmpty = history.length === 0;
   let body = null;
   if (error) {
-    body = <pre className="error">{error.message}</pre>;
-  } else if (isEmpty && loading) {
-    body = (
-      <div className="dimmer">
-        <div className="loader" />
-      </div>
-    );
+    body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
-    body = (
-      <div className="empty">
-        <h3>No entry found</h3>
-      </div>
-    );
+    body = <Empty description="The history is empty." />;
   } else {
     const pageCount = Math.ceil(history.length / numberPerPage);
     const entries = orderBy(history, `${entryField}.date`, order as any).slice(
@@ -201,27 +183,28 @@ const History = ({ history, loading, error, fetch }: Props) => {
   return (
     <div className="history" ref={ref}>
       <div className="list">
-        <div className="header">
-          <span>
-            > Order by
-            <a id="entryField-order" className="order" onClick={onSort}>
-              <strong>{`"${entryField}"`}</strong>
-            </a>
-            date:
-            <a id="date-order" className="order" onClick={onSortDate}>
-              <strong>
-                {`"${order === "asc" ? "oldest first" : "newest first"}"`}
-              </strong>
-            </a>
-          </span>
-          <button
-            className={classNames({ loading }, { red: polling })}
-            onClick={loading ? undefined : togglePolling}
-          >
-            {polling ? "Stop Refresh" : "Start Refresh"}
-          </button>
-        </div>
-        {body}
+        <PageHeader
+          title="History"
+          extra={
+            <Button loading={loading} onClick={togglePolling}>
+              {polling ? "Stop Refresh" : "Start Refresh"}
+            </Button>
+          }
+        >
+          <p>This is the history of the requests made since the last reset.</p>
+          <p>
+            Entries are sorted by
+            <Button onClick={onSort} type="link">
+              {entryField}
+            </Button>
+            and the
+            <Button onClick={onSortDate} type="link">
+              {order === "asc" ? "oldest" : "newest"}
+            </Button>
+            are displayed first.
+          </p>
+          {body}
+        </PageHeader>
       </div>
     </div>
   );

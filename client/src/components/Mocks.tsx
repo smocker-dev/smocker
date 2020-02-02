@@ -16,7 +16,6 @@ import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/fold/comment-fold";
 import "codemirror/addon/lint/lint";
 import "codemirror/addon/lint/yaml-lint";
-import "./Mocks.scss";
 import {
   formQueryParams,
   toMultimap,
