@@ -93,7 +93,10 @@
       "type": "object",
       "properties": {
         "body": { "type": "string" },
-        "status": { "type": "number" },
+        "status": {
+          "type": "number",
+          "default": 200
+        },
         "delay": { "type": "string" },
         "headers": {
           "oneOf": [
