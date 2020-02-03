@@ -40,6 +40,7 @@ import { withRouter, RouteComponentProps } from "react-router";
 import { Settings, DateTime } from "luxon";
 import { Link } from "react-router-dom";
 import ReactPaginate from "react-paginate";
+import { Empty, Alert } from "antd";
 
 window.jsyaml = jsyaml;
 Settings.defaultLocale = "en-US";
@@ -321,19 +322,9 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
   const isEmpty = mocks.length === 0;
   let body = null;
   if (error) {
-    body = <pre className="error">{error.message}</pre>;
-  } else if (isEmpty && loading) {
-    body = (
-      <div className="dimmer">
-        <div className="loader" />
-      </div>
-    );
+    body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
-    body = (
-      <div className="empty">
-        <h3>No mock found</h3>
-      </div>
-    );
+    body = <Empty description="No mocks declared." />;
   } else {
     const filteredMocks = mocks.filter(mock => {
       const mock_id = match.params.mock_id;

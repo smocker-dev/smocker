@@ -187,7 +187,7 @@ const History = ({ history, loading, error, fetch }: Props) => {
           title="History"
           extra={
             <Button loading={loading} onClick={togglePolling}>
-              {polling ? "Stop Refresh" : "Start Refresh"}
+              {polling ? "Stop Autorefresh" : "Start Autorefresh"}
             </Button>
           }
         >
