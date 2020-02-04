@@ -65,6 +65,11 @@ $border-color = #ccc
         height: 100%
         width: 100%
 
+  // chrome svg hack
+  @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm)
+    .selector:not(*:root), [id^=mermaid]
+      font-size: 2em
+
   [id^=mermaid]
     .node rect, .node circle, .node ellipse, .node polygon
       fill: white
