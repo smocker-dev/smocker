@@ -53,13 +53,23 @@ func HTTPRequestToRequest(req *http.Request) Request {
 	} else {
 		body = tmp
 	}
+
+	headers := http.Header{}
+	for key, values := range req.Header {
+		headers[key] = make([]string, 0, len(values))
+		for _, value := range values {
+			headers.Add(key, value)
+		}
+	}
+	headers.Add("Host", req.Host)
+
 	return Request{
 		Path:        req.URL.Path,
 		Method:      req.Method,
 		Body:        body,
 		BodyString:  string(bodyBytes),
 		QueryParams: req.URL.Query(),
-		Headers:     req.Header,
+		Headers:     headers,
 		Date:        time.Now(),
 	}
 }
