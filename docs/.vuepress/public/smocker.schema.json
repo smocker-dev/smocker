@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Smocker",
+  "oneOf": [
+    { "$ref": "#/definitions/mock" },
+    {
+      "type": "array",
+      "items": { "$ref": "#/definitions/mock" }
+    }
+  ],
+  "definitions": {
+    "mock": {
+      "type": "object",
+      "properties": {
+        "request": { "$ref": "#/definitions/request" },
+        "response": { "$ref": "#/definitions/response" },
+        "dynamic_response": { "$ref": "#/definitions/dynamic_response" },
+        "proxy": { "$ref": "#/definitions/request" }
+      },
+      "required": ["request"]
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/string_matcher" }
+          ]
+        },
+        "method": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "HEAD",
+                "OPTIONS",
+                "CONNECT",
+                "TRACE"
+              ]
+            },
+            { "$ref": "#/definitions/string_matcher" }
+          ]
+        },
+        "body": {
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/string_matcher" }
+          ]
+        },
+        "query_params": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                ]
+              }
+            },
+            { "$ref": "#/definitions/multi_map_matcher" }
+          ]
+        },
+        "headers": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                ]
+              }
+            },
+            { "$ref": "#/definitions/multi_map_matcher" }
+          ]
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "body": { "type": "string" },
+        "status": {
+          "type": "number",
+          "default": 200
+        },
+        "delay": { "type": "string" },
+        "headers": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                ]
+              }
+            },
+            { "$ref": "#/definitions/multi_map_matcher" }
+          ]
+        }
+      }
+    },
+    "dynamic_response": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": ["go_template", "go_template_yaml", "go_template_json", "lua"]
+        },
+        "script": { "type": "string" }
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "delay": { "type": "string" }
+      }
+    },
+    "string_matcher": {
+      "type": "object",
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "enum": [
+            "ShouldResemble",
+            "ShouldAlmostEqual",
+            "ShouldContainSubstring",
+            "ShouldEndWith",
+            "ShouldEqual",
+            "ShouldEqualJSON",
+            "ShouldStartWith",
+            "ShouldMatch",
+            "ShouldNotResemble",
+            "ShouldNotAlmostEqual",
+            "ShouldNotContainSubstring",
+            "ShouldNotEndWith",
+            "ShouldNotEqual",
+            "ShouldNotStartWith",
+            "ShouldNotMatch"
+          ]
+        },
+        "value": { "type": "string" }
+      },
+      "required": ["matcher", "value"]
+    },
+    "multi_map_matcher": {
+      "type": "object",
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "enum": [
+            "ShouldResemble",
+            "ShouldAlmostEqual",
+            "ShouldContainSubstring",
+            "ShouldEndWith",
+            "ShouldEqual",
+            "ShouldEqualJSON",
+            "ShouldStartWith",
+            "ShouldMatch",
+            "ShouldNotResemble",
+            "ShouldNotAlmostEqual",
+            "ShouldNotContainSubstring",
+            "ShouldNotEndWith",
+            "ShouldNotEqual",
+            "ShouldNotStartWith",
+            "ShouldNotMatch"
+          ]
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "required": ["matcher", "values"]
+    }
+  }
+}

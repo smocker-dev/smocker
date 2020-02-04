@@ -73,9 +73,8 @@ test-integration: $(VENOM)
 
 .PHONY: docs
 docs:
-	yarn --cwd docs/ install
 	venom run tests/features/verify_mocks.yml
-	node docs/refresh-screenshots.js
+	yarn docs:generate
 
 .PHONY: clean
 clean:

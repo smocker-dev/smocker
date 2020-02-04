@@ -1,0 +1,142 @@
+$border-color = #ccc
+
+#app .theme-default-content:not(.custom)
+  max-width: 1100px
+  text-align: justify
+
+  .row, .column
+    display: flex
+
+    &.wrap
+      flex-wrap: wrap
+
+    &.around-justified
+      justify-content: space-around
+
+    &.justified
+      justify-content: space-between
+
+    &.center-justified
+      justify-content: center
+
+    &.start-align
+      align-items: flex-start
+
+    &.center-align
+      align-items: center
+
+    &.end-align
+      align-items: flex-end
+
+  .row
+    flex-direction: row
+
+  .column
+    flex-direction: column
+
+  .text-center
+    text-align: center
+
+  img, .figure
+    border: 1px solid $border-color
+    border-radius: 6px
+    box-shadow: 5px 5px 5px -4px rgba(0, 0, 0, .5)
+
+  img
+    display: block
+    margin: auto
+    max-width: 100%
+
+  .figure
+    display: flex
+    flex-direction: column
+    margin: .5em
+    max-width: 45%
+
+    @media screen and (max-width: 1024px)
+      max-width: 100%
+
+    padding: .5em
+
+    > div
+      flex: auto
+
+      svg
+        height: 100%
+        width: 100%
+
+  [id^=mermaid]
+    .node rect, .node circle, .node ellipse, .node polygon
+      fill: white
+      stroke: black
+      stroke-width: 2px
+
+    .cluster
+      text
+        fill: rgba(51, 51, 51, .8)
+
+      rect
+        stroke: rgba(0, 0, 0, .5)
+        stroke-width: 1px
+
+    .path
+      stroke-width: 2px
+
+    .actor
+      stroke: rgba(0, 0, 0, .25)
+      fill: rgb(62, 175, 124)
+
+    text
+      &.actor
+        fill: white
+        stroke: none
+
+    .edgeLabel
+      &:not(:empty)
+        background-color: #333333
+        color: white
+
+    .node
+      &.clickable
+        &:hover
+          cursor: pointer
+
+          .label
+            color: #95a7dc
+            text-decoration: underline
+
+        .label
+          color: #0056c7
+          text-decoration: underline
+
+    .clusters
+      .cluster:nth-child(5n+1)
+        rect
+          fill: rgba(102, 224, 102, .5)
+
+      .cluster:nth-child(5n+2)
+        rect
+          fill: rgba(102, 224, 224, .5)
+
+      .cluster:nth-child(5n+3)
+        rect
+          fill: rgba(224, 102, 102, .5)
+
+      .cluster:nth-child(5n+4)
+        rect
+          fill: rgba(102, 102, 224, .5)
+
+      .cluster:nth-child(5n+5)
+        rect
+          fill: rgba(224, 224, 102, .5)
+
+      [id^=transparent].cluster
+        .label
+          display: none
+
+        rect
+          fill: none
+          stroke: none
+
+#message-container .message .text
+  height: 22px
