@@ -1,4 +1,13 @@
-#logo {
-  float: left;
-  margin-right: 24px;
+html,
+body,
+#root,
+#root .layout {
+  height: 100%;
+}
+
+#root .layout.scrollable {
+  overflow-y: auto;
+  .not-scrollable {
+    min-height: auto;
+  }
 }

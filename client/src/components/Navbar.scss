@@ -1,5 +1,23 @@
-.navbar {
-  box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.5) !important;
-  line-height: 46px !important;
-  height: 46px !important;
+#root .navbar {
+  box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.5);
+  line-height: 46px;
+  height: 46px;
+  .logo {
+    text-transform: uppercase;
+    font-weight: bolder;
+    color: white;
+    height: 42px;
+    line-height: 42px;
+    margin-right: 1em;
+    img {
+      height: 32px;
+      vertical-align: bottom;
+      margin-right: 0.5em;
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+  }
+  .menu {
+    flex: auto;
+  }
 }
