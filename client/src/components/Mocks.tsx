@@ -411,18 +411,19 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
         )}
         {body}
       </PageHeader>
-      <Drawer
-        title="Add new mocks"
-        placement="right"
-        className="drawer"
-        closable={false}
-        onClose={handleCancelNewMock}
-        visible={displayNewMock}
-        destroyOnClose
-        width="70vw"
-      >
-        <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
-      </Drawer>
+      {displayNewMock && (
+        <Drawer
+          title="Add new mocks"
+          placement="right"
+          className="drawer"
+          closable={false}
+          onClose={handleCancelNewMock}
+          visible={displayNewMock}
+          width="70vw"
+        >
+          <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
+        </Drawer>
+      )}
     </div>
   );
 };
