@@ -1,106 +1,14 @@
-@import "~/variables.scss";
-
 html,
-body {
+body,
+#root,
+#root .layout {
   height: 100%;
 }
 
-body {
-  margin: 0;
-  font-size: $base-font-size;
-  font-family: $base-font-family;
-
-  button,
-  a.button {
-    position: relative;
-    background-color: $color-blue-dark;
-    border-radius: 3px;
-    border: none;
-    display: inline-block;
-    cursor: pointer;
-    color: $color-white-light;
-    padding: 0.75em;
-    text-decoration: none;
-    font-size: $button-font-size;
-    font-family: $base-font-family;
-
-    &:hover {
-      background-color: $color-blue-light;
-    }
-
-    &:active {
-      position: relative;
-      top: 1px;
-    }
-
-    &:focus {
-      outline: none;
-    }
-
-    &.red {
-      background-color: $color-red-dark;
-
-      &:hover {
-        background-color: $color-red-light;
-      }
-    }
-
-    &.green {
-      background-color: $color-green-dark;
-
-      &:hover {
-        background-color: $color-green-light;
-      }
-    }
-
-    &.white {
-      background-color: $color-white-light;
-      color: black;
-
-      &:hover {
-        background-color: $color-white-dark;
-      }
-    }
-
-    &.loading {
-      color: transparent;
-
-      @keyframes spinner {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      &:before {
-        content: "";
-        box-sizing: border-box;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 20px;
-        height: 20px;
-        margin-top: -10px;
-        margin-left: -10px;
-        border-radius: 50%;
-        border: 2px solid $color-grey-light;
-        border-top-color: $color-white-light;
-        animation: spinner 0.6s linear infinite;
-      }
-    }
-  }
-
-  a:hover {
-    cursor: pointer;
-  }
-}
-
-#root {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  height: 100%;
-  background-color: $color-grey-light;
-  min-height: 0;
+#root .layout.scrollable {
   overflow-y: auto;
+  position: relative;
+  .not-scrollable {
+    min-height: auto;
+  }
 }

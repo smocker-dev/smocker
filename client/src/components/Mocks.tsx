@@ -16,7 +16,6 @@ import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/fold/comment-fold";
 import "codemirror/addon/lint/lint";
 import "codemirror/addon/lint/yaml-lint";
-import "./Mocks.scss";
 import {
   formQueryParams,
   toMultimap,
@@ -40,7 +39,20 @@ import { Actions, actions } from "~modules/actions";
 import { withRouter, RouteComponentProps } from "react-router";
 import { Settings, DateTime } from "luxon";
 import { Link } from "react-router-dom";
-import ReactPaginate from "react-paginate";
+import {
+  Drawer,
+  Empty,
+  Button,
+  Icon,
+  PageHeader,
+  Pagination,
+  Alert,
+  Tag,
+  Row,
+  Spin,
+  Form
+} from "antd";
+import "./Mocks.scss";
 
 window.jsyaml = jsyaml;
 Settings.defaultLocale = "en-US";
@@ -48,12 +60,11 @@ Settings.defaultLocale = "en-US";
 const codeMirrorOptions = {
   mode: "application/json",
   theme: "material",
-  lineNumbers: true,
   lineWrapping: true,
   readOnly: true,
   viewportMargin: Infinity,
   foldGutter: true,
-  gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+  gutters: ["CodeMirror-foldgutter"]
 };
 
 const renderTimes = (count: number, expected?: number) => {
@@ -80,15 +91,7 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
   return (
     <div className="response">
       <div className="details">
-        <span
-          className={classNames(
-            "status",
-            { info: response.status !== 666 },
-            { failure: response.status === 666 }
-          )}
-        >
-          {response.status || 200}
-        </span>
+        <Tag color="blue">{response.status || 200}</Tag>
         {renderTimes(state.times_count, context.times)}
       </div>
       {response.headers && (
@@ -135,7 +138,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
     <div className="response">
       <div className="details">
         <div className="group">
-          <span className="engine info">Engine</span>
+          <Tag color="blue">Engine</Tag>
           <span>
             <strong>{response.engine}</strong>
           </span>
@@ -154,7 +157,7 @@ const MockProxy = ({ mock }: { mock: Mock }) => {
     <div className="response">
       <div className="details">
         <div className="group">
-          <span className="status info">Redirect To</span>
+          <Tag color="blue">Redirect To</Tag>
           <span>
             <strong>{host}</strong>
           </span>
@@ -176,10 +179,10 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
     <div className="request">
       <div className="details">
         <div className="group">
-          <span className="method">
+          <Tag color="blue">
             {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
             {method}
-          </span>
+          </Tag>
           <span className="path">
             {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
             {path + formQueryParams(request.query_params)}
@@ -242,17 +245,13 @@ const Mock = ({ mock }: { mock: Mock }) => {
 
 const NewMock = ({
   onSave,
-  onClose,
-  error,
-  loading
+  onClose
 }: {
   onSave: (mocks: string) => void;
   onClose: () => void;
-  error: Error | null;
-  loading: boolean;
 }) => {
   const [mock, changeMock] = React.useState("");
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.MouseEvent) => {
     event.preventDefault();
     onSave(mock);
   };
@@ -264,34 +263,34 @@ const NewMock = ({
     changeMock(value);
   };
   return (
-    <form onSubmit={handleSubmit}>
-      <Controlled
-        value={mock}
-        options={{
-          mode: "yaml",
-          theme: "material",
-          lineNumbers: true,
-          lineWrapping: true,
-          viewportMargin: Infinity,
-          foldGutter: true,
-          lint: true,
-          gutters: [
-            "CodeMirror-lint-markers",
-            "CodeMirror-linenumbers",
-            "CodeMirror-foldgutter"
-          ]
-        }}
-        onBeforeChange={handleChangeMock}
-      />
-      {error && <pre className="error">{error.message}</pre>}
-      <button
-        className={classNames("white", { loading })}
-        onClick={handleCancel}
-      >
-        Cancel
-      </button>
-      <button className={classNames("green", { loading })}>Save</button>
-    </form>
+    <>
+      <Form className="form">
+        <Controlled
+          value={mock}
+          options={{
+            mode: "yaml",
+            theme: "material",
+            lineNumbers: true,
+            lineWrapping: true,
+            viewportMargin: Infinity,
+            foldGutter: true,
+            lint: true,
+            gutters: [
+              "CodeMirror-lint-markers",
+              "CodeMirror-linenumbers",
+              "CodeMirror-foldgutter"
+            ]
+          }}
+          onBeforeChange={handleChangeMock}
+        />
+      </Form>
+      <div className="action buttons">
+        <Button onClick={handleCancel}>Cancel</Button>
+        <Button onClick={handleSubmit} type="primary">
+          Save
+        </Button>
+      </div>
+    </>
   );
 };
 
@@ -308,65 +307,60 @@ interface Props extends RouteComponentProps<OwnProps> {
 }
 
 const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
-  const numberPerPage = 10;
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
     if (ref.current) {
-      ref.current.scrollTo(0, 0);
+      ref.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     }
-    return;
-  }, [page]);
+  }, [page, pageSize]);
   const isEmpty = mocks.length === 0;
   let body = null;
   if (error) {
-    body = <pre className="error">{error.message}</pre>;
-  } else if (isEmpty && loading) {
-    body = (
-      <div className="dimmer">
-        <div className="loader" />
-      </div>
-    );
+    body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
-    body = (
-      <div className="empty">
-        <h3>No mock found</h3>
-      </div>
-    );
+    body = <Empty description="No mocks found." />;
   } else {
     const filteredMocks = mocks.filter(mock => {
       const mock_id = match.params.mock_id;
       return !mock_id || mock.state.id === mock_id;
     });
-    const pageCount = Math.ceil(filteredMocks.length / numberPerPage);
     const paginatedMocks = filteredMocks.slice(
-      Math.max(page * numberPerPage, 0),
-      Math.min((page + 1) * numberPerPage, filteredMocks.length)
+      Math.max((page - 1) * pageSize, 0),
+      Math.min(page * pageSize, mocks.length)
     );
-    const onChangePage = ({ selected }: any) => setPage(selected);
+    const onChangePage = (p: number) => setPage(p);
+    const onChangePagSize = (p: number, ps: number) => {
+      setPage(p);
+      setPageSize(ps);
+    };
     const pagination = (
-      <ReactPaginate
-        previousLabel="<"
-        nextLabel=">"
-        breakLabel="..."
-        breakClassName="break"
-        pageCount={pageCount}
-        forcePage={page}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={2}
-        onPageChange={onChangePage}
-        activeLinkClassName="active"
-      />
+      <Row type="flex" justify="space-between" align="middle">
+        <Pagination
+          hideOnSinglePage={filteredMocks.length <= 10}
+          showSizeChanger
+          pageSize={pageSize}
+          current={page}
+          onChange={onChangePage}
+          onShowSizeChange={onChangePagSize}
+          total={filteredMocks.length}
+        />
+        <Spin spinning={loading} />
+      </Row>
     );
     body = (
       <>
-        {pageCount > 1 && <div className="pagination start">{pagination}</div>}
+        {pagination}
         {paginatedMocks.map(mock => (
           <Mock key={`mock-${mock.state.id}`} mock={mock} />
         ))}
-        {pageCount > 1 && <div className="pagination">{pagination}</div>}
+        {pagination}
       </>
     );
   }
@@ -379,34 +373,57 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
   };
   return (
     <div className="mocks" ref={ref}>
-      <div className="list">
-        {displayNewMock && !match.params.mock_id && (
-          <NewMock
-            onSave={handleSaveNewMock}
-            onClose={handleCancelNewMock}
-            error={error}
-            loading={loading}
-          />
-        )}
-        {!match.params.mock_id && (
-          <div className="header">
-            {!displayNewMock ? (
-              <button className="green button" onClick={handleAddNewMock}>
-                Add Mock
-              </button>
-            ) : (
-              <div />
-            )}
-            <button
-              className={classNames({ loading }, { red: polling })}
-              onClick={loading ? undefined : togglePolling}
-            >
-              {polling ? "Stop Refresh" : "Start Refresh"}
-            </button>
-          </div>
+      <PageHeader
+        title={match.params.mock_id ? "Mock" : "Mocks"}
+        extra={
+          !match.params.mock_id && (
+            <div className="action buttons">
+              <Button
+                type="primary"
+                icon="plus"
+                disabled={displayNewMock}
+                onClick={handleAddNewMock}
+              >
+                Add Mocks
+              </Button>
+              <Button
+                loading={loading && { delay: 300 }}
+                onClick={togglePolling}
+                type={polling ? "danger" : "default"}
+              >
+                <Icon
+                  type={polling ? "pause-circle" : "play-circle"}
+                  theme={"filled"}
+                />
+                Autorefresh
+              </Button>
+            </div>
+          )
+        }
+      >
+        {match.params.mock_id ? (
+          <p>
+            This is the definition of the mock with ID{" "}
+            <strong>{match.params.mock_id}</strong>.
+          </p>
+        ) : (
+          <p>This is the list of declared mocks ordered by priority.</p>
         )}
         {body}
-      </div>
+      </PageHeader>
+      {displayNewMock && (
+        <Drawer
+          title="Add new mocks"
+          placement="right"
+          className="drawer"
+          closable={false}
+          onClose={handleCancelNewMock}
+          visible={displayNewMock}
+          width="70vw"
+        >
+          <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
+        </Drawer>
+      )}
     </div>
   );
 };

@@ -1,51 +1,65 @@
 import * as React from "react";
-import { NavLink } from "react-router-dom";
-import "./Navbar.scss";
+import {
+  Link,
+  NavLink,
+  withRouter,
+  RouteComponentProps
+} from "react-router-dom";
 import Logo from "~assets/logo.png";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
+import { Button, Layout, Menu, Row } from "antd";
+import "./Navbar.scss";
 
-interface Props {
+interface Props extends RouteComponentProps {
   loading: boolean;
   reset: () => void;
 }
 
-const Navbar = ({ loading, reset }: Props) => {
+const Navbar = ({ loading, reset, location }: Props) => {
   return (
-    <nav className="navbar">
-      <div className="menu">
-        <div className="start">
-          <NavLink exact to="/" className="brand item">
-            <img height={32} src={Logo} />
-            Smocker
-          </NavLink>
-          <NavLink to="/pages/history" className="item">
-            History
-          </NavLink>
-          <NavLink to="/pages/mocks" className="item">
-            Mocks
-          </NavLink>
-        </div>
-        <div className="end">
-          <button
-            className={loading ? "loading" : ""}
-            onClick={loading ? undefined : reset}
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-    </nav>
+    <Layout.Header className="navbar">
+      <Row type="flex" justify="start" align="middle">
+        <Link className="logo" to="/">
+          <img height={42} src={Logo} />
+          Smocker
+        </Link>
+        <Menu
+          selectedKeys={[location.pathname]}
+          defaultSelectedKeys={["/pages/history"]}
+          className="menu"
+          theme="dark"
+          mode="horizontal"
+        >
+          <Menu.Item key="/pages/history">
+            <Link to="/pages/history">History</Link>
+          </Menu.Item>
+          <Menu.Item key="/pages/mocks">
+            <Link to="/pages/mocks">Mocks</Link>
+          </Menu.Item>
+        </Menu>
+        <Button
+          type="danger"
+          ghost
+          loading={loading && { delay: 300 }}
+          onClick={reset}
+        >
+          Reset
+        </Button>
+      </Row>
+    </Layout.Header>
   );
 };
 
-export default connect(
-  (state: AppState) => ({
-    loading: state.history.loading || state.mocks.loading
-  }),
-  (dispatch: Dispatch<Actions>) => ({
-    reset: () => dispatch(actions.reset.request())
-  })
-)(Navbar);
+export default withRouter(
+  connect(
+    (state: AppState) => ({
+      loading: state.history.loading || state.mocks.loading
+    }),
+    (dispatch: Dispatch<Actions>) => ({
+      reset: () => dispatch(actions.reset.request())
+    })
+  )(Navbar)
+);

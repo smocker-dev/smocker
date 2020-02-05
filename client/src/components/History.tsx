@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/foldcode";
 import "codemirror/addon/fold/foldgutter";
@@ -10,7 +9,6 @@ import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
-import ReactPaginate from "react-paginate";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import useLocalStorage from "react-use-localstorage";
@@ -19,6 +17,17 @@ import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
 import { formQueryParams, usePoll } from "~utils";
+import {
+  Empty,
+  Button,
+  Icon,
+  PageHeader,
+  Pagination,
+  Alert,
+  Tag,
+  Row,
+  Spin
+} from "antd";
 import "./History.scss";
 
 Settings.defaultLocale = "en-US";
@@ -27,7 +36,7 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
   <div className="entry">
     <div className="request">
       <div className="details">
-        <span className="method">{value.request.method}</span>
+        <Tag color="blue">{value.request.method}</Tag>
         <span className="path">
           {value.request.path + formQueryParams(value.request.query_params)}
         </span>
@@ -58,32 +67,24 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           options={{
             mode: "application/json",
             theme: "material",
-            lineNumbers: true,
             lineWrapping: true,
             readOnly: true,
             viewportMargin: Infinity,
             foldGutter: true,
-            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            gutters: ["CodeMirror-foldgutter"]
           }}
         />
       )}
     </div>
     <div className="response">
-      {value.mock_id && (
-        <div className="mock">
-          <span className="label">Mock</span>
-          <Link to={`/pages/mocks/${value.mock_id}`}>{value.mock_id}</Link>
-        </div>
-      )}
       <div className="details">
-        <span
-          className={classNames(
-            "status",
-            { info: value.response.status !== 666 },
-            { failure: value.response.status === 666 }
-          )}
-        >
+        <Tag color={value.response.status === 666 ? "red" : "blue"}>
           {value.response.status}
+        </Tag>
+        <span>
+          {value.mock_id && (
+            <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
+          )}
         </span>
         <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
@@ -112,12 +113,11 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           options={{
             mode: "application/json",
             theme: "material",
-            lineNumbers: true,
             lineWrapping: true,
             readOnly: true,
             viewportMargin: Infinity,
             foldGutter: true,
-            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            gutters: ["CodeMirror-foldgutter"]
           }}
         />
       )}
@@ -138,60 +138,55 @@ const History = ({ history, loading, error, fetch }: Props) => {
     "history.order.by.entry.field",
     "response"
   );
-  const numberPerPage = 10;
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
     if (ref.current) {
-      ref.current.scrollTo(0, 0);
+      ref.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     }
-    return;
-  }, [page]);
+  }, [page, pageSize]);
   const isEmpty = history.length === 0;
   let body = null;
   if (error) {
-    body = <pre className="error">{error.message}</pre>;
-  } else if (isEmpty && loading) {
-    body = (
-      <div className="dimmer">
-        <div className="loader" />
-      </div>
-    );
+    body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
-    body = (
-      <div className="empty">
-        <h3>No entry found</h3>
-      </div>
-    );
+    body = <Empty description="The history is empty." />;
   } else {
-    const pageCount = Math.ceil(history.length / numberPerPage);
     const entries = orderBy(history, `${entryField}.date`, order as any).slice(
-      Math.max(page * numberPerPage, 0),
-      Math.min((page + 1) * numberPerPage, history.length)
+      Math.max((page - 1) * pageSize, 0),
+      Math.min(page * pageSize, history.length)
     );
-    const onChangePage = ({ selected }: any) => setPage(selected);
+    const onChangePage = (p: number) => setPage(p);
+    const onChangePagSize = (p: number, ps: number) => {
+      setPage(p);
+      setPageSize(ps);
+    };
     const pagination = (
-      <ReactPaginate
-        previousLabel="<"
-        nextLabel=">"
-        breakLabel="..."
-        breakClassName="break"
-        pageCount={Math.ceil(history.length / numberPerPage)}
-        forcePage={page}
-        marginPagesDisplayed={2}
-        pageRangeDisplayed={2}
-        onPageChange={onChangePage}
-        activeLinkClassName="active"
-      />
+      <Row type="flex" justify="space-between" align="middle">
+        <Pagination
+          hideOnSinglePage={history.length <= 10}
+          showSizeChanger
+          pageSize={pageSize}
+          current={page}
+          onChange={onChangePage}
+          onShowSizeChange={onChangePagSize}
+          total={history.length}
+        />
+        <Spin spinning={loading} />
+      </Row>
     );
     body = (
       <>
-        {pageCount > 1 && <div className="pagination start">{pagination}</div>}
+        {pagination}
         {entries.map((entry, index) => (
           <Entry key={`entry-${index}`} value={entry} />
         ))}
-        {pageCount > 1 && <div className="pagination">{pagination}</div>}
+        {pagination}
       </>
     );
   }
@@ -200,29 +195,36 @@ const History = ({ history, loading, error, fetch }: Props) => {
   const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
   return (
     <div className="history" ref={ref}>
-      <div className="list">
-        <div className="header">
-          <span>
-            > Order by
-            <a id="entryField-order" className="order" onClick={onSort}>
-              <strong>{`"${entryField}"`}</strong>
-            </a>
-            date:
-            <a id="date-order" className="order" onClick={onSortDate}>
-              <strong>
-                {`"${order === "asc" ? "oldest first" : "newest first"}"`}
-              </strong>
-            </a>
-          </span>
-          <button
-            className={classNames({ loading }, { red: polling })}
-            onClick={loading ? undefined : togglePolling}
+      <PageHeader
+        title="History"
+        extra={
+          <Button
+            loading={loading && { delay: 300 }}
+            onClick={togglePolling}
+            type={polling ? "danger" : "default"}
           >
-            {polling ? "Stop Refresh" : "Start Refresh"}
-          </button>
-        </div>
+            <Icon
+              type={polling ? "pause-circle" : "play-circle"}
+              theme={"filled"}
+            />
+            Autorefresh
+          </Button>
+        }
+      >
+        <p>This is the history of the requests made since the last reset.</p>
+        <p>
+          Entries are sorted by
+          <Button onClick={onSort} type="link">
+            {entryField}
+          </Button>
+          and the
+          <Button onClick={onSortDate} type="link">
+            {order === "asc" ? "oldest" : "newest"}
+          </Button>
+          are displayed first.
+        </p>
         {body}
-      </div>
+      </PageHeader>
     </div>
   );
 };

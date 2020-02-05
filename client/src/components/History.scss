@@ -1,247 +1,106 @@
 @import "~/variables.scss";
 
-.history {
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-
-  pre.error {
-    padding: 1em;
-    background-color: $color-red-dark;
-    color: $color-white-dark;
-    margin: 1em 0 0;
+#root .history {
+  padding: 2em 8em 0;
+  .entry {
     border-radius: 3px;
-  }
-
-  .empty {
+    background-color: white;
+    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 auto;
+    padding: 1em;
+    margin: 0.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.125);
 
-    h3 {
-      color: $color-black-dark;
+    .request {
+      padding-right: 1em;
     }
-  }
-
-  .dimmer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 auto;
-
-    .loader {
-      border: 16px solid $color-black-dark;
-      border-top: 16px solid $color-red-dark;
-      border-radius: 50%;
-      width: 7em;
-      height: 7em;
-      animation: spin 2s linear infinite;
+    .response {
+      padding-left: 1em;
     }
 
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  }
-
-  .list {
-    padding: 1.5em 8em;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-
-    .header {
+    .request,
+    .response {
+      width: 50%;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
 
-      .order {
-        text-decoration: underline;
-        margin: 0 0.5em;
-
-        &:hover {
-          color: $color-black-light;
-        }
-      }
-    }
-
-    .entry {
-      box-shadow: $base-box-shadow;
-      border-radius: 3px;
-      background-color: $color-white-light;
-      position: relative;
-      display: flex;
-      padding: 1em;
-      margin-top: 1.5em;
-
-      .request,
-      .response {
-        width: 50%;
-        padding: 1em;
+      .details {
         display: flex;
-        flex-direction: column;
+        align-items: center;
 
-        .mock {
+        & > span {
           margin-bottom: 1em;
-          padding-bottom: 1em;
-          display: flex;
-          justify-content: space-between;
-          border-bottom: 1px dashed $color-grey-dark;
+          border-radius: 3px;
+          font-size: 0.75rem;
+          white-space: nowrap;
 
-          .label {
+          &.date {
+            flex: 1 1 auto;
+            text-align: right;
             font-weight: bolder;
           }
-        }
 
-        .details {
-          display: flex;
-          align-items: center;
-
-          & > span {
-            margin-bottom: 1em;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-
-            &.date {
-              flex: 1 1 auto;
-              text-align: right;
-              font-weight: bolder;
-            }
-
-            & + span {
-              margin-left: 0.5em;
-            }
-          }
-        }
-
-        table {
-          border-collapse: collapse;
-          border-radius: 3px;
-          border-style: hidden;
-          box-shadow: 0 0 0 1px $color-grey-light;
-          width: 100%;
-          background-color: rgba($color-white-dark, 0.125);
-          font-size: $base-font-size;
-        }
-
-        tr + tr {
-          border-top: 1px solid $color-grey-light;
-        }
-
-        td {
-          width: 50%;
-          padding: 0.5em 0.7em;
-          word-break: break-all;
-
-          &:nth-child(1) {
-            font-weight: bolder;
+          & + span {
+            margin-left: 0.5em;
           }
         }
       }
 
-      .request .details > span {
-        &.method {
-          border-radius: 3px;
-          color: $color-white-light;
-          padding: 0.5em;
-          background-color: $color-blue-dark;
-        }
-
-        &.path {
-          font-family: monospace;
-          white-space: pre-wrap;
-          font-weight: bold;
-          word-break: break-all;
-        }
-      }
-
-      .response {
-        border-left: 1px dashed $color-grey-dark;
-
-        .status {
-          border-radius: 3px;
-          padding: 0.5em;
-
-          &.info {
-            color: $color-white-light;
-            background-color: $color-blue-dark;
-          }
-
-          &.failure {
-            color: $color-white-light;
-            background-color: $color-red-dark;
-          }
-        }
-      }
-
-      .CodeMirror {
-        position: relative;
-        height: auto;
-        overflow-y: hidden;
-        padding: 0.5em 0;
-        margin: 1em 0 0;
+      table {
+        border-collapse: collapse;
         border-radius: 3px;
+        border-style: hidden;
+        box-shadow: 0 0 0 1px $color-grey-light;
+        width: 100%;
+        background-color: rgba($color-white-dark, 0.125);
+        font-size: $base-font-size;
+        margin-bottom: 1em;
+      }
 
-        .CodeMirror-scroll {
-          height: auto;
+      tr + tr {
+        border-top: 1px solid $color-grey-light;
+      }
+
+      td {
+        width: 50%;
+        padding: 0.5em 0.7em;
+        word-break: break-all;
+
+        &:nth-child(1) {
+          font-weight: bolder;
         }
       }
     }
-  }
 
-  .pagination {
-    margin-top: 1.5em;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+    .request .details > span {
+      &.method {
+        border-radius: 3px;
+        color: $color-white-light;
+        padding: 0.5em;
+        background-color: $color-blue-dark;
+      }
 
-    &.start {
-      margin-top: 0;
+      &.path {
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
     }
 
-    ul {
-      box-shadow: $base-box-shadow;
-      background-color: $color-white-light;
-      border-radius: 3px;
-      padding: 0;
+    .response {
+      border-left: 1px dashed $color-grey-dark;
+    }
+
+    .CodeMirror {
+      position: relative;
+      height: auto;
+      overflow-y: hidden;
+      padding: 0.5em 0 0.5em 0.5em;
       margin: 0;
-      display: inline-block;
+      border-radius: 3px;
 
-      li {
-        display: inline-block;
-        border-left: 1px dotted $color-grey-light;
-
-        &:first-child() {
-          border-left: none;
-        }
-
-        a {
-          display: inline-block;
-          padding: 1em;
-
-          &.active {
-            font-weight: bolder;
-            background-color: rgba($color-white-dark, 0.75);
-          }
-
-          &:hover {
-            background-color: rgba($color-white-dark, 0.25);
-            font-weight: bold;
-          }
-        }
+      .CodeMirror-scroll {
+        height: auto;
       }
     }
   }
