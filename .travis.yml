@@ -1,4 +1,5 @@
 language: go
+os: linux
 
 go:
   - 1.13.x
@@ -28,8 +29,7 @@ deploy:
       tags: true
 
   - provider: releases
-    api_key: $GITHUB_TOKEN
+    token: $GITHUB_TOKEN
     file: build/smocker.tar.gz
-    skip_cleanup: true
     on:
       tags: true
