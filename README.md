@@ -155,7 +155,7 @@ The frontend is written with TypeScript and React. You can use the following com
 - `yarn lint`: run static analysis on the code
 - `yarn format`: automatically format the frontend code
 
-### Documentation
+### Documentation
 
 The documentation is written in Markdown using [Vuepress](https://vuepress.vuejs.org/). You can use the following commands to manage the documentation:
 
