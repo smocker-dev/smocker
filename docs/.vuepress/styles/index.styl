@@ -65,11 +65,6 @@ $border-color = #ccc
         height: 100%
         width: 100%
 
-  // chrome svg hack
-  @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm)
-    .selector:not(*:root), [id^=mermaid]
-      font-size: 2em
-
   [id^=mermaid]
     .node rect, .node circle, .node ellipse, .node polygon
       fill: white
@@ -145,3 +140,9 @@ $border-color = #ccc
 
 #message-container .message .text
   height: 22px
+
+// chrome svg hack
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm)
+  .selector:not(*:root), #app .theme-default-content:not(.custom) svg[id^='mermaid']
+    font-size: 2em
+    vertical-align: bottom
