@@ -196,7 +196,7 @@ Verify that the mocks have been called the right number of times according their
 
 ## Get History
 
-Retrieve the history of calls made to smoker.
+Retrieve the history of calls made to Smocker.
 For each call, the history entry will contain the **request**, the **response**, and if a matching mock has been found, its **ID**.
 
 - **Endpoint**: `GET /history`
