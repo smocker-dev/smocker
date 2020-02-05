@@ -392,8 +392,8 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
                 type={polling ? "danger" : "default"}
               >
                 <Icon
-                  type={polling ? "stop" : "play-circle"}
-                  theme={polling ? "outlined" : "filled"}
+                  type={polling ? "pause-circle" : "play-circle"}
+                  theme={"filled"}
                 />
                 Autorefresh
               </Button>
@@ -403,11 +403,11 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
       >
         {match.params.mock_id ? (
           <p>
-            This is the definition of mock{" "}
+            This is the definition of the mock with ID{" "}
             <strong>{match.params.mock_id}</strong>.
           </p>
         ) : (
-          <p>This is the list of declared mocks order by priority.</p>
+          <p>This is the list of declared mocks ordered by priority.</p>
         )}
         {body}
       </PageHeader>

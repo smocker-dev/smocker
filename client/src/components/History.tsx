@@ -204,8 +204,8 @@ const History = ({ history, loading, error, fetch }: Props) => {
             type={polling ? "danger" : "default"}
           >
             <Icon
-              type={polling ? "stop" : "play-circle"}
-              theme={polling ? "outlined" : "filled"}
+              type={polling ? "pause-circle" : "play-circle"}
+              theme={"filled"}
             />
             Autorefresh
           </Button>
