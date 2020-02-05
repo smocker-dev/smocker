@@ -1,0 +1,210 @@
+@import "~/variables.scss";
+
+#root .mocks {
+  padding: 2em 8em 0;
+  .action.buttons {
+    button {
+      margin-left: 0.5em;
+    }
+  }
+
+  .mock {
+    border-radius: 3px;
+    background-color: white;
+    position: relative;
+    display: flex;
+    padding: 0.5em;
+    margin: 0.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    flex-direction: column;
+
+    strong {
+      font-weight: bolder;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      padding: 1em;
+      margin-bottom: 0.5em;
+      border-bottom: 1px dashed $color-grey-dark;
+
+      .label {
+        font-weight: bolder;
+        margin-right: 0.5em;
+      }
+
+      .date {
+        flex: 1 1 auto;
+        text-align: right;
+        font-weight: bolder;
+      }
+    }
+
+    .content {
+      display: flex;
+      flex-direction: row;
+      .request,
+      .response {
+        width: 50%;
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+
+        .body-matcher {
+          margin-bottom: 0.5em;
+        }
+
+        .details {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1em;
+          &:only-child {
+            margin-bottom: 0em;
+          }
+
+          .group {
+            display: flex;
+            align-items: center;
+          }
+
+          span,
+          strong {
+            border-radius: 3px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+
+            &.fluid {
+              flex: 1 1 auto;
+              text-align: right;
+              font-weight: bolder;
+            }
+
+            &.wrong {
+              color: $color-red-dark;
+            }
+
+            & + span,
+            & + strong {
+              margin-left: 0.5em;
+            }
+          }
+        }
+
+        table {
+          border-collapse: collapse;
+          border-radius: 3px;
+          border-style: hidden;
+          box-shadow: 0 0 0 1px $color-grey-light;
+          width: 100%;
+          background-color: rgba($color-white-dark, 0.125);
+          font-size: $base-font-size;
+          margin-bottom: 1em;
+        }
+
+        tr + tr {
+          border-top: 1px solid $color-grey-light;
+        }
+
+        td {
+          width: 50%;
+          padding: 0.5em 0.7em;
+          word-break: break-all;
+
+          &:nth-child(1) {
+            font-weight: bolder;
+          }
+        }
+      }
+
+      .request .details .group {
+        .method {
+          border-radius: 3px;
+          color: $color-white-light;
+          padding: 0.5em;
+          background-color: $color-blue-dark;
+        }
+
+        .path {
+          font-family: monospace;
+          white-space: pre-wrap;
+          font-weight: bold;
+          word-break: break-all;
+        }
+      }
+
+      .response {
+        border-left: 1px dashed $color-grey-dark;
+
+        .status,
+        .engine {
+          border-radius: 3px;
+          padding: 0.5em;
+
+          &.info {
+            color: $color-white-light;
+            background-color: $color-blue-dark;
+          }
+
+          &.failure {
+            color: $color-white-light;
+            background-color: $color-red-dark;
+          }
+        }
+      }
+    }
+  }
+
+  .CodeMirror {
+    position: relative;
+    height: auto;
+    overflow-y: hidden;
+    padding: 0.5em 0 0.5em 0.5em;
+    margin: 0;
+    border-radius: 3px;
+
+    .CodeMirror-scroll {
+      height: auto;
+    }
+  }
+}
+
+html body .drawer {
+  position: absolute;
+  .ant-drawer-body {
+    height: calc(100% - 100px);
+    overflow-y: auto;
+    .form {
+      background-color: #263238;
+      border-radius: 3px;
+      height: 100%;
+      .CodeMirror {
+        position: relative;
+        height: auto;
+        overflow-y: hidden;
+        padding: 0.5em 0 0.5em 0.5em;
+        margin: 0;
+        border-radius: 3px;
+
+        .CodeMirror-scroll {
+          height: auto;
+        }
+      }
+    }
+  }
+  .action.buttons {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #e9e9e9;
+    padding: 0.5em;
+    background: #fff;
+    text-align: right;
+    z-index: 5;
+    button {
+      margin-left: 0.5em;
+    }
+  }
+}

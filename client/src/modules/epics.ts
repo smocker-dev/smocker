@@ -9,6 +9,12 @@ import { decode, HistoryCodec, MocksCodec } from "./types";
 
 const { fetchHistory, fetchMocks, addMocks, reset } = actions;
 
+const extractError = (error: any) => ({
+  message:
+    (error.xhr && error.xhr.response && error.xhr.response.message) ||
+    error.message
+});
+
 const fetchHistoryEpic: Epic<Actions> = action$ =>
   action$.pipe(
     filter(isActionOf(fetchHistory.request)),
@@ -20,11 +26,7 @@ const fetchHistoryEpic: Epic<Actions> = action$ =>
           );
         }),
         catchError(error => {
-          return of(
-            fetchHistory.failure({
-              message: error.xhr ? error.xhr.response : error.message
-            })
-          );
+          return of(fetchHistory.failure(extractError(error)));
         })
       )
     )
@@ -41,11 +43,7 @@ const fetchMocksEpic: Epic<Actions> = action$ =>
           );
         }),
         catchError(error => {
-          return of(
-            fetchMocks.failure({
-              message: error.xhr ? error.xhr.response : error.message
-            })
-          );
+          return of(fetchMocks.failure(extractError(error)));
         })
       )
     )
@@ -62,11 +60,7 @@ const addMocksEpic: Epic<Actions> = action$ =>
         .pipe(
           map(() => addMocks.success()),
           catchError(error => {
-            return of(
-              addMocks.failure({
-                message: error.xhr ? error.xhr.response : error.message
-              })
-            );
+            return of(addMocks.failure(extractError(error)));
           })
         )
     )
@@ -79,11 +73,7 @@ const resetEpic: Epic<Actions> = action$ =>
       ajax.post(trimedPath + "/reset").pipe(
         map(() => reset.success()),
         catchError(error => {
-          return of(
-            reset.failure({
-              message: error.xhr ? error.xhr.response : error.message
-            })
-          );
+          return of(reset.failure(extractError(error)));
         })
       )
     )

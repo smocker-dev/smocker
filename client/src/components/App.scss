@@ -7,6 +7,7 @@ body,
 
 #root .layout.scrollable {
   overflow-y: auto;
+  position: relative;
   .not-scrollable {
     min-height: auto;
   }
