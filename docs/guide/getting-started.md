@@ -44,6 +44,10 @@ Smocker reserves the non HTTP status codes from `600` to `699`. This is because 
 
 To register our first mock, we will use the user interface. Switch to the "Mocks" page and click on the "Add Mock" button.
 
+![Smocker's user interface - Empty mocks page](/screenshots/screenshot-empty-mocks.png)
+
+![Smocker's user interface - Add mocks](/screenshots/screenshot-add-mocks.png)
+
 Mocks are defined using the YAML format. Register the following mock:
 
 ```yml

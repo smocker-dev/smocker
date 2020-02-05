@@ -54,17 +54,22 @@ async function main() {
   const page = await browser.newPage();
   page.setViewport({ width: 1200, height: 600 });
 
-  // Screenshot empty history
+  // Screenshot empty + add
   await axios.post(smockerAdminHost + "/reset");
   await page.goto(smockerAdminHost + "/pages/history");
   await screenshotPage(page, "screenshot-empty-history.png");
+  await page.goto(smockerAdminHost + "/pages/mocks");
+  await screenshotPage(page, "screenshot-empty-mocks.png");
+  await page.click("button.add-mocks-button");
+  await page.waitFor(300);
+  await page.screenshot({ path: screenshotsDir + "screenshot-add-mocks.png" });
 
   // Screenshot mocks
   await axios.post(smockerAdminHost + "/mocks", mocks, {
     headers: { "Content-Type": "application/x-yaml" }
   });
-  await page.goto(smockerAdminHost + "/pages/mocks");
-  await page.waitForSelector('.list', {visible: true});
+  await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+  await page.waitForSelector(".mocks", { visible: true });
   await page.screenshot({ path: screenshotsDir + "screenshot-mocks.png" });
 
   // Screenshot history
@@ -73,24 +78,26 @@ async function main() {
     await axios.post(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
   await page.goto(smockerAdminHost + "/pages/history");
-  await page.waitForSelector('.list', {visible: true});
+  await page.waitForSelector(".history", { visible: true });
   await screenshotPage(page, "screenshot-history.png");
 
   // Screenshot history cards
+  await page.waitFor(300);
   await screenshotElement({
     page,
     name: "screenshot-hello-world-200.png",
-    selector: ".entry:nth-child(3)"
+    selector: ".entry:nth-child(4)"
   });
   try {
     await axios.delete(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
   await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
-  await page.waitForSelector('.list', {visible: true});
+  await page.setViewport({ width: 1200, height: 1024 });
+  await page.waitForSelector(".history", { visible: true });
   await screenshotElement({
     page,
     name: "screenshot-hello-world-666.png",
-    selector: ".entry:nth-child(2)"
+    selector: ".entry:nth-child(4)"
   });
 
   await browser.close();

@@ -63,7 +63,7 @@
     "typesafe-actions": "^5.1.0"
   },
   "peerDependencies": {
-    "puppeteer": "^2.1.0"
+    "puppeteer": "^2.1.1"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

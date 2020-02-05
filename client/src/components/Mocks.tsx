@@ -383,6 +383,7 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
                 icon="plus"
                 disabled={displayNewMock}
                 onClick={handleAddNewMock}
+                className="add-mocks-button"
               >
                 Add Mocks
               </Button>
