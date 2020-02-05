@@ -1,17 +1,17 @@
 <h1 align="center">
-  <img src="docs/.vuepress/public/logo/logo-horizontal.png" alt="smocker" height="100" title="smocker logo by mandyellow" />
+  <img src="docs/.vuepress/public/logo/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
 </h1>
 
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
-[![Netlify Status](https://img.shields.io/netlify/61d4e090-b242-419f-8d69-e9dee3d50a37)](https://smocker.dev)
+[![Netlify Status](https://img.shields.io/netlify/61d4e090-b242-419f-8d69-e9dee3d50a37)](https://app.netlify.com/sites/smocker/deploys)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
 [![Github Tag](https://img.shields.io/github/tag/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/tags/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
 [![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
 
-Smocker (server mock) is a simple and efficient HTTP mock server.
+**Smocker** (server mock) is a simple and efficient HTTP mock server.
 
-The documentation is available on the [project's wiki](https://github.com/Thiht/smocker/wiki).
+The documentation is available on [smocker.dev](https://smocker.dev).
 
 ## Table of contents
 
@@ -25,6 +25,7 @@ The documentation is available on the [project's wiki](https://github.com/Thiht/
 - [Development](#development)
   - [Backend](#backend)
   - [Frontend](#frontend)
+  - [Documentation](#documentation)
   - [Docker](#docker)
 - [Authors](#authors)
 - [Contributors](#contributors)
@@ -129,7 +130,7 @@ To cleanup the mock server without restarting it, you can execute the following 
 curl -XPOST localhost:8081/reset
 ```
 
-For more advanced usage, please read the [project's documentation](https://github.com/Thiht/smocker/wiki).
+For more advanced usage, please read the [project's documentation](https://smocker.dev).
 
 ## Development
 
@@ -143,7 +144,6 @@ The backend is written in Go. You can use the following commands to manage the d
 - `make format`: automatically format the backend code
 - `make test`: execute unit tests
 - `make test-integration`: execute integration tests (require the backend to be started on the default ports)
-- `make docs`: regenerate documentation assets (require the whole application to be started on the default ports)
 
 ### Frontend
 
@@ -154,6 +154,15 @@ The frontend is written with TypeScript and React. You can use the following com
 - `yarn build`: generate the transpiled and minified files and assets
 - `yarn lint`: run static analysis on the code
 - `yarn format`: automatically format the frontend code
+
+### Documentation
+
+The documentation is written in Markdown using [Vuepress](https://vuepress.vuejs.org/). You can use the following commands to manage the documentation:
+
+- `yarn install`: install the dependencies
+- `yarn docs:generate`: regenerate documentation screenshots (require the whole application to be started on the default ports)
+- `yarn docs:dev`: start the documentation in development mode, with live reload
+- `yarn docs:build`: generate the static production documentation
 
 ### Docker
 

@@ -4,6 +4,8 @@
 This page is not terminated yet.
 :::
 
+Mocks are written mainly using YAML.
+
 A mock must respect this format:
 
 - Common parts
@@ -45,26 +47,80 @@ A mock must respect this format:
 
 ## Format of `request` section
 
+A Smocker `request` is an object composed of _matchers_ to apply on different fields of an HTTP request, such as the method, the path, the headers, etc.
+
+Matchers are used to apply a predicate on a field. The most basic example of matcher is `ShouldEqual` which is used to compare a field to a text. Smocker defines two types of matchers: **string matchers** and **multi map matchers**.
+
+---
+
+**String Matchers** are used with the basic type `string`. With the example of a field `method`, a string matcher could be declared as follows:
+
+```yaml
+method:
+  matcher: ShouldEqual
+  value: GET
+```
+
+Note that for convenience purposes the `ShouldEqual` matcher can be simplified as just:
+
+```yaml
+method: GET
+```
+
+Another example using the `ShouldMatch` operator to match the methods `PUT` and `POST` could look like this:
+
+```yaml
+method:
+  matcher: ShouldMatch
+  value: (PUT|POST) # This is a regular expression
+```
+
+---
+
+**Multi Map Matchers** are used with the complex type `map[string][]string` (map of strings). This complex type is used with query parameters and headers. This is because they can be declared multiple times. For example, the query string `?key=foo&key=bar&key=baz` is valid and would be represented as:
+
+```yaml
+query_params:
+  key: [foo, bar, baz]
+```
+
+---
+
 `request` has the following format:
 
 ```yaml
 request:
-  method: GET # optional string (HTTP verb), defaults to "GET"
-  path: /foo/bar # mandatory
-  query_params: # optional map of string lists
-    limit: 10 # in the case of a single element array, you can omit the array!
+  # string matcher
+  method: PUT
+
+  # string matcher
+  path: /foo/bar
+
+  # multi map matcher
+  query_params:
+    limit: 10
     offset: 0
     filter: [foo, bar]
-  headers: # optional map of string lists
-    Content-Type: application/json # in the case of a single element array, you can omit the array!
-  body: null # optional string
+
+  # multi map matcher
+  headers:
+    Content-Type: application/json
+
+  # string matcher
+  body:
+    matcher: ShouldEqualJSON
+    value: >
+      {
+        "hello": "world"
+      }
 ```
 
 The above request will match the following request:
 
 ```sh
-curl -XGET \
+curl -XPUT \
   --header 'Content-Type: application/json' \
+  --data '{ "hello": "world" }'
   'localhost:8080/foo/bar?limit=10&offset=0&filter=foo&filter=bar'
 ```
 
