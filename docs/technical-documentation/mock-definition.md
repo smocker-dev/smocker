@@ -86,6 +86,20 @@ query_params:
 
 ---
 
+The whole list of available matchers is:
+
+| Matcher                                                | Description            |
+| ------------------------------------------------------ | ---------------------- |
+| `ShouldEqual` / `ShouldNotEqual`                       | Shallow equality check |
+| `ShouldResemble` / `ShouldNotResemble`                 | Deep equality check    |
+| `ShouldEqualJSON`                                      | JSON equality check    |
+| `ShouldContainSubstring` / `ShouldNotContainSubstring` | Contains substring     |
+| `ShouldStartWith` / `ShouldNotStartWith`               | Starts with substring  |
+| `ShouldEndWith` / `ShouldNotEndWith`                   | Ends with substring    |
+| `ShouldMatch` / `ShouldNotMatch`                       | Regexp match           |
+
+---
+
 `request` has the following format:
 
 ```yaml
