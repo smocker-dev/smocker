@@ -71,11 +71,6 @@ test:
 test-integration: $(VENOM)
 	venom run tests/features/$(SUITE)
 
-.PHONY: docs
-docs:
-	venom run tests/features/verify_mocks.yml
-	yarn docs:generate
-
 .PHONY: clean
 clean:
 	rm -rf ./build
