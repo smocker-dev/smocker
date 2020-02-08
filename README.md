@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
 [![Netlify Status](https://img.shields.io/netlify/61d4e090-b242-419f-8d69-e9dee3d50a37?logo=netlify)](https://app.netlify.com/sites/smocker/deploys)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
-[![Github Tag](https://img.shields.io/github/tag/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/tags/)
+[![Github Release](https://img.shields.io/github/v/release/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
 [![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
 
