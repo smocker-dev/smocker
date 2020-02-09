@@ -1,21 +1,4 @@
 import * as React from "react";
-import classNames from "classnames";
-import { UnControlled as CodeMirror, Controlled } from "react-codemirror2";
-import jsyaml from "js-yaml";
-import "codemirror/lib/codemirror.css";
-import "codemirror/theme/material.css";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/addon/lint/lint.css";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/mode/yaml/yaml";
-import "codemirror/mode/ruby/ruby";
-import "codemirror/addon/fold/foldcode";
-import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/brace-fold";
-import "codemirror/addon/fold/indent-fold";
-import "codemirror/addon/fold/comment-fold";
-import "codemirror/addon/lint/lint";
-import "codemirror/addon/lint/yaml-lint";
 import {
   formQueryParams,
   toMultimap,
@@ -53,19 +36,9 @@ import {
   Form
 } from "antd";
 import "./Mocks.scss";
+import Code from "./Code";
 
-window.jsyaml = jsyaml;
 Settings.defaultLocale = "en-US";
-
-const codeMirrorOptions = {
-  mode: "application/json",
-  theme: "material",
-  lineWrapping: true,
-  readOnly: true,
-  viewportMargin: Infinity,
-  foldGutter: true,
-  gutters: ["CodeMirror-foldgutter"]
-};
 
 const renderTimes = (count: number, expected?: number) => {
   if (!expected) {
@@ -106,10 +79,7 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
           </tbody>
         </table>
       )}
-      <CodeMirror
-        value={response.body ? response.body.trim() : ""}
-        options={codeMirrorOptions}
-      />
+      {response.body && <Code value={response.body.trim()} language="json" />}
     </div>
   );
 };
@@ -120,20 +90,6 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
     ? dynamic_response
     : (emptyResponse as MockDynamicResponse);
 
-  let mode;
-  switch (response.engine) {
-    case "lua":
-      mode = "ruby"; // because lua mode doesn't handle fold
-      break;
-    case "go_template_json":
-      mode = "application/json";
-    default:
-      mode = "yaml";
-  }
-  const options = {
-    ...codeMirrorOptions,
-    mode
-  };
   return (
     <div className="response">
       <div className="details">
@@ -145,7 +101,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
         </div>
         {renderTimes(state.times_count, context.times)}
       </div>
-      <CodeMirror value={response.script} options={options} />
+      <Code value={response.script} language={response.engine} />
     </div>
   );
 };
@@ -211,10 +167,7 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
           <strong className="body-matcher">
             {bodyMatcher && bodyMatcher + ": "}
           </strong>
-          <CodeMirror
-            value={toString(request.body)}
-            options={codeMirrorOptions}
-          />
+          <Code value={toString(request.body)} language="json" />
         </>
       )}
     </div>
@@ -259,29 +212,14 @@ const NewMock = ({
     event.preventDefault();
     onClose();
   };
-  const handleChangeMock = (_: any, __: any, value: string) => {
-    changeMock(value);
-  };
   return (
     <>
       <Form className="form">
-        <Controlled
+        <Code
           value={mock}
-          options={{
-            mode: "yaml",
-            theme: "material",
-            lineNumbers: true,
-            lineWrapping: true,
-            viewportMargin: Infinity,
-            foldGutter: true,
-            lint: true,
-            gutters: [
-              "CodeMirror-lint-markers",
-              "CodeMirror-linenumbers",
-              "CodeMirror-foldgutter"
-            ]
-          }}
-          onBeforeChange={handleChangeMock}
+          language="yaml"
+          editable={true}
+          onBeforeChange={changeMock}
         />
       </Form>
       <div className="action buttons">
