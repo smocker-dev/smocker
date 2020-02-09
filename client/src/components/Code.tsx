@@ -1,22 +1,28 @@
 import * as React from "react";
 
 import { UnControlled, Controlled } from "react-codemirror2";
+import "codemirror/lib/codemirror.css";
+import "codemirror/theme/material.css";
+
 import "codemirror/addon/fold/brace-fold";
+import "codemirror/addon/fold/comment-fold";
 import "codemirror/addon/fold/foldcode";
 import "codemirror/addon/fold/foldgutter";
 import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/theme/material.css";
-import "codemirror/addon/lint/lint.css";
-import "codemirror/mode/yaml/yaml";
-import "codemirror/mode/ruby/ruby";
 import "codemirror/addon/fold/indent-fold";
-import "codemirror/addon/fold/comment-fold";
+
 import "codemirror/addon/lint/lint";
+import "codemirror/addon/lint/lint.css";
 import "codemirror/addon/lint/yaml-lint";
 
+import "codemirror/mode/javascript/javascript";
+import "codemirror/mode/ruby/ruby";
+import "codemirror/mode/yaml/yaml";
+
 import "./Code.scss";
+import jsyaml from "js-yaml";
+
+window.jsyaml = jsyaml;
 
 interface Props {
   value: string;

@@ -1,5 +1,4 @@
 import * as React from "react";
-import jsyaml from "js-yaml";
 import {
   formQueryParams,
   toMultimap,
@@ -39,7 +38,6 @@ import {
 import "./Mocks.scss";
 import Code from "./Code";
 
-window.jsyaml = jsyaml;
 Settings.defaultLocale = "en-US";
 
 const renderTimes = (count: number, expected?: number) => {
