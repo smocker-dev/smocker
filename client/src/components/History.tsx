@@ -1,14 +1,6 @@
-import "codemirror/addon/fold/brace-fold";
-import "codemirror/addon/fold/foldcode";
-import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/theme/material.css";
 import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
-import { UnControlled as CodeMirror } from "react-codemirror2";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import useLocalStorage from "react-use-localstorage";
@@ -29,6 +21,7 @@ import {
   Spin
 } from "antd";
 import "./History.scss";
+import Code from "./Code";
 
 Settings.defaultLocale = "en-US";
 
@@ -57,22 +50,11 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
         </table>
       )}
       {value.request.body && (
-        <CodeMirror
+        <Code
           value={
-            value.request.body
-              ? JSON.stringify(value.request.body, undefined, "  ") ||
-                value.request.body
-              : ""
+            JSON.stringify(value.request.body, null, "  ") || value.request.body
           }
-          options={{
-            mode: "application/json",
-            theme: "material",
-            lineWrapping: true,
-            readOnly: true,
-            viewportMargin: Infinity,
-            foldGutter: true,
-            gutters: ["CodeMirror-foldgutter"]
-          }}
+          language="json"
         />
       )}
     </div>
@@ -103,22 +85,12 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
         </table>
       )}
       {value.response.body && (
-        <CodeMirror
+        <Code
           value={
+            JSON.stringify(value.response.body, null, "  ") ||
             value.response.body
-              ? JSON.stringify(value.response.body, undefined, "  ") ||
-                value.response.body
-              : ""
           }
-          options={{
-            mode: "application/json",
-            theme: "material",
-            lineWrapping: true,
-            readOnly: true,
-            viewportMargin: Infinity,
-            foldGutter: true,
-            gutters: ["CodeMirror-foldgutter"]
-          }}
+          language="json"
         />
       )}
     </div>

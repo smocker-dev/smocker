@@ -71,7 +71,12 @@ const MockResponseCodec = t.type({
 export type MockResponse = t.TypeOf<typeof MockResponseCodec>;
 
 const MockDynamicResponseCodec = t.type({
-  engine: t.string,
+  engine: t.union([
+    t.literal("go_template"),
+    t.literal("go_template_yaml"),
+    t.literal("go_template_json"),
+    t.literal("lua")
+  ]),
   script: t.string
 });
 export type MockDynamicResponse = t.TypeOf<typeof MockDynamicResponseCodec>;
