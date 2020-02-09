@@ -18,7 +18,8 @@ import {
   Alert,
   Tag,
   Row,
-  Spin
+  Spin,
+  Typography
 } from "antd";
 import "./History.scss";
 import Code from "./Code";
@@ -60,9 +61,14 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
     </div>
     <div className="response">
       <div className="details">
-        <Tag color={value.response.status === 666 ? "red" : "blue"}>
+        <Tag color={value.response.status > 600 ? "red" : "blue"}>
           {value.response.status}
         </Tag>
+        {value.response.status > 600 && (
+          <Typography.Text type="danger">
+            {value.response.body.message}
+          </Typography.Text>
+        )}
         <span>
           {value.mock_id && (
             <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
