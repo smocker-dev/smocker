@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/Thiht/smocker/services"
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
 
@@ -40,9 +41,10 @@ func (w *bodyDumpResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.ResponseWriter.(http.Hijacker).Hijack()
 }
 
-func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
+func HistoryMiddleware(s services.MockServer) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			session := s.GetLastSession()
 			if c.Request() == nil {
 				return fmt.Errorf("empty request")
 			}
@@ -79,9 +81,7 @@ func (s *mockServer) historyMiddleware() echo.MiddlewareFunc {
 			}
 
 			mockID, _ := c.Get(types.MockIDKey).(string)
-
-			history := s.sessions[len(s.sessions)-1]
-			s.sessions[len(s.sessions)-1] = append(history, types.Entry{
+			s.AddEntry(session.ID, &types.Entry{
 				MockID:  mockID,
 				Request: request,
 				Response: types.Response{
