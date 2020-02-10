@@ -111,13 +111,14 @@ interface Props {
 }
 
 const History = ({ history, loading, error, fetch }: Props) => {
+  const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
     "history.order.by.entry.field",
     "response"
   );
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
@@ -145,17 +146,27 @@ const History = ({ history, loading, error, fetch }: Props) => {
       setPageSize(ps);
     };
     const pagination = (
-      <Row type="flex" justify="space-between" align="middle">
-        <Pagination
-          hideOnSinglePage={history.length <= 10}
-          showSizeChanger
-          pageSize={pageSize}
-          current={page}
-          onChange={onChangePage}
-          onShowSizeChange={onChangePagSize}
-          total={history.length}
+      <Row
+        type="flex"
+        justify="space-between"
+        align="middle"
+        className="container"
+      >
+        <div>
+          <Pagination
+            hideOnSinglePage={history.length <= minPageSize}
+            showSizeChanger
+            pageSize={pageSize}
+            current={page}
+            onChange={onChangePage}
+            onShowSizeChange={onChangePagSize}
+            total={history.length}
+          />
+        </div>
+        <Spin
+          spinning={loading}
+          className={history.length <= minPageSize ? "absolute" : ""}
         />
-        <Spin spinning={loading} />
       </Row>
     );
     body = (

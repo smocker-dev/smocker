@@ -33,7 +33,6 @@ interface Props {
     | "go_template_json"
     | "json"
     | "lua";
-  editable?: boolean;
   onBeforeChange?: (value: string) => void;
 }
 
@@ -46,7 +45,7 @@ const codeMirrorOptions = {
   gutters: ["CodeMirror-foldgutter"]
 };
 
-const Code = ({ value, language, editable = false, onBeforeChange }: Props) => {
+const Code = ({ value, language, onBeforeChange }: Props) => {
   let mode: string = language;
   if (mode === "lua") {
     mode = "ruby"; // because lua mode doesn't handle fold
@@ -56,9 +55,10 @@ const Code = ({ value, language, editable = false, onBeforeChange }: Props) => {
     mode = "yaml";
   }
 
-  if (!editable) {
+  if (!onBeforeChange) {
     return (
       <UnControlled
+        className="code-editor"
         value={value}
         options={{
           ...codeMirrorOptions,
@@ -68,15 +68,12 @@ const Code = ({ value, language, editable = false, onBeforeChange }: Props) => {
     );
   }
 
-  if (!onBeforeChange) {
-    throw Error("onBeforeChange must be set in editable mode");
-  }
-
   const onBeforeChangeWrapper = (_: any, __: any, newValue: string) => {
     onBeforeChange(newValue);
   };
   return (
     <Controlled
+      className="code-editor"
       value={value}
       options={{
         ...codeMirrorOptions,
