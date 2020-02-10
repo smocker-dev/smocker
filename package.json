@@ -11,6 +11,8 @@
     "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
     "@hot-loader/react-dom": "^16.10.2",
     "@types/classnames": "^2.2.9",
     "@types/codemirror": "0.0.81",
@@ -24,6 +26,7 @@
     "@types/react-router-dom": "^5.1.0",
     "@types/redux": "^3.6.0",
     "axios": "^0.19.2",
+    "babel-plugin-import": "^1.13.0",
     "husky": ">=1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
