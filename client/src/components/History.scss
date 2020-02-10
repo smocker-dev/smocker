@@ -2,6 +2,17 @@
 
 #root .history {
   padding: 2em 8em 0;
+
+  .container {
+    position: relative;
+
+    .absolute {
+      position: absolute;
+      bottom: 0;
+      right: 1em;
+    }
+  }
+
   .entry {
     border-radius: 3px;
     background-color: white;
@@ -89,19 +100,6 @@
 
     .response {
       border-left: 1px dashed $color-grey-dark;
-    }
-
-    .CodeMirror {
-      position: relative;
-      height: auto;
-      overflow-y: hidden;
-      padding: 0.5em 0 0.5em 0.5em;
-      margin: 0;
-      border-radius: 3px;
-
-      .CodeMirror-scroll {
-        height: auto;
-      }
     }
   }
 }

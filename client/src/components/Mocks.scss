@@ -2,9 +2,59 @@
 
 #root .mocks {
   padding: 2em 8em 0;
+
+  .container {
+    position: relative;
+
+    .absolute {
+      position: absolute;
+      bottom: 0;
+      right: 1em;
+    }
+  }
+
   .action.buttons {
     button {
       margin-left: 0.5em;
+    }
+  }
+
+  .drawer {
+    position: absolute;
+    .ant-drawer-body {
+      height: calc(100% - 100px);
+      overflow-y: auto;
+      .form {
+        background-color: #263238;
+        border-radius: 3px;
+        height: 100%;
+        .CodeMirror {
+          position: relative;
+          height: auto;
+          overflow-y: hidden;
+          padding: 0.5em 0 0.5em 0.5em;
+          margin: 0;
+          border-radius: 3px;
+
+          .CodeMirror-scroll {
+            height: auto;
+          }
+        }
+      }
+    }
+    .action.buttons {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      border-top: 1px solid #e9e9e9;
+      padding: 0.5em;
+      background: #fff;
+      text-align: right;
+      z-index: 5;
+      button {
+        margin-left: 0.5em;
+      }
     }
   }
 
@@ -153,58 +203,6 @@
           }
         }
       }
-    }
-  }
-
-  .CodeMirror {
-    position: relative;
-    height: auto;
-    overflow-y: hidden;
-    padding: 0.5em 0 0.5em 0.5em;
-    margin: 0;
-    border-radius: 3px;
-
-    .CodeMirror-scroll {
-      height: auto;
-    }
-  }
-}
-
-html body .drawer {
-  position: absolute;
-  .ant-drawer-body {
-    height: calc(100% - 100px);
-    overflow-y: auto;
-    .form {
-      background-color: #263238;
-      border-radius: 3px;
-      height: 100%;
-      .CodeMirror {
-        position: relative;
-        height: auto;
-        overflow-y: hidden;
-        padding: 0.5em 0 0.5em 0.5em;
-        margin: 0;
-        border-radius: 3px;
-
-        .CodeMirror-scroll {
-          height: auto;
-        }
-      }
-    }
-  }
-  .action.buttons {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    border-top: 1px solid #e9e9e9;
-    padding: 0.5em;
-    background: #fff;
-    text-align: right;
-    z-index: 5;
-    button {
-      margin-left: 0.5em;
     }
   }
 }

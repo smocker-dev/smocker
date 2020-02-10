@@ -215,12 +215,7 @@ const NewMock = ({
   return (
     <>
       <Form className="form">
-        <Code
-          value={mock}
-          language="yaml"
-          editable={true}
-          onBeforeChange={changeMock}
-        />
+        <Code value={mock} language="yaml" onBeforeChange={changeMock} />
       </Form>
       <div className="action buttons">
         <Button onClick={handleCancel}>Cancel</Button>
@@ -245,8 +240,9 @@ interface Props extends RouteComponentProps<OwnProps> {
 }
 
 const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
+  const minPageSize = 10;
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(fetch, 10000);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const ref = React.createRef<any>();
@@ -279,17 +275,27 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
       setPageSize(ps);
     };
     const pagination = (
-      <Row type="flex" justify="space-between" align="middle">
-        <Pagination
-          hideOnSinglePage={filteredMocks.length <= 10}
-          showSizeChanger
-          pageSize={pageSize}
-          current={page}
-          onChange={onChangePage}
-          onShowSizeChange={onChangePagSize}
-          total={filteredMocks.length}
+      <Row
+        type="flex"
+        justify="space-between"
+        align="middle"
+        className="container"
+      >
+        <div>
+          <Pagination
+            hideOnSinglePage={filteredMocks.length <= minPageSize}
+            showSizeChanger
+            pageSize={pageSize}
+            current={page}
+            onChange={onChangePage}
+            onShowSizeChange={onChangePagSize}
+            total={filteredMocks.length}
+          />
+        </div>
+        <Spin
+          spinning={loading}
+          className={filteredMocks.length <= minPageSize ? "absolute" : ""}
         />
-        <Spin spinning={loading} />
       </Row>
     );
     body = (
@@ -359,6 +365,7 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
           onClose={handleCancelNewMock}
           visible={displayNewMock}
           width="70vw"
+          getContainer={false}
         >
           <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
         </Drawer>
