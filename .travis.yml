@@ -31,5 +31,6 @@ deploy:
   - provider: releases
     token: $GITHUB_TOKEN
     file: build/smocker.tar.gz
+    skip_cleanup: true
     on:
       tags: true
