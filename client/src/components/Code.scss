@@ -1,8 +1,4 @@
 .code-editor {
-  .CodeMirror-wrap pre.CodeMirror-line {
-    line-height: initial;
-  }
-
   .CodeMirror {
     position: relative;
     height: auto;
@@ -13,6 +9,16 @@
 
     .CodeMirror-scroll {
       height: auto;
+    }
+
+    .CodeMirror-line {
+      line-height: 12px;
+      font-size: 12px;
+    }
+
+    .CodeMirror-gutter-elt {
+      line-height: 12px;
+      font-size: 14px;
     }
   }
 }
