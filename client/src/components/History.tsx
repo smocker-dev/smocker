@@ -65,11 +65,11 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           {value.response.status}
         </Tag>
         {value.response.status > 600 && (
-          <Typography.Text type="danger">
+          <Typography.Text type="danger" className="ellipsis">
             {value.response.body.message}
           </Typography.Text>
         )}
-        <span>
+        <span className="ellipsis">
           {value.mock_id && (
             <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
           )}
@@ -104,13 +104,14 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
 ));
 
 interface Props {
+  sessionID: string;
   loading: boolean;
   history: History;
   error: Error | null;
-  fetch: () => any;
+  fetch: (sessionID: string) => any;
 }
 
-const History = ({ history, loading, error, fetch }: Props) => {
+const History = ({ sessionID, history, loading, error, fetch }: Props) => {
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
@@ -119,7 +120,7 @@ const History = ({ history, loading, error, fetch }: Props) => {
   );
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(fetch, 10000);
+  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
     if (ref.current) {
@@ -212,7 +213,9 @@ const History = ({ history, loading, error, fetch }: Props) => {
           </Button>
           are displayed first.
         </p>
-        {body}
+        <Spin delay={300} spinning={loading && history.length === 0}>
+          {body}
+        </Spin>
       </PageHeader>
     </div>
   );
@@ -220,11 +223,13 @@ const History = ({ history, loading, error, fetch }: Props) => {
 
 export default connect(
   (state: AppState) => ({
+    sessionID: state.sessions.selected,
     loading: state.history.loading,
     history: state.history.list,
     error: state.history.error
   }),
   (dispatch: Dispatch<Actions>) => ({
-    fetch: () => dispatch(actions.fetchHistory.request())
+    fetch: (sessionID: string) =>
+      dispatch(actions.fetchHistory.request(sessionID))
   })
 )(History);

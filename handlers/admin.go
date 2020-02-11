@@ -129,19 +129,32 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	return respondAccordingAccept(c, history)
 }
 
+type sessionSummary struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 func (a *Admin) GetSessions(c echo.Context) error {
 
 	sessions := a.mockServer.GetSessions()
-	if include, _ := strconv.ParseBool(c.QueryParam("include_empty")); !include {
-		trimedSessions := types.Sessions{}
-		for _, tmp := range sessions {
-			if len(tmp.History) > 0 {
-				trimedSessions = append(trimedSessions, tmp)
-			}
-		}
-		sessions = trimedSessions
+	sessionSummaries := []sessionSummary{}
+	for _, session := range sessions {
+		sessionSummaries = append(sessionSummaries, sessionSummary{
+			ID:   session.ID,
+			Name: session.Name,
+		})
 	}
-	return respondAccordingAccept(c, sessions)
+	return respondAccordingAccept(c, sessionSummaries)
+}
+
+func (a *Admin) NewSession(c echo.Context) error {
+	name := c.QueryParam("name")
+	a.mockServer.NewSession(name)
+	session := a.mockServer.GetLastSession()
+	return respondAccordingAccept(c, sessionSummary{
+		ID:   session.ID,
+		Name: session.Name,
+	})
 }
 
 func (a *Admin) Reset(c echo.Context) error {

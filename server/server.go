@@ -41,6 +41,7 @@ func Serve(config config.Config) {
 	e.POST("/mocks/verify", handler.VerifyMocks)
 	e.GET("/history", handler.GetHistory)
 	e.GET("/sessions", handler.GetSessions)
+	e.POST("/sessions/new", handler.NewSession)
 	e.POST("/reset", handler.Reset)
 
 	// Health Check Route

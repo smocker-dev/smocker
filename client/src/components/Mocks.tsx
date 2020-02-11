@@ -232,18 +232,27 @@ interface OwnProps {
 }
 
 interface Props extends RouteComponentProps<OwnProps> {
+  sessionID: string;
   loading: boolean;
   mocks: Mocks;
   error: Error | null;
-  fetch: () => any;
-  addMocks: (mocks: string) => any;
+  fetch: (sessionID: string) => any;
+  addMocks: (sessionID: string, mocks: string) => any;
 }
 
-const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
+const Mocks = ({
+  sessionID,
+  match,
+  loading,
+  mocks,
+  error,
+  fetch,
+  addMocks
+}: Props) => {
   const minPageSize = 10;
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(fetch, 10000);
+  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
   const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
@@ -255,13 +264,14 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
     }
   }, [page, pageSize]);
   const isEmpty = mocks.length === 0;
+  let filteredMocks = mocks;
   let body = null;
   if (error) {
     body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
     body = <Empty description="No mocks found." />;
   } else {
-    const filteredMocks = mocks.filter(mock => {
+    filteredMocks = mocks.filter(mock => {
       const mock_id = match.params.mock_id;
       return !mock_id || mock.state.id === mock_id;
     });
@@ -311,9 +321,9 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
 
   const handleAddNewMock = () => setDisplayNewMock(true);
   const handleCancelNewMock = () => setDisplayNewMock(false);
-  const handleSaveNewMock = (newMocks: string) => {
+  const handleSaveNewMock = (id: string) => (newMocks: string) => {
     setDisplayNewMock(false);
-    addMocks(newMocks);
+    addMocks(id, newMocks);
   };
   return (
     <div className="mocks" ref={ref}>
@@ -354,7 +364,9 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
         ) : (
           <p>This is the list of declared mocks ordered by priority.</p>
         )}
-        {body}
+        <Spin delay={300} spinning={loading && filteredMocks.length === 0}>
+          {body}
+        </Spin>
       </PageHeader>
       {displayNewMock && (
         <Drawer
@@ -367,7 +379,10 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
           width="70vw"
           getContainer={false}
         >
-          <NewMock onSave={handleSaveNewMock} onClose={handleCancelNewMock} />
+          <NewMock
+            onSave={handleSaveNewMock(sessionID)}
+            onClose={handleCancelNewMock}
+          />
         </Drawer>
       )}
     </div>
@@ -377,13 +392,16 @@ const Mocks = ({ match, loading, mocks, error, fetch, addMocks }: Props) => {
 export default withRouter(
   connect(
     (state: AppState) => ({
+      sessionID: state.sessions.selected,
       loading: state.mocks.loading,
       mocks: state.mocks.list,
       error: state.mocks.error
     }),
     (dispatch: Dispatch<Actions>) => ({
-      fetch: () => dispatch(actions.fetchMocks.request()),
-      addMocks: (mocks: string) => dispatch(actions.addMocks.request(mocks))
+      fetch: (sessionID: string) =>
+        dispatch(actions.fetchMocks.request(sessionID)),
+      addMocks: (sessionID: string, mocks: string) =>
+        dispatch(actions.addMocks.request({ sessionID, mocks }))
     })
   )(Mocks)
 );

@@ -11,6 +11,15 @@ export const ErrorCodec = t.type({
 });
 export type Error = t.TypeOf<typeof ErrorCodec>;
 
+export const SessionCodec = t.type({
+  id: t.string,
+  name: t.string
+});
+export type Session = t.TypeOf<typeof SessionCodec>;
+
+export const SessionsCodec = t.array(SessionCodec);
+export type Sessions = t.TypeOf<typeof SessionsCodec>;
+
 const MultimapCodec = t.dictionary(t.string, t.array(t.string));
 export type Multimap = t.TypeOf<typeof MultimapCodec>;
 

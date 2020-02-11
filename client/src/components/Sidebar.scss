@@ -1,0 +1,25 @@
+#root .sidebar {
+  border-right: 1px solid rgba(0, 0, 0, 0.125);
+
+  @media screen and (max-width: 1200px) {
+    position: absolute;
+    z-index: 5;
+    height: 100%;
+  }
+
+  .ant-layout-sider-zero-width-trigger {
+    top: 0;
+    border-right: 1px solid rgba(0, 0, 0, 0.125);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  .menu {
+    border-right: 0;
+    .session-button {
+      width: 90%;
+      border-style: dashed;
+    }
+  }
+}
