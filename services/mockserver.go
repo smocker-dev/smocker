@@ -10,10 +10,10 @@ import (
 )
 
 type MockServer interface {
-	AddMock(sessionID string, mock *types.Mock)
+	AddMock(sessionID string, mock *types.Mock) *types.Mock
 	GetMocks(sessionID string) types.Mocks
 	GetMockByID(sessionID, id string) *types.Mock
-	AddEntry(sessionID string, entry *types.Entry)
+	AddEntry(sessionID string, entry *types.Entry) *types.Entry
 	GetHistory(sessionID string) types.History
 	GetHistoryByPath(sessionID string, filterPath string) (types.History, error)
 	NewSession(name string)
@@ -36,15 +36,22 @@ func NewMockServer() MockServer {
 	return s
 }
 
-func (s *mockServer) AddMock(sessionID string, newMock *types.Mock) {
+func (s *mockServer) AddMock(sessionID string, newMock *types.Mock) *types.Mock {
 	session := s.GetSessionByID(sessionID)
+	if session == nil {
+		return nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	session.Mocks = append(types.Mocks{newMock}, session.Mocks...)
+	return newMock
 }
 
 func (s *mockServer) GetMocks(sessionID string) types.Mocks {
 	session := s.GetSessionByID(sessionID)
+	if session == nil {
+		return nil
+	}
 	s.mu.Lock()
 	mocks := make(types.Mocks, len(session.Mocks))
 	copy(mocks, session.Mocks)
@@ -54,6 +61,9 @@ func (s *mockServer) GetMocks(sessionID string) types.Mocks {
 
 func (s *mockServer) GetMockByID(sessionID, id string) *types.Mock {
 	session := s.GetSessionByID(sessionID)
+	if session == nil {
+		return nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, mock := range session.Mocks {
@@ -64,15 +74,22 @@ func (s *mockServer) GetMockByID(sessionID, id string) *types.Mock {
 	return nil
 }
 
-func (s *mockServer) AddEntry(sessionID string, entry *types.Entry) {
+func (s *mockServer) AddEntry(sessionID string, entry *types.Entry) *types.Entry {
 	session := s.GetSessionByID(sessionID)
+	if session == nil {
+		return nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	session.History = append(session.History, entry)
+	return entry
 }
 
 func (s *mockServer) GetHistory(sessionID string) types.History {
 	session := s.GetSessionByID(sessionID)
+	if session == nil {
+		return nil
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return session.History

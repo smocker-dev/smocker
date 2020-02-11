@@ -32,7 +32,7 @@ const fetchSessionsEpic: Epic<Actions> = action$ =>
   action$.pipe(
     filter(isActionOf(fetchSessions.request)),
     exhaustMap(() =>
-      ajax.get(trimedPath + "/sessions").pipe(
+      ajax.get(trimedPath + "/sessions/summary").pipe(
         mergeMap(({ response }) => {
           return decode(SessionsCodec)(response).pipe(
             map(resp => fetchSessions.success(resp))

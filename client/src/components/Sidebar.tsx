@@ -6,6 +6,7 @@ import { Actions, actions } from "~modules/actions";
 import { Button, Form, Input, Layout, Menu, Popover, Row, Spin } from "antd";
 import "./Sidebar.scss";
 import { Sessions, Session } from "~modules/types";
+import { usePoll } from "~utils";
 
 const NewButton = ({ onValidate }: any) => {
   const [visible, setVisible] = React.useState(false);
@@ -65,13 +66,12 @@ const SideBar = ({
   selectSession,
   newSession
 }: Props) => {
-  React.useLayoutEffect(() => {
-    fetch();
-  }, []);
+  const [, , setPolling] = usePoll(10000, fetch);
   if (!selected && sessions.length > 0) {
     selectSession(sessions[0].id);
   }
   const selectedItem = selected ? [selected] : undefined;
+  const onCollapse = (collapsed: boolean) => setPolling(!collapsed);
   const onNewSession = (name: string) => newSession(name);
   const onClick = ({ key }: { key: string }) => selectSession(key);
   const items = sessions.map((session: Session) => (
@@ -85,6 +85,7 @@ const SideBar = ({
       breakpoint="lg"
       collapsedWidth="0"
       theme="light"
+      onCollapse={onCollapse}
     >
       <Spin spinning={loading}>
         <Menu

@@ -56,7 +56,7 @@ export function usePoll(
   delay: number,
   pollFunc: PollFunc,
   pollParams?: any
-): [boolean, () => void] {
+): [boolean, () => void, (poll: boolean) => void] {
   const savedPollFunc = React.useRef<PollFunc>();
   const [init, setInit] = React.useState(false);
   const [polling, setPolling] = React.useState(false);
@@ -82,9 +82,15 @@ export function usePoll(
     }
   }, [delay, polling, init, pollParams]);
 
-  const togglePolling = React.useCallback(() => {
+  const togglePollingCb = React.useCallback(() => {
     setPolling(!polling);
     setInit(true);
   }, [polling]);
-  return [polling, togglePolling];
+
+  const setPollingCb = React.useCallback((poll: boolean) => {
+    setPolling(poll);
+    setInit(true);
+  }, []);
+
+  return [polling, togglePollingCb, setPollingCb];
 }

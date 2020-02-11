@@ -135,7 +135,11 @@ type sessionSummary struct {
 }
 
 func (a *Admin) GetSessions(c echo.Context) error {
+	sessions := a.mockServer.GetSessions()
+	return respondAccordingAccept(c, sessions)
+}
 
+func (a *Admin) SummarizeSessions(c echo.Context) error {
 	sessions := a.mockServer.GetSessions()
 	sessionSummaries := []sessionSummary{}
 	for _, session := range sessions {
