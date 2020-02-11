@@ -106,12 +106,20 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
 interface Props {
   sessionID: string;
   loading: boolean;
+  canPoll: boolean;
   history: History;
   error: Error | null;
   fetch: (sessionID: string) => any;
 }
 
-const History = ({ sessionID, history, loading, error, fetch }: Props) => {
+const History = ({
+  sessionID,
+  history,
+  loading,
+  canPoll,
+  error,
+  fetch
+}: Props) => {
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
@@ -176,7 +184,7 @@ const History = ({ sessionID, history, loading, error, fetch }: Props) => {
         {entries.map((entry, index) => (
           <Entry key={`entry-${index}`} value={entry} />
         ))}
-        {pagination}
+        {history.length > minPageSize && pagination}
       </>
     );
   }
@@ -188,17 +196,19 @@ const History = ({ sessionID, history, loading, error, fetch }: Props) => {
       <PageHeader
         title="History"
         extra={
-          <Button
-            loading={loading && { delay: 300 }}
-            onClick={togglePolling}
-            type={polling ? "danger" : "default"}
-          >
-            <Icon
-              type={polling ? "pause-circle" : "play-circle"}
-              theme={"filled"}
-            />
-            Autorefresh
-          </Button>
+          canPoll && (
+            <Button
+              loading={loading && { delay: 300 }}
+              onClick={togglePolling}
+              type={polling ? "danger" : "default"}
+            >
+              <Icon
+                type={polling ? "pause-circle" : "play-circle"}
+                theme={"filled"}
+              />
+              Autorefresh
+            </Button>
+          )
         }
       >
         <p>This is the history of the requests made since the last reset.</p>
@@ -222,12 +232,19 @@ const History = ({ sessionID, history, loading, error, fetch }: Props) => {
 };
 
 export default connect(
-  (state: AppState) => ({
-    sessionID: state.sessions.selected,
-    loading: state.history.loading,
-    history: state.history.list,
-    error: state.history.error
-  }),
+  (state: AppState) => {
+    const { sessions, history } = state;
+    const canPoll =
+      !sessions.selected ||
+      sessions.selected === sessions.list[sessions.list.length - 1].id;
+    return {
+      sessionID: sessions.selected,
+      loading: history.loading,
+      history: history.list,
+      error: history.error,
+      canPoll
+    };
+  },
   (dispatch: Dispatch<Actions>) => ({
     fetch: (sessionID: string) =>
       dispatch(actions.fetchHistory.request(sessionID))

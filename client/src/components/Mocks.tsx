@@ -234,6 +234,7 @@ interface OwnProps {
 interface Props extends RouteComponentProps<OwnProps> {
   sessionID: string;
   loading: boolean;
+  canPoll: boolean;
   mocks: Mocks;
   error: Error | null;
   fetch: (sessionID: string) => any;
@@ -244,6 +245,7 @@ const Mocks = ({
   sessionID,
   match,
   loading,
+  canPoll,
   mocks,
   error,
   fetch,
@@ -314,7 +316,7 @@ const Mocks = ({
         {paginatedMocks.map(mock => (
           <Mock key={`mock-${mock.state.id}`} mock={mock} />
         ))}
-        {pagination}
+        {filteredMocks.length > minPageSize && pagination}
       </>
     );
   }
@@ -330,7 +332,8 @@ const Mocks = ({
       <PageHeader
         title={match.params.mock_id ? "Mock" : "Mocks"}
         extra={
-          !match.params.mock_id && (
+          !match.params.mock_id &&
+          canPoll && (
             <div className="action buttons">
               <Button
                 type="primary"
@@ -391,12 +394,19 @@ const Mocks = ({
 
 export default withRouter(
   connect(
-    (state: AppState) => ({
-      sessionID: state.sessions.selected,
-      loading: state.mocks.loading,
-      mocks: state.mocks.list,
-      error: state.mocks.error
-    }),
+    (state: AppState) => {
+      const { sessions, mocks } = state;
+      const canPoll =
+        !sessions.selected ||
+        sessions.selected === sessions.list[sessions.list.length - 1].id;
+      return {
+        sessionID: sessions.selected,
+        loading: mocks.loading,
+        mocks: mocks.list,
+        error: mocks.error,
+        canPoll
+      };
+    },
     (dispatch: Dispatch<Actions>) => ({
       fetch: (sessionID: string) =>
         dispatch(actions.fetchMocks.request(sessionID)),

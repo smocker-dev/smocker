@@ -34,13 +34,20 @@ func (a *Admin) GetMocks(c echo.Context) error {
 	}
 
 	if id := c.QueryParam("id"); id != "" {
-		mock := a.mockServer.GetMockByID(sessionID, id)
+		mock, err := a.mockServer.GetMockByID(sessionID, id)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
 		if mock == nil {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("No mock found with ID %q", id))
 		}
 		return respondAccordingAccept(c, types.Mocks{mock})
 	}
-	return respondAccordingAccept(c, a.mockServer.GetMocks(sessionID))
+	mocks, err := a.mockServer.GetMocks(sessionID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+	return respondAccordingAccept(c, mocks)
 }
 
 func (a *Admin) AddMocks(c echo.Context) error {
@@ -80,7 +87,10 @@ func (a *Admin) AddMocks(c echo.Context) error {
 		if mock.Context == nil {
 			mock.Context = &types.MockContext{}
 		}
-		a.mockServer.AddMock(sessionID, mock)
+		_, err := a.mockServer.AddMock(sessionID, mock)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
@@ -94,7 +104,10 @@ func (a *Admin) VerifyMocks(c echo.Context) error {
 		sessionID = a.mockServer.GetLastSession().ID
 	}
 
-	mocks := a.mockServer.GetMocks(sessionID)
+	mocks, err := a.mockServer.GetMocks(sessionID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
 	failedMocks := types.Mocks{}
 	for _, mock := range mocks {
 		if mock.Context.Times > 0 && mock.Context.Times != mock.State.TimesCount {
@@ -122,7 +135,9 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	}
 	filter := c.QueryParam("filter")
 	history, err := a.mockServer.GetHistoryByPath(sessionID, filter)
-	if err != nil {
+	if err == services.UnknownSession {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	} else if err != nil {
 		log.WithError(err).Error("Failed to retrieve history")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

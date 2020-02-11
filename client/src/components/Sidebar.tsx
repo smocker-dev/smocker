@@ -68,15 +68,21 @@ const SideBar = ({
 }: Props) => {
   const [, , setPolling] = usePoll(10000, fetch);
   if (!selected && sessions.length > 0) {
-    selectSession(sessions[0].id);
+    selectSession(sessions[sessions.length - 1].id);
   }
   const selectedItem = selected ? [selected] : undefined;
-  const onCollapse = (collapsed: boolean) => setPolling(!collapsed);
+  const onCollapse = (col: boolean) => setPolling(!col);
   const onNewSession = (name: string) => newSession(name);
   const onClick = ({ key }: { key: string }) => selectSession(key);
   const items = sessions.map((session: Session) => (
     <Menu.Item key={session.id}>{session.name || session.id}</Menu.Item>
   ));
+
+  const title: any = (
+    <Spin spinning={loading}>
+      <span>Sessions</span>
+    </Spin>
+  );
   return (
     <Layout.Sider
       className="sidebar"
@@ -87,19 +93,17 @@ const SideBar = ({
       theme="light"
       onCollapse={onCollapse}
     >
-      <Spin spinning={loading}>
-        <Menu
-          className="menu"
-          onClick={onClick}
-          mode="inline"
-          selectedKeys={selectedItem}
-        >
-          <Menu.ItemGroup title="Sessions">
-            {items}
-            <NewButton onValidate={onNewSession} />
-          </Menu.ItemGroup>
-        </Menu>
-      </Spin>
+      <Menu
+        className="menu"
+        onClick={onClick}
+        mode="inline"
+        selectedKeys={selectedItem}
+      >
+        <Menu.ItemGroup title={title} className="group">
+          {items}
+          <NewButton onValidate={onNewSession} />
+        </Menu.ItemGroup>
+      </Menu>
     </Layout.Sider>
   );
 };

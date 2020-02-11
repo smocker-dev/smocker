@@ -37,7 +37,14 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	)
 	exceededMocks := types.Mocks{}
 	session := m.mockserver.GetLastSession()
-	for _, mock := range m.mockserver.GetMocks(session.ID) {
+	mocks, err := m.mockserver.GetMocks(session.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": err.Error(),
+			"request": actualRequest,
+		})
+	}
+	for _, mock := range mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
 			if matchingMock.Context.Times > 0 && matchingMock.State.TimesCount >= matchingMock.Context.Times {
