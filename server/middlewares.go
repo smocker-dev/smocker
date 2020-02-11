@@ -81,7 +81,7 @@ func HistoryMiddleware(s services.MockServer) echo.MiddlewareFunc {
 			}
 
 			mockID, _ := c.Get(types.MockIDKey).(string)
-			s.AddEntry(session.ID, &types.Entry{
+			_, err := s.AddEntry(session.ID, &types.Entry{
 				MockID:  mockID,
 				Request: request,
 				Response: types.Response{
@@ -91,6 +91,9 @@ func HistoryMiddleware(s services.MockServer) echo.MiddlewareFunc {
 					Date:    time.Now(),
 				},
 			})
+			if err != nil {
+				return err
+			}
 			return nil
 		}
 	}
