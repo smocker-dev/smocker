@@ -1,0 +1,101 @@
+name: Retreive calls history
+version: "2"
+testcases:
+  - name: Init Smocker
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+
+  - name: Create 'test' session, add mocks, use them and check history
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions/new?name=test
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /test
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test"
+
+  - name: Create 'test2' session, add mocks, use them and check history
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions/new?name=test2
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test2
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /test2
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test2"
+
+  - name: Create 'test3' session, add mocks, use them and check history
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions/new?name=test3
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        bodyFile: ../data/dynamic_mock_list.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8080/test3
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /test3
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test3"
+
+  - name: Retrieve sessions and check histories
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8081/sessions
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson0.name ShouldEqual test
+          - result.bodyjson.bodyjson0.history.history0.response.body.message ShouldEqual "request path /test"
+          - result.bodyjson.bodyjson1.name ShouldEqual test2
+          - result.bodyjson.bodyjson1.history.history0.response.body.message ShouldEqual "request path /test2"
+          - result.bodyjson.bodyjson2.name ShouldEqual test3
+          - result.bodyjson.bodyjson2.history.history0.response.body.message ShouldEqual "request path /test3"

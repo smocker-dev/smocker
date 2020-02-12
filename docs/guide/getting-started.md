@@ -13,7 +13,13 @@ To get a better understanding of how Smocker works, let's open its user interfac
 
 ![Smocker's user interface - Empty History](/screenshots/screenshot-empty-history.png)
 
-By default, Smocker shows the history of the calls made to the mock server. As we just started it, nothing is displayed yet.
+If you take a look at the sidebar on the left, you can see a list of sessions with one selected element.
+
+![Smocker's user interface - Sessions sidebar](/screenshots/screenshot-sessions.png)
+
+By default, Smocker will automatically create a **session** on the first call trying to retrieve **history** or **mocks**.
+But you can also create one using the [API](/technical-documentation/api.html#start-session).
+Smocker shows the history of the calls made to the mock server for the selected session. As we just started it, nothing is displayed yet.
 
 Let's see how Smocker reacts when we try to call a non existing route. Run the following command in a terminal:
 
@@ -31,12 +37,16 @@ Content-Length: 206
 
 </details>
 
-If you refresh Smocker's user interface, you will see:
+If you refresh Smocker's user interface, you will see that it now display an entry in the history:
+
+![Smocker's user interface - History with an undeclared mock response](/screenshots/screenshot-history-666.png)
+
+Let's look closer at the call:
 
 - on the left, the request you made: method `GET`, path `/hello/world`, and curl headers,
 - on the right, the response of Smocker: error code `666`, and informations on the error.
 
-![Smocker's user interface - History with an undeclared mock response](/screenshots/screenshot-hello-world-666.png)
+![Smocker's user interface - Entry with an undeclared mock response](/screenshots/screenshot-hello-world-666.png)
 
 ::: tip Note
 Smocker reserves the non HTTP status codes from `600` to `699`. This is because we need an out of protocol way to report Smocker errors, which are different from the standard protocol errors.
