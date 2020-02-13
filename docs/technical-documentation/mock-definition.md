@@ -264,8 +264,5 @@ It has the following format:
 
 ```yaml
 proxy:
-  host: # destination URL
-  follow: # usefull when using Smocker as an http proxy, a follow proxy will pass requests to their original destination
-
-  # A proxy mock is either a "host" or a "follow" but cannot be both
+  host: # destination host
 ```

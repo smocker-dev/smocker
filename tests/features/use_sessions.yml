@@ -1,4 +1,4 @@
-name: Retreive calls history
+name: Retreive sessions
 version: "2"
 testcases:
   - name: Init Smocker

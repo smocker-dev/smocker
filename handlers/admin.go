@@ -201,6 +201,23 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 	})
 }
 
+func (a *Admin) ImportSession(c echo.Context) error {
+	var sessions types.Sessions
+	if err := c.Bind(&sessions); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	a.mocksServices.SetSessions(sessions)
+	sessionSummaries := []sessionSummary{}
+	for _, session := range sessions {
+		sessionSummaries = append(sessionSummaries, sessionSummary{
+			ID:   session.ID,
+			Name: session.Name,
+			Date: session.Date,
+		})
+	}
+	return respondAccordingAccept(c, sessionSummaries)
+}
+
 func (a *Admin) Reset(c echo.Context) error {
 	a.mocksServices.Reset()
 	return c.JSON(http.StatusOK, echo.Map{
