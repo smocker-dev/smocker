@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  Link,
-  NavLink,
-  withRouter,
-  RouteComponentProps
-} from "react-router-dom";
+import { Link, withRouter, RouteComponentProps } from "react-router-dom";
 import Logo from "~assets/logo.png";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";

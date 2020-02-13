@@ -1,7 +1,11 @@
 @import "~/variables.scss";
 
 #root .history {
-  padding: 2em 8em 0;
+  padding: 1em 8em 0;
+
+  @media screen and (max-width: 1200px) {
+    padding: 1em 2em 0;
+  }
 
   .container {
     position: relative;

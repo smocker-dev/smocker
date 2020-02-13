@@ -1,7 +1,98 @@
 import { combineReducers } from "redux";
 import { getType, StateType } from "typesafe-actions";
 import { Actions, actions } from "./actions";
-import { Error, History, Mocks } from "./types";
+import { Error, History, Mocks, Sessions } from "./types";
+
+const loadingSessions = (state = false, action: Actions) => {
+  const { fetchSessions, newSession, updateSession, reset } = actions;
+  switch (action.type) {
+    case getType(fetchSessions.request):
+    case getType(newSession.request):
+    case getType(updateSession.request):
+    case getType(reset.request): {
+      return true;
+    }
+    case getType(fetchSessions.success):
+    case getType(fetchSessions.failure):
+    case getType(newSession.success):
+    case getType(newSession.failure):
+    case getType(updateSession.success):
+    case getType(updateSession.failure):
+    case getType(reset.success):
+    case getType(reset.failure): {
+      return false;
+    }
+    default:
+      return state;
+  }
+};
+
+const sessionList = (state: Sessions = [], action: Actions) => {
+  const { fetchSessions, newSession, updateSession, reset } = actions;
+  switch (action.type) {
+    case getType(reset.success): {
+      return [];
+    }
+    case getType(fetchSessions.success): {
+      return [...action.payload];
+    }
+    case getType(newSession.success): {
+      return [...state, action.payload];
+    }
+    case getType(updateSession.success): {
+      return state.map(session =>
+        session.id === action.payload.id ? action.payload : session
+      );
+    }
+    default:
+      return state;
+  }
+};
+
+const sessionError = (state: Error | null = null, action: Actions) => {
+  const { fetchSessions, newSession, updateSession, reset } = actions;
+  switch (action.type) {
+    case getType(fetchSessions.failure):
+    case getType(newSession.failure):
+    case getType(updateSession.failure):
+    case getType(reset.failure): {
+      return action.payload;
+    }
+    case getType(fetchSessions.success):
+    case getType(newSession.success):
+    case getType(updateSession.success):
+    case getType(reset.success): {
+      return null;
+    }
+    default:
+      return state;
+  }
+};
+
+const selectedSession = (state: string = "", action: Actions) => {
+  const { newSession, selectSession, updateSession, reset } = actions;
+  switch (action.type) {
+    case getType(selectSession): {
+      return action.payload;
+    }
+    case getType(reset.success): {
+      return "";
+    }
+    case getType(newSession.success):
+    case getType(updateSession.success): {
+      return action.payload.id;
+    }
+    default:
+      return state;
+  }
+};
+
+const sessions = combineReducers({
+  loading: loadingSessions,
+  list: sessionList,
+  error: sessionError,
+  selected: selectedSession
+});
 
 const loadingHistory = (state = false, action: Actions) => {
   const { fetchHistory, reset } = actions;
@@ -117,6 +208,7 @@ const mocks = combineReducers({
 });
 
 const reducers = combineReducers({
+  sessions,
   history,
   mocks
 });

@@ -84,14 +84,27 @@ module.exports = {
   },
   plugins: [
     "vuepress-plugin-mermaidjs",
-    "one-click-copy",
-    {
-      copySelector: [
-        'div[class*="language-"] pre',
-        'div[class*="aside-code"] aside'
-      ],
-      copyMessage: "Code copied to your clipboard.",
-      duration: 300
-    }
+    [
+      "one-click-copy",
+      {
+        copySelector: [
+          'div[class*="language-"] pre',
+          'div[class*="aside-code"] aside'
+        ],
+        copyMessage: "Code copied to your clipboard.",
+        duration: 1000
+      }
+    ],
+    [
+      "vuepress-plugin-zooming",
+      {
+        selector: "#app .theme-default-content:not(.custom) img",
+        delay: 1000,
+        options: {
+          bgColor: "black",
+          zIndex: 10000
+        }
+      }
+    ]
   ]
 };

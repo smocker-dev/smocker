@@ -11,7 +11,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type History []Entry
+type History []*Entry
+
+type Sessions []*Session
+
+type Session struct {
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Date    time.Time `json:"date"`
+	History History   `json:"history"`
+	Mocks   Mocks     `json:"mocks"`
+}
 
 type Entry struct {
 	MockID   string   `json:"mock_id,omitempty"`

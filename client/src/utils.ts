@@ -50,12 +50,13 @@ export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
 
 export const trimedPath = trimEnd(window.basePath, "/");
 
-export type PollFunc = () => any;
+export type PollFunc = (params: any) => any;
 
 export function usePoll(
+  delay: number,
   pollFunc: PollFunc,
-  delay: number
-): [boolean, () => void] {
+  pollParams?: any
+): [boolean, () => void, (poll: boolean) => void] {
   const savedPollFunc = React.useRef<PollFunc>();
   const [init, setInit] = React.useState(false);
   const [polling, setPolling] = React.useState(false);
@@ -69,7 +70,7 @@ export function usePoll(
   React.useEffect(() => {
     function poll() {
       if (savedPollFunc.current) {
-        savedPollFunc.current();
+        savedPollFunc.current(pollParams);
       }
     }
     if (!init || polling) {
@@ -79,11 +80,17 @@ export function usePoll(
       const id = setInterval(poll, delay);
       return () => clearInterval(id);
     }
-  }, [delay, polling, init]);
+  }, [delay, polling, init, pollParams]);
 
-  const togglePolling = React.useCallback(() => {
+  const togglePollingCb = React.useCallback(() => {
     setPolling(!polling);
     setInit(true);
   }, [polling]);
-  return [polling, togglePolling];
+
+  const setPollingCb = React.useCallback((poll: boolean) => {
+    setPolling(poll);
+    setInit(true);
+  }, []);
+
+  return [polling, togglePollingCb, setPollingCb];
 }

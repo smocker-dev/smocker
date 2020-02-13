@@ -65,15 +65,15 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           {value.response.status}
         </Tag>
         {value.response.status > 600 && (
-          <Typography.Text type="danger">
+          <Typography.Text type="danger" ellipsis>
             {value.response.body.message}
           </Typography.Text>
         )}
-        <span>
+        <Typography.Text ellipsis>
           {value.mock_id && (
             <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
           )}
-        </span>
+        </Typography.Text>
         <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
         </span>
@@ -104,13 +104,22 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
 ));
 
 interface Props {
+  sessionID: string;
   loading: boolean;
+  canPoll: boolean;
   history: History;
   error: Error | null;
-  fetch: () => any;
+  fetch: (sessionID: string) => any;
 }
 
-const History = ({ history, loading, error, fetch }: Props) => {
+const History = ({
+  sessionID,
+  history,
+  loading,
+  canPoll,
+  error,
+  fetch
+}: Props) => {
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
@@ -119,7 +128,7 @@ const History = ({ history, loading, error, fetch }: Props) => {
   );
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(fetch, 10000);
+  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
   const ref = React.createRef<any>();
   React.useLayoutEffect(() => {
     if (ref.current) {
@@ -175,7 +184,7 @@ const History = ({ history, loading, error, fetch }: Props) => {
         {entries.map((entry, index) => (
           <Entry key={`entry-${index}`} value={entry} />
         ))}
-        {pagination}
+        {history.length > minPageSize && pagination}
       </>
     );
   }
@@ -187,17 +196,19 @@ const History = ({ history, loading, error, fetch }: Props) => {
       <PageHeader
         title="History"
         extra={
-          <Button
-            loading={loading && { delay: 300 }}
-            onClick={togglePolling}
-            type={polling ? "danger" : "default"}
-          >
-            <Icon
-              type={polling ? "pause-circle" : "play-circle"}
-              theme={"filled"}
-            />
-            Autorefresh
-          </Button>
+          canPoll && (
+            <Button
+              loading={loading && { delay: 300 }}
+              onClick={togglePolling}
+              type={polling ? "danger" : "default"}
+            >
+              <Icon
+                type={polling ? "pause-circle" : "play-circle"}
+                theme={"filled"}
+              />
+              Autorefresh
+            </Button>
+          )
         }
       >
         <p>This is the history of the requests made since the last reset.</p>
@@ -212,19 +223,30 @@ const History = ({ history, loading, error, fetch }: Props) => {
           </Button>
           are displayed first.
         </p>
-        {body}
+        <Spin delay={300} spinning={loading && history.length === 0}>
+          {body}
+        </Spin>
       </PageHeader>
     </div>
   );
 };
 
 export default connect(
-  (state: AppState) => ({
-    loading: state.history.loading,
-    history: state.history.list,
-    error: state.history.error
-  }),
+  (state: AppState) => {
+    const { sessions, history } = state;
+    const canPoll =
+      !sessions.selected ||
+      sessions.selected === sessions.list[sessions.list.length - 1].id;
+    return {
+      sessionID: sessions.selected,
+      loading: history.loading,
+      history: history.list,
+      error: history.error,
+      canPoll
+    };
+  },
   (dispatch: Dispatch<Actions>) => ({
-    fetch: () => dispatch(actions.fetchHistory.request())
+    fetch: (sessionID: string) =>
+      dispatch(actions.fetchHistory.request(sessionID))
   })
 )(History);

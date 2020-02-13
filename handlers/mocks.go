@@ -1,12 +1,10 @@
-package server
+package handlers
 
 import (
 	"net/http"
-	"regexp"
-	"strconv"
-	"sync"
 	"time"
 
+	"github.com/Thiht/smocker/services"
 	"github.com/Thiht/smocker/templates"
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
@@ -14,48 +12,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type MockServer interface {
-	AddMock(*types.Mock)
-	Mocks() types.Mocks
-	Mock(id string) *types.Mock
-	History(filterPath string) (types.History, error)
-	Reset()
+type Mocks struct {
+	mocksServices services.Mocks
 }
 
-type mockServer struct {
-	server  *echo.Echo
-	mocks   types.Mocks
-	history types.History
-	mu      sync.Mutex
-}
-
-func NewMockServer(port int) MockServer {
-	s := &mockServer{
-		server:  echo.New(),
-		mocks:   types.Mocks{},
-		history: types.History{},
+func NewMocks(ms services.Mocks) *Mocks {
+	return &Mocks{
+		mocksServices: ms,
 	}
-
-	s.server.HideBanner = true
-	s.server.HidePort = true
-	s.server.Use(recoverMiddleware(), loggerMiddleware(), s.historyMiddleware())
-	s.server.Any("/*", s.genericHandler)
-
-	log.WithField("port", port).Info("Starting mock server")
-	go func() {
-		if err := s.server.Start(":" + strconv.Itoa(port)); err != nil {
-			log.WithError(err).Error("Mock Server execution failed")
-		}
-	}()
-
-	return s
 }
 
-func (s *mockServer) genericHandler(c echo.Context) error {
-	s.mu.Lock()
-	mocks := make(types.Mocks, len(s.mocks))
-	copy(mocks, s.mocks)
-	s.mu.Unlock()
+func (m *Mocks) GenericHandler(c echo.Context) error {
 
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
@@ -69,6 +36,14 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 		err          error
 	)
 	exceededMocks := types.Mocks{}
+	session := m.mocksServices.GetLastSession()
+	mocks, err := m.mocksServices.GetMocks(session.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": err.Error(),
+			"request": actualRequest,
+		})
+	}
 	for _, mock := range mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
@@ -151,50 +126,4 @@ func (s *mockServer) genericHandler(c echo.Context) error {
 	b, _ = yaml.Marshal(response)
 	log.Debugf("Returned response:\n---\n%s\n", string(b))
 	return nil
-}
-
-func (s *mockServer) AddMock(newMock *types.Mock) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.mocks = append(types.Mocks{newMock}, s.mocks...)
-}
-
-func (s *mockServer) Mocks() types.Mocks {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.mocks
-}
-
-func (s *mockServer) Mock(id string) *types.Mock {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, mock := range s.mocks {
-		if mock.State.ID == id {
-			return mock
-		}
-	}
-	return nil
-}
-
-func (s *mockServer) History(filterPath string) (types.History, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	res := types.History{}
-	regex, err := regexp.Compile(filterPath)
-	if err != nil {
-		return res, err
-	}
-	for _, entry := range s.history {
-		if regex.Match([]byte(entry.Request.Path)) {
-			res = append(res, entry)
-		}
-	}
-	return res, nil
-}
-
-func (s *mockServer) Reset() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.mocks = types.Mocks{}
-	s.history = types.History{}
 }

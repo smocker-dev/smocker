@@ -3,6 +3,7 @@ body,
 #root,
 #root .layout {
   height: 100%;
+  position: relative;
 }
 
 #root .layout.scrollable {

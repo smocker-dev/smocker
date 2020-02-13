@@ -9,6 +9,7 @@ import {
   Redirect
 } from "react-router-dom";
 import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
 import History from "./History";
 import Mocks from "./Mocks";
 import { createEpicMiddleware } from "redux-observable";
@@ -34,18 +35,21 @@ const App = () => (
     <Router>
       <Layout className="layout">
         <Navbar />
-        <Layout className="scrollable layout">
-          <Layout.Content className="not-scrollable">
-            <Switch>
-              <Route exact path="/pages/history" component={History} />
-              <Route exact path="/pages/mocks" component={Mocks} />
-              <Route exact path="/pages/mocks/:mock_id" component={Mocks} />
-              <Redirect to="/pages/history" />
-            </Switch>
-          </Layout.Content>
-          <Layout.Footer style={{ textAlign: "center" }}>
-            MIT Licensed
-          </Layout.Footer>
+        <Layout className="layout">
+          <Sidebar />
+          <Layout className="scrollable layout">
+            <Layout.Content className="not-scrollable">
+              <Switch>
+                <Route exact path="/pages/history" component={History} />
+                <Route exact path="/pages/mocks" component={Mocks} />
+                <Route exact path="/pages/mocks/:mock_id" component={Mocks} />
+                <Redirect to="/pages/history" />
+              </Switch>
+            </Layout.Content>
+            <Layout.Footer style={{ textAlign: "center" }}>
+              MIT Licensed
+            </Layout.Footer>
+          </Layout>
         </Layout>
       </Layout>
     </Router>
