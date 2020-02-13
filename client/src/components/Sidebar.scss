@@ -22,12 +22,20 @@
       height: 100%;
       .ant-menu-item-group-title {
         padding-top: 1em;
+        .ant-spin .ant-spin-dot {
+          top: 50%;
+          left: 100%;
+          margin: -15px;
+        }
       }
       .ant-menu-item-group-list {
         height: calc(100% - 3.25em);
         overflow-x: hidden;
         overflow-y: auto;
         padding-right: 1px;
+        .menu-item {
+          max-width: 80%;
+        }
         .session-button {
           width: 90%;
           border-style: dashed;

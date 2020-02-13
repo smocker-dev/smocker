@@ -16,6 +16,7 @@ import {
 const {
   fetchSessions,
   newSession,
+  updateSession,
   fetchHistory,
   fetchMocks,
   addMocks,
@@ -50,7 +51,7 @@ const newSessionEpic: Epic<Actions> = action$ =>
     filter(isActionOf(newSession.request)),
     exhaustMap(action => {
       const query = action.payload ? `?name=${action.payload}` : "";
-      return ajax.post(trimedPath + "/sessions/new" + query).pipe(
+      return ajax.post(trimedPath + "/sessions" + query).pipe(
         mergeMap(({ response }) => {
           return decode(SessionCodec)(response).pipe(
             map(resp => newSession.success(resp))
@@ -60,6 +61,27 @@ const newSessionEpic: Epic<Actions> = action$ =>
           return of(newSession.failure(extractError(error)));
         })
       );
+    })
+  );
+
+const updateSessionEpic: Epic<Actions> = action$ =>
+  action$.pipe(
+    filter(isActionOf(updateSession.request)),
+    exhaustMap(action => {
+      return ajax
+        .put(trimedPath + "/sessions", action.payload, {
+          "Content-Type": "application/json"
+        })
+        .pipe(
+          mergeMap(({ response }) => {
+            return decode(SessionCodec)(response).pipe(
+              map(resp => updateSession.success(resp))
+            );
+          }),
+          catchError(error => {
+            return of(updateSession.failure(extractError(error)));
+          })
+        );
     })
   );
 
@@ -135,6 +157,7 @@ const resetEpic: Epic<Actions> = action$ =>
 export default combineEpics(
   fetchSessionsEpic,
   newSessionEpic,
+  updateSessionEpic,
   fetchHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,

@@ -18,23 +18,23 @@ import (
 const MIMEApplicationXYaml = "application/x-yaml"
 
 type Admin struct {
-	mockServer services.MockServer
+	mocksServices services.Mocks
 }
 
-func NewAdmin(ms services.MockServer) *Admin {
+func NewAdmin(ms services.Mocks) *Admin {
 	return &Admin{
-		mockServer: ms,
+		mocksServices: ms,
 	}
 }
 
 func (a *Admin) GetMocks(c echo.Context) error {
 	sessionID := ""
 	if sessionID = c.QueryParam("session"); sessionID == "" {
-		sessionID = a.mockServer.GetLastSession().ID
+		sessionID = a.mocksServices.GetLastSession().ID
 	}
 
 	if id := c.QueryParam("id"); id != "" {
-		mock, err := a.mockServer.GetMockByID(sessionID, id)
+		mock, err := a.mocksServices.GetMockByID(sessionID, id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
@@ -43,7 +43,7 @@ func (a *Admin) GetMocks(c echo.Context) error {
 		}
 		return respondAccordingAccept(c, types.Mocks{mock})
 	}
-	mocks, err := a.mockServer.GetMocks(sessionID)
+	mocks, err := a.mocksServices.GetMocks(sessionID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
@@ -52,9 +52,9 @@ func (a *Admin) GetMocks(c echo.Context) error {
 
 func (a *Admin) AddMocks(c echo.Context) error {
 	if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
-		a.mockServer.Reset()
+		a.mocksServices.Reset()
 	}
-	sessionID := a.mockServer.GetLastSession().ID
+	sessionID := a.mocksServices.GetLastSession().ID
 	var mocks []*types.Mock
 	if err := c.Bind(&mocks); err != nil {
 		if err != echo.ErrUnsupportedMediaType {
@@ -87,7 +87,7 @@ func (a *Admin) AddMocks(c echo.Context) error {
 		if mock.Context == nil {
 			mock.Context = &types.MockContext{}
 		}
-		_, err := a.mockServer.AddMock(sessionID, mock)
+		_, err := a.mocksServices.AddMock(sessionID, mock)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
@@ -101,10 +101,10 @@ func (a *Admin) AddMocks(c echo.Context) error {
 func (a *Admin) VerifyMocks(c echo.Context) error {
 	sessionID := ""
 	if sessionID = c.QueryParam("session"); sessionID == "" {
-		sessionID = a.mockServer.GetLastSession().ID
+		sessionID = a.mocksServices.GetLastSession().ID
 	}
 
-	mocks, err := a.mockServer.GetMocks(sessionID)
+	mocks, err := a.mocksServices.GetMocks(sessionID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
@@ -131,10 +131,10 @@ func (a *Admin) VerifyMocks(c echo.Context) error {
 func (a *Admin) GetHistory(c echo.Context) error {
 	sessionID := ""
 	if sessionID = c.QueryParam("session"); sessionID == "" {
-		sessionID = a.mockServer.GetLastSession().ID
+		sessionID = a.mocksServices.GetLastSession().ID
 	}
 	filter := c.QueryParam("filter")
-	history, err := a.mockServer.GetHistoryByPath(sessionID, filter)
+	history, err := a.mocksServices.GetHistoryByPath(sessionID, filter)
 	if err == services.UnknownSession {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
@@ -145,22 +145,24 @@ func (a *Admin) GetHistory(c echo.Context) error {
 }
 
 type sessionSummary struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   string    `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
 }
 
 func (a *Admin) GetSessions(c echo.Context) error {
-	sessions := a.mockServer.GetSessions()
+	sessions := a.mocksServices.GetSessions()
 	return respondAccordingAccept(c, sessions)
 }
 
 func (a *Admin) SummarizeSessions(c echo.Context) error {
-	sessions := a.mockServer.GetSessions()
+	sessions := a.mocksServices.GetSessions()
 	sessionSummaries := []sessionSummary{}
 	for _, session := range sessions {
 		sessionSummaries = append(sessionSummaries, sessionSummary{
 			ID:   session.ID,
 			Name: session.Name,
+			Date: session.Date,
 		})
 	}
 	return respondAccordingAccept(c, sessionSummaries)
@@ -168,16 +170,39 @@ func (a *Admin) SummarizeSessions(c echo.Context) error {
 
 func (a *Admin) NewSession(c echo.Context) error {
 	name := c.QueryParam("name")
-	a.mockServer.NewSession(name)
-	session := a.mockServer.GetLastSession()
+	session := a.mocksServices.NewSession(name)
 	return respondAccordingAccept(c, sessionSummary{
 		ID:   session.ID,
 		Name: session.Name,
+		Date: session.Date,
+	})
+}
+
+type updateSessionBody struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (a *Admin) UpdateSession(c echo.Context) error {
+	var body updateSessionBody
+	if err := c.Bind(&body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	session, err := a.mocksServices.UpdateSession(body.ID, body.Name)
+	if err == services.UnknownSession {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	} else if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return respondAccordingAccept(c, sessionSummary{
+		ID:   session.ID,
+		Name: session.Name,
+		Date: session.Date,
 	})
 }
 
 func (a *Admin) Reset(c echo.Context) error {
-	a.mockServer.Reset()
+	a.mocksServices.Reset()
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Reset successful",
 	})

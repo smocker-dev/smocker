@@ -9,11 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewMockServer(port int) services.MockServer {
+func NewMockServer(port int) services.Mocks {
 
 	server := echo.New()
 
-	mockServer := services.NewMockServer()
+	mockServer := services.NewMocks()
 
 	server.HideBanner = true
 	server.HidePort = true

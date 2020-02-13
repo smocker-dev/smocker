@@ -42,11 +42,14 @@ func Serve(config config.Config) {
 	e.GET("/history", handler.GetHistory)
 	e.GET("/sessions", handler.GetSessions)
 	e.GET("/sessions/summary", handler.SummarizeSessions)
-	e.POST("/sessions/new", handler.NewSession)
+	e.POST("/sessions", handler.NewSession)
+	e.PUT("/sessions", handler.UpdateSession)
 	e.POST("/reset", handler.Reset)
 
 	// Health Check Route
-	e.GET("/version", version(config))
+	e.GET("/version", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, config.Build)
+	})
 
 	// UI Routes
 	e.Static("/assets", config.StaticFiles)
@@ -55,12 +58,6 @@ func Serve(config config.Config) {
 	log.WithField("port", config.ConfigListenPort).Info("Starting config server")
 	if err := e.Start(":" + strconv.Itoa(config.ConfigListenPort)); err != nil {
 		log.WithError(err).Fatal("Config server execution failed")
-	}
-}
-
-func version(cfg config.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, cfg.Build)
 	}
 }
 

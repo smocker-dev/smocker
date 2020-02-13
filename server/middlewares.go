@@ -41,7 +41,7 @@ func (w *bodyDumpResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.ResponseWriter.(http.Hijacker).Hijack()
 }
 
-func HistoryMiddleware(s services.MockServer) echo.MiddlewareFunc {
+func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			session := s.GetLastSession()
@@ -81,7 +81,7 @@ func HistoryMiddleware(s services.MockServer) echo.MiddlewareFunc {
 			}
 
 			mockID, _ := c.Get(types.MockIDKey).(string)
-			_, err := s.AddEntry(session.ID, &types.Entry{
+			_, err := s.AddHistoryEntry(session.ID, &types.Entry{
 				MockID:  mockID,
 				Request: request,
 				Response: types.Response{

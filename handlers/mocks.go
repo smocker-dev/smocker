@@ -13,12 +13,12 @@ import (
 )
 
 type Mocks struct {
-	mockserver services.MockServer
+	mocksServices services.Mocks
 }
 
-func NewMocks(ms services.MockServer) *Mocks {
+func NewMocks(ms services.Mocks) *Mocks {
 	return &Mocks{
-		mockserver: ms,
+		mocksServices: ms,
 	}
 }
 
@@ -36,8 +36,8 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		err          error
 	)
 	exceededMocks := types.Mocks{}
-	session := m.mockserver.GetLastSession()
-	mocks, err := m.mockserver.GetMocks(session.ID)
+	session := m.mocksServices.GetLastSession()
+	mocks, err := m.mocksServices.GetMocks(session.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"message": err.Error(),

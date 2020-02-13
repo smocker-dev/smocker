@@ -12,34 +12,35 @@ import (
 
 var UnknownSession error = errors.New("Unknown session ID")
 
-type MockServer interface {
+type Mocks interface {
 	AddMock(sessionID string, mock *types.Mock) (*types.Mock, error)
 	GetMocks(sessionID string) (types.Mocks, error)
 	GetMockByID(sessionID, id string) (*types.Mock, error)
-	AddEntry(sessionID string, entry *types.Entry) (*types.Entry, error)
+	AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error)
 	GetHistory(sessionID string) (types.History, error)
 	GetHistoryByPath(sessionID string, filterPath string) (types.History, error)
-	NewSession(name string)
-	GetSessions() types.Sessions
+	NewSession(name string) *types.Session
+	UpdateSession(id, name string) (*types.Session, error)
 	GetLastSession() *types.Session
 	GetSessionByID(id string) (*types.Session, error)
 	GetSessionByName(name string) (*types.Session, error)
+	GetSessions() types.Sessions
 	Reset()
 }
 
-type mockServer struct {
+type mocks struct {
 	sessions types.Sessions
 	mu       sync.Mutex
 }
 
-func NewMockServer() MockServer {
-	s := &mockServer{
+func NewMocks() Mocks {
+	s := &mocks{
 		sessions: types.Sessions{},
 	}
 	return s
 }
 
-func (s *mockServer) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, error) {
+func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (s *mockServer) AddMock(sessionID string, newMock *types.Mock) (*types.Mock
 	return newMock, nil
 }
 
-func (s *mockServer) GetMocks(sessionID string) (types.Mocks, error) {
+func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func (s *mockServer) GetMocks(sessionID string) (types.Mocks, error) {
 	return mocks, nil
 }
 
-func (s *mockServer) GetMockByID(sessionID, id string) (*types.Mock, error) {
+func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func (s *mockServer) GetMockByID(sessionID, id string) (*types.Mock, error) {
 	return nil, nil
 }
 
-func (s *mockServer) AddEntry(sessionID string, entry *types.Entry) (*types.Entry, error) {
+func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func (s *mockServer) AddEntry(sessionID string, entry *types.Entry) (*types.Entr
 	return entry, nil
 }
 
-func (s *mockServer) GetHistory(sessionID string) (types.History, error) {
+func (s *mocks) GetHistory(sessionID string) (types.History, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
 		return nil, err
@@ -98,7 +99,7 @@ func (s *mockServer) GetHistory(sessionID string) (types.History, error) {
 	return session.History, nil
 }
 
-func (s *mockServer) GetHistoryByPath(sessionID, filterPath string) (types.History, error) {
+func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, error) {
 	history, err := s.GetHistory(sessionID)
 	if err != nil {
 		return nil, err
@@ -118,25 +119,32 @@ func (s *mockServer) GetHistoryByPath(sessionID, filterPath string) (types.Histo
 	return res, nil
 }
 
-func (s *mockServer) NewSession(name string) {
+func (s *mocks) NewSession(name string) *types.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.sessions = append(s.sessions, &types.Session{
+	session := &types.Session{
 		ID:      uuid.New().String(),
 		Name:    name,
 		Date:    time.Now(),
 		History: types.History{},
 		Mocks:   types.Mocks{},
-	})
+	}
+	s.sessions = append(s.sessions, session)
+	return session
 }
 
-func (s *mockServer) GetSessions() types.Sessions {
+func (s *mocks) UpdateSession(sessionID, name string) (*types.Session, error) {
+	session, err := s.GetSessionByID(sessionID)
+	if err != nil {
+		return nil, err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.sessions
+	session.Name = name
+	return session, nil
 }
 
-func (s *mockServer) GetLastSession() *types.Session {
+func (s *mocks) GetLastSession() *types.Session {
 	s.mu.Lock()
 	if len(s.sessions) == 0 {
 		s.mu.Unlock()
@@ -147,7 +155,7 @@ func (s *mockServer) GetLastSession() *types.Session {
 	return s.sessions[len(s.sessions)-1]
 }
 
-func (s *mockServer) GetSessionByID(id string) (*types.Session, error) {
+func (s *mocks) GetSessionByID(id string) (*types.Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if id == "" {
@@ -161,7 +169,7 @@ func (s *mockServer) GetSessionByID(id string) (*types.Session, error) {
 	return nil, UnknownSession
 }
 
-func (s *mockServer) GetSessionByName(name string) (*types.Session, error) {
+func (s *mocks) GetSessionByName(name string) (*types.Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if name == "" {
@@ -175,7 +183,13 @@ func (s *mockServer) GetSessionByName(name string) (*types.Session, error) {
 	return nil, UnknownSession
 }
 
-func (s *mockServer) Reset() {
+func (s *mocks) GetSessions() types.Sessions {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sessions
+}
+
+func (s *mocks) Reset() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.sessions = types.Sessions{}

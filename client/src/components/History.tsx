@@ -65,15 +65,15 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           {value.response.status}
         </Tag>
         {value.response.status > 600 && (
-          <Typography.Text type="danger" className="ellipsis">
+          <Typography.Text type="danger" ellipsis>
             {value.response.body.message}
           </Typography.Text>
         )}
-        <span className="ellipsis">
+        <Typography.Text ellipsis>
           {value.mock_id && (
             <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
           )}
-        </span>
+        </Typography.Text>
         <span className="date">
           {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
         </span>

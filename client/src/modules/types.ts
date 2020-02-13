@@ -13,7 +13,8 @@ export type Error = t.TypeOf<typeof ErrorCodec>;
 
 export const SessionCodec = t.type({
   id: t.string,
-  name: t.string
+  name: t.string,
+  date: t.string
 });
 export type Session = t.TypeOf<typeof SessionCodec>;
 

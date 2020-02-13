@@ -453,11 +453,13 @@ For each session, it will only contains the **ID** and the **name** of this one.
 [
   {
     "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
-    "name": "test1"
+    "name": "test1",
+    "date": "2020-02-12T00:04:43.3337425+01:00"
   },
   {
     "id": "c1ac51b0-2a66-4b26-bffe-fac019cd734f",
-    "name": "test2"
+    "name": "test2",
+    "date": "2020-02-12T00:14:43.3337425+01:00"
   }
 ]
 ```
@@ -466,7 +468,7 @@ For each session, it will only contains the **ID** and the **name** of this one.
 
 Starts a new session into Smocker, and returns its summary.
 
-- **Endpoint**: `POST /sessions/new`
+- **Endpoint**: `POST /sessions`
 - **Query Parameters**:
 
 | Name   | Description                                       |
@@ -485,6 +487,41 @@ Starts a new session into Smocker, and returns its summary.
 {
   "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
   "name": "test1"
+}
+```
+
+## Update Session
+
+Updates a session's name.
+
+- **Endpoint**: `PUT /sessions`
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `404 Not Found`, if no session match the ID passed in parameter.
+  - `500 Internal Server Error`, if an error occurs during the session update.
+
+- **Sample Body**:
+
+```json
+{
+  "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
+  "name": "test"
+}
+
+```
+- **Sample Response**:
+
+```json
+{
+  "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
+  "name": "test",
+  "date": "2020-02-12T00:04:43.3337425+01:00"
 }
 ```
 

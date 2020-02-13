@@ -11,7 +11,7 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/sessions/new?name=test
+        url: http://localhost:8081/sessions?name=test
       - type: http
         method: POST
         url: http://localhost:8081/mocks
@@ -37,7 +37,7 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/sessions/new?name=test2
+        url: http://localhost:8081/sessions?name=test2
       - type: http
         method: POST
         url: http://localhost:8081/mocks
@@ -63,7 +63,7 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/sessions/new?name=test3
+        url: http://localhost:8081/sessions?name=test3
       - type: http
         method: POST
         url: http://localhost:8081/mocks

@@ -13,6 +13,12 @@ const newSession = createAsyncAction(
   "@APP/SESSIONS/NEW/FAILURE"
 )<string, Session, Error>();
 
+const updateSession = createAsyncAction(
+  "@APP/SESSIONS/UPDATE",
+  "@APP/SESSIONS/UPDATE/SUCCESS",
+  "@APP/SESSIONS/UPDATE/FAILURE"
+)<Session, Session, Error>();
+
 const selectSession = createAction("@APP/SESSIONS/SELECT")<string>();
 
 const fetchHistory = createAsyncAction(
@@ -46,6 +52,7 @@ const reset = createAsyncAction(
 export const actions = {
   fetchSessions,
   newSession,
+  updateSession,
   selectSession,
   fetchHistory,
   fetchMocks,
