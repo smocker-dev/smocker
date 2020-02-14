@@ -235,6 +235,8 @@ testcases:
       - type: http
         method: GET
         url: http://{{.gw}}/reservation/1
+        headers:
+          X-SERVICE-NAME: reservations
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.id ShouldEqual 1
