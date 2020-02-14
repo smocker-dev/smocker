@@ -52,21 +52,25 @@ $border-color = #ccc
     flex-direction: column
     margin: .5em
     max-width: 45%
+    padding: .5em
+
+    &.fluid
+      max-width: 100%
 
     @media screen and (max-width: 1024px)
       max-width: 100%
-
-    padding: .5em
 
     > div
       flex: auto
 
       svg[id^=mermaid]
-        vertical-align: middle
+        font-size: 1em
         height: 100%
+        vertical-align: middle
         width: 100%
 
   [id^=mermaid]
+    // Flow charts
     .node rect, .node circle, .node ellipse, .node polygon
       fill: white
       stroke: black
@@ -84,8 +88,8 @@ $border-color = #ccc
       stroke-width: 2px
 
     .actor
-      stroke: rgba(0, 0, 0, .25)
       fill: rgb(62, 175, 124)
+      stroke: transparent
 
     text
       &.actor
@@ -139,13 +143,14 @@ $border-color = #ccc
           fill: none
           stroke: none
 
+    // Sequence charts
+    [class^=activation]
+      fill: #f2f2f2
+      stroke: #d9d9d9
+
+    .messageText
+      font-size: .75em
+      font-weight: bolder
+
 #message-container .message .text
   height: 22px
-
-// moz svg hack
-@media screen and (min--moz-device-pixel-ratio: 0)
-  body #app .theme-default-content:not(.custom) svg[id^='mermaid']
-    font-size: 1em
-
-#app .theme-default-content:not(.custom) svg[id^='mermaid']
-  font-size: 2em
