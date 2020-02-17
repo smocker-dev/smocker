@@ -49,9 +49,8 @@ const fetchSessionsEpic: Epic<Actions> = action$ =>
 const newSessionEpic: Epic<Actions> = action$ =>
   action$.pipe(
     filter(isActionOf(newSession.request)),
-    exhaustMap(action => {
-      const query = action.payload ? `?name=${action.payload}` : "";
-      return ajax.post(trimedPath + "/sessions" + query).pipe(
+    exhaustMap(() => {
+      return ajax.post(trimedPath + "/sessions").pipe(
         mergeMap(({ response }) => {
           return decode(SessionCodec)(response).pipe(
             map(resp => newSession.success(resp))
