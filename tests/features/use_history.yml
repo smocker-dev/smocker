@@ -1,4 +1,4 @@
-name: Retreive calls history
+name: Retrieve calls history
 version: "2"
 testcases:
   - name: Load dynamic mocks, call them and check that history is right

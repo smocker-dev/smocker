@@ -25,6 +25,7 @@ type Mocks interface {
 	GetSessionByID(id string) (*types.Session, error)
 	GetSessionByName(name string) (*types.Session, error)
 	GetSessions() types.Sessions
+	SetSessions(sessions types.Sessions)
 	Reset()
 }
 
@@ -187,6 +188,12 @@ func (s *mocks) GetSessions() types.Sessions {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.sessions
+}
+
+func (s *mocks) SetSessions(sessions types.Sessions) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions = sessions
 }
 
 func (s *mocks) Reset() {

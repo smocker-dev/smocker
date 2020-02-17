@@ -513,8 +513,8 @@ Updates a session's name.
   "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
   "name": "test"
 }
-
 ```
+
 - **Sample Response**:
 
 ```json
@@ -523,6 +523,176 @@ Updates a session's name.
   "name": "test",
   "date": "2020-02-12T00:04:43.3337425+01:00"
 }
+```
+
+## Import Sessions
+
+Allows you to import a list of sessions fetched from another Smocker instance.
+It should be useful for analyzing into your local instance, the sessions generated during a CI execution.
+
+- **Endpoint**: `POST /sessions/import`
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `400 Bad Request`, if sessions are invalid.
+
+- **Sample Body**:
+
+```json
+[
+  {
+    "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
+    "name": "test",
+    "date": "2020-02-12T00:04:29.5940297+01:00",
+    "history": [
+      {
+        "mock_id": "05519745-7648-46ed-a5b0-757534e077d0",
+        "request": {
+          "path": "/hello/world",
+          "method": "GET",
+          "body": "",
+          "headers": {
+            "Accept": ["application/json, text/plain, */*"],
+            "Connection": ["close"],
+            "Host": ["localhost:8080"],
+            "User-Agent": ["axios/0.19.2"]
+          },
+          "date": "2020-02-12T00:04:46.1526269+01:00"
+        },
+        "response": {
+          "status": 200,
+          "body": {
+            "message": "Hello, World!"
+          },
+          "headers": {
+            "Content-Type": ["application/json"]
+          },
+          "date": "2020-02-12T00:04:46.1532019+01:00"
+        }
+      },
+      {
+        "mock_id": "f6634848-f32f-4b89-93eb-8a3a37809350",
+        "request": {
+          "path": "/hello/world",
+          "method": "POST",
+          "body": "",
+          "headers": {
+            "Accept": ["application/json, text/plain, */*"],
+            "Connection": ["close"],
+            "Content-Length": ["0"],
+            "Content-Type": ["application/x-www-form-urlencoded"],
+            "Host": ["localhost:8080"],
+            "User-Agent": ["axios/0.19.2"]
+          },
+          "date": "2020-02-12T00:04:46.1552296+01:00"
+        },
+        "response": {
+          "status": 500,
+          "body": {
+            "message": "error"
+          },
+          "headers": {
+            "Content-Type": ["application/json"]
+          },
+          "date": "2020-02-12T00:04:46.155561+01:00"
+        }
+      },
+      {
+        "request": {
+          "path": "/hello/world",
+          "method": "DELETE",
+          "body": "",
+          "headers": {
+            "Accept": ["application/json, text/plain, */*"],
+            "Connection": ["close"],
+            "Host": ["localhost:8080"],
+            "User-Agent": ["axios/0.19.2"]
+          },
+          "date": "2020-02-12T00:04:48.3166388+01:00"
+        },
+        "response": {
+          "status": 666,
+          "body": {
+            "message": "No mock found matching the request",
+            "request": {
+              "body": "",
+              "date": "2020-02-12T00:04:48.3166459+01:00",
+              "headers": {
+                "Accept": ["application/json, text/plain, */*"],
+                "Connection": ["close"],
+                "Host": ["localhost:8080"],
+                "User-Agent": ["axios/0.19.2"]
+              },
+              "method": "DELETE",
+              "path": "/hello/world"
+            }
+          },
+          "headers": {
+            "Content-Type": ["application/json; charset=UTF-8"]
+          },
+          "date": "2020-02-12T00:04:48.3172842+01:00"
+        }
+      }
+    ],
+    "mocks": [
+      {
+        "request": {
+          "path": "/hello/world",
+          "method": "POST"
+        },
+        "response": {
+          "body": "{\"message\": \"error\"}\n",
+          "status": 500,
+          "headers": {
+            "Content-Type": ["application/json"]
+          }
+        },
+        "context": {},
+        "state": {
+          "id": "f6634848-f32f-4b89-93eb-8a3a37809350",
+          "times_count": 1,
+          "creation_date": "2020-02-12T00:04:43.3337512+01:00"
+        }
+      },
+      {
+        "request": {
+          "path": "/hello/world",
+          "method": "GET"
+        },
+        "response": {
+          "body": "{\"message\": \"Hello, World!\"}\n",
+          "status": 200,
+          "headers": {
+            "Content-Type": ["application/json"]
+          }
+        },
+        "context": {},
+        "state": {
+          "id": "05519745-7648-46ed-a5b0-757534e077d0",
+          "times_count": 1,
+          "creation_date": "2020-02-12T00:04:43.3337425+01:00"
+        }
+      }
+    ]
+  }
+]
+```
+
+- **Sample Response**:
+
+```json
+[
+  {
+    "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
+    "name": "test",
+    "date": "2020-02-12T00:04:29.5940297+01:00"
+  }
+]
 ```
 
 ## Healthcheck

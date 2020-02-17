@@ -1,0 +1,94 @@
+name: Import sessions
+version: "2"
+testcases:
+  - name: Init Smocker
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+
+  - name: Import sessions then check history and mocks
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions/import
+        headers:
+          Content-Type: application/json
+        body: >
+          [
+            {
+              "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
+              "name": "test",
+              "date": "2020-02-12T00:04:29.5940297+01:00",
+              "history": [
+                {
+                  "mock_id": "05519745-7648-46ed-a5b0-757534e077d0",
+                  "request": {
+                    "path": "/hello/world",
+                    "method": "GET",
+                    "body": "",
+                    "headers": {
+                      "Accept": ["application/json, text/plain, */*"],
+                      "Connection": ["close"],
+                      "Host": ["localhost:8080"],
+                      "User-Agent": ["axios/0.19.2"]
+                    },
+                    "date": "2020-02-12T00:04:46.1526269+01:00"
+                  },
+                  "response": {
+                    "status": 200,
+                    "body": {
+                      "message": "Hello, World!"
+                    },
+                    "headers": {
+                      "Content-Type": ["application/json"]
+                    },
+                    "date": "2020-02-12T00:04:46.1532019+01:00"
+                  }
+                }
+              ],
+              "mocks": [
+                {
+                  "request": {
+                    "path": "/hello/world",
+                    "method": "GET"
+                  },
+                  "response": {
+                    "body": "{\"message\": \"Hello, World!\"}\n",
+                    "status": 200,
+                    "headers": {
+                      "Content-Type": ["application/json"]
+                    }
+                  },
+                  "context": {},
+                  "state": {
+                    "id": "05519745-7648-46ed-a5b0-757534e077d0",
+                    "times_count": 1,
+                    "creation_date": "2020-02-12T00:04:43.3337425+01:00"
+                  }
+                }
+              ]
+            }
+          ]
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.id ShouldEqual 1d6d264b-4d13-4e0b-a51e-e44fc80eca9f
+          - result.bodyjson.bodyjson0.name ShouldEqual test
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /hello/world
+          - result.bodyjson.bodyjson0.response.status ShouldEqual 200
+          - result.bodyjson.bodyjson0.response.body.message ShouldEqual "Hello, World!"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.path ShouldEqual /hello/world
+          - result.bodyjson.bodyjson0.response.status ShouldEqual 200

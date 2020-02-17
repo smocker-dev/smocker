@@ -70,7 +70,13 @@ const sessionError = (state: Error | null = null, action: Actions) => {
 };
 
 const selectedSession = (state: string = "", action: Actions) => {
-  const { newSession, selectSession, updateSession, reset } = actions;
+  const {
+    fetchSessions,
+    newSession,
+    selectSession,
+    updateSession,
+    reset
+  } = actions;
   switch (action.type) {
     case getType(selectSession): {
       return action.payload;
@@ -81,6 +87,14 @@ const selectedSession = (state: string = "", action: Actions) => {
     case getType(newSession.success):
     case getType(updateSession.success): {
       return action.payload.id;
+    }
+    case getType(fetchSessions.success): {
+      if (!state) {
+        return "";
+      }
+      return action.payload.filter(session => session.id === state).length === 0
+        ? ""
+        : state;
     }
     default:
       return state;

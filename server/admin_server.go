@@ -41,9 +41,10 @@ func Serve(config config.Config) {
 	e.POST("/mocks/verify", handler.VerifyMocks)
 	e.GET("/history", handler.GetHistory)
 	e.GET("/sessions", handler.GetSessions)
-	e.GET("/sessions/summary", handler.SummarizeSessions)
 	e.POST("/sessions", handler.NewSession)
 	e.PUT("/sessions", handler.UpdateSession)
+	e.GET("/sessions/summary", handler.SummarizeSessions)
+	e.POST("/sessions/import", handler.ImportSession)
 	e.POST("/reset", handler.Reset)
 
 	// Health Check Route
