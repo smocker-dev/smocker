@@ -16,7 +16,6 @@ import (
 	"github.com/Thiht/smocker/services"
 	"github.com/Thiht/smocker/types"
 	"github.com/labstack/echo"
-
 	log "github.com/sirupsen/logrus"
 )
 

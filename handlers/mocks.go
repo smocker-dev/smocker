@@ -23,7 +23,6 @@ func NewMocks(ms services.Mocks) *Mocks {
 }
 
 func (m *Mocks) GenericHandler(c echo.Context) error {
-
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
 	log.Debugf("Received request:\n---\n%s\n", string(b))
@@ -44,6 +43,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			"request": actualRequest,
 		})
 	}
+
 	for _, mock := range mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
@@ -53,6 +53,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 				exceededMocks = append(exceededMocks, mock)
 				continue
 			}
+
 			b, _ = yaml.Marshal(matchingMock)
 			log.Debugf("Matching mock:\n---\n%s\n", string(b))
 			if mock.DynamicResponse != nil {
@@ -74,6 +75,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			} else if mock.Response != nil {
 				response = mock.Response
 			}
+
 			matchingMock.State.TimesCount++
 			c.Set(types.MockIDKey, matchingMock.State.ID)
 			break
@@ -82,11 +84,13 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			log.Tracef("Skipping mock:\n---\n%s\n", string(b))
 		}
 	}
+
 	if response == nil {
 		resp := echo.Map{
 			"message": "No mock found matching the request",
 			"request": actualRequest,
 		}
+
 		if len(exceededMocks) > 0 {
 			for _, mock := range exceededMocks {
 				mock.State.TimesCount++
@@ -94,6 +98,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			resp["message"] = "Matching mock found but was exceeded"
 			resp["nearest"] = exceededMocks
 		}
+
 		b, _ = yaml.Marshal(resp)
 		log.Debugf("No mock found, returning:\n---\n%s\n", string(b))
 		return c.JSON(666, resp)
@@ -123,6 +128,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		log.WithError(err).Error("Failed to write response body")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
 	b, _ = yaml.Marshal(response)
 	log.Debugf("Returned response:\n---\n%s\n", string(b))
 	return nil

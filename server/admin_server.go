@@ -63,7 +63,7 @@ func Serve(config config.Config) {
 
 func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// In development mode, infex.html might not be available yet
+		// In development mode, index.html might not be available yet
 		if templateRenderer == nil {
 			template, err := template.ParseFiles(cfg.StaticFiles + "/index.html")
 			if err != nil {
@@ -72,6 +72,7 @@ func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 			templateRenderer := &TemplateRenderer{template}
 			e.Renderer = templateRenderer
 		}
+
 		return c.Render(http.StatusOK, "index.html", echo.Map{
 			"basePath": "/",
 			"version":  cfg.Build.BuildVersion,

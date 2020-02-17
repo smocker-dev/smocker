@@ -1,8 +1,9 @@
 package services
 
 import (
-	"errors"
+	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,7 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var UnknownSession error = errors.New("Unknown session ID")
+var (
+	SessionNotFound = fmt.Errorf("session not found")
+	MockNotFound    = fmt.Errorf("mock not found")
+)
 
 type Mocks interface {
 	AddMock(sessionID string, mock *types.Mock) (*types.Mock, error)
@@ -18,7 +22,7 @@ type Mocks interface {
 	GetMockByID(sessionID, id string) (*types.Mock, error)
 	AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error)
 	GetHistory(sessionID string) (types.History, error)
-	GetHistoryByPath(sessionID string, filterPath string) (types.History, error)
+	GetHistoryByPath(sessionID, filterPath string) (types.History, error)
 	NewSession(name string) *types.Session
 	UpdateSession(id, name string) (*types.Session, error)
 	GetLastSession() *types.Session
@@ -45,8 +49,10 @@ func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, err
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	session.Mocks = append(types.Mocks{newMock}, session.Mocks...)
 	return newMock, nil
 }
@@ -56,10 +62,12 @@ func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	mocks := make(types.Mocks, len(session.Mocks))
 	copy(mocks, session.Mocks)
 	s.mu.Unlock()
+
 	return mocks, nil
 }
 
@@ -68,14 +76,16 @@ func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	for _, mock := range session.Mocks {
 		if mock.State.ID == id {
 			return mock, nil
 		}
 	}
-	return nil, nil
+	return nil, MockNotFound
 }
 
 func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error) {
@@ -83,8 +93,10 @@ func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.En
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	session.History = append(session.History, entry)
 	return entry, nil
 }
@@ -94,8 +106,10 @@ func (s *mocks) GetHistory(sessionID string) (types.History, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	return session.History, nil
 }
 
@@ -104,15 +118,18 @@ func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, e
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	res := types.History{}
+
 	regex, err := regexp.Compile(filterPath)
 	if err != nil {
 		return nil, err
 	}
+
+	res := types.History{}
 	for _, entry := range history {
-		if regex.Match([]byte(entry.Request.Path)) {
+		if regex.MatchString(entry.Request.Path) {
 			res = append(res, entry)
 		}
 	}
@@ -122,6 +139,11 @@ func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, e
 func (s *mocks) NewSession(name string) *types.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if strings.TrimSpace(name) == "" {
+		name = fmt.Sprintf("Session #%d", len(s.sessions))
+	}
+
 	session := &types.Session{
 		ID:      uuid.New().String(),
 		Name:    name,
@@ -138,8 +160,10 @@ func (s *mocks) UpdateSession(sessionID, name string) (*types.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	session.Name = name
 	return session, nil
 }
@@ -156,31 +180,35 @@ func (s *mocks) GetLastSession() *types.Session {
 }
 
 func (s *mocks) GetSessionByID(id string) (*types.Session, error) {
+	if id == "" {
+		return nil, SessionNotFound
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if id == "" {
-		return nil, UnknownSession
-	}
+
 	for _, session := range s.sessions {
 		if session.ID == id {
 			return session, nil
 		}
 	}
-	return nil, UnknownSession
+	return nil, SessionNotFound
 }
 
 func (s *mocks) GetSessionByName(name string) (*types.Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if name == "" {
-		return nil, UnknownSession
+		return nil, SessionNotFound
 	}
+
 	for _, session := range s.sessions {
 		if session.Name == name {
 			return session, nil
 		}
 	}
-	return nil, UnknownSession
+	return nil, SessionNotFound
 }
 
 func (s *mocks) GetSessions() types.Sessions {
