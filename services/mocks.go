@@ -141,7 +141,7 @@ func (s *mocks) NewSession(name string) *types.Session {
 	defer s.mu.Unlock()
 
 	if strings.TrimSpace(name) == "" {
-		name = fmt.Sprintf("Session #%d", len(s.sessions))
+		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
 	}
 
 	session := &types.Session{

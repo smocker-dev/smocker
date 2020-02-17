@@ -20,43 +20,22 @@ import { Sessions, Session } from "~modules/types";
 import { usePoll } from "~utils";
 
 const NewButton = ({ onValidate }: any) => {
-  const [visible, setVisible] = React.useState(false);
-  const [name, setName] = React.useState("");
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onClick = (event: React.MouseEvent) => {
     event.preventDefault();
-    onValidate(name.trim());
-    setName("");
-    setVisible(false);
-  };
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
+    onValidate();
   };
   return (
-    <Popover
-      placement="right"
-      visible={visible}
-      onVisibleChange={setVisible}
-      content={
-        <Form layout="inline" onSubmit={onSubmit}>
-          <Form.Item>
-            <Input value={name} onChange={onChange} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Start
-            </Button>
-          </Form.Item>
-        </Form>
-      }
-      title="You can set a name for the new session"
-      trigger="click"
-    >
-      <Row align="middle" justify="center" type="flex">
-        <Button ghost type="primary" icon="plus" className="session-button">
-          New Session
-        </Button>
-      </Row>
-    </Popover>
+    <Row align="middle" justify="center" type="flex">
+      <Button
+        ghost
+        type="primary"
+        icon="plus"
+        className="session-button"
+        onClick={onClick}
+      >
+        New Session
+      </Button>
+    </Row>
   );
 };
 
@@ -66,7 +45,6 @@ const EditableItem = ({ value, onValidate }: any) => {
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onValidate(name.trim());
-    setName("");
     setVisible(false);
   };
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,7 +81,7 @@ interface Props {
   selected: string;
   fetch: () => void;
   selectSession: (sessionID: string) => void;
-  newSession: (name: string) => void;
+  newSession: () => void;
   updateSession: (session: Session) => void;
 }
 
@@ -122,7 +100,7 @@ const SideBar = ({
   }
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
-  const onNewSession = (name: string) => newSession(name);
+  const onNewSession = () => newSession();
   const onClick = ({ key }: { key: string }) => selectSession(key);
   const onChangeSessionName = (index: number) => (name: string) => {
     updateSession({ ...sessions[index], name });
@@ -181,7 +159,7 @@ export default connect(
     fetch: () => dispatch(actions.fetchSessions.request()),
     selectSession: (sessionID: string) =>
       dispatch(actions.selectSession(sessionID)),
-    newSession: (name: string) => dispatch(actions.newSession.request(name)),
+    newSession: () => dispatch(actions.newSession.request()),
     updateSession: (session: Session) =>
       dispatch(actions.updateSession.request(session))
   })
