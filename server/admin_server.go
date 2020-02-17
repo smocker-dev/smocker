@@ -8,6 +8,7 @@ import (
 
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/handlers"
+	"github.com/Thiht/smocker/server/services"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
@@ -26,20 +27,21 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 var templateRenderer *TemplateRenderer
 
 func Serve(config config.Config) {
-	mockServer := NewMockServer(config.MockServerListenPort)
-
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
 	e.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
-	handler := handlers.NewAdmin(mockServer)
+	mockServices := NewMockServer(config.MockServerListenPort)
+	graphServices := services.NewGraph()
+	handler := handlers.NewAdmin(mockServices, graphServices)
 
 	// Admin Routes
 	e.GET("/mocks", handler.GetMocks)
 	e.POST("/mocks", handler.AddMocks)
 	e.GET("/history", handler.GetHistory)
+	e.GET("/history/visualize", handler.VisualizeHistory)
 	e.GET("/sessions", handler.GetSessions)
 	e.POST("/sessions", handler.NewSession)
 	e.PUT("/sessions", handler.UpdateSession)
