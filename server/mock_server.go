@@ -10,9 +10,7 @@ import (
 )
 
 func NewMockServer(port int) services.Mocks {
-
 	server := echo.New()
-
 	mockServer := services.NewMocks()
 
 	server.HideBanner = true

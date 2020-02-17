@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,8 +27,8 @@ func NewAdmin(ms services.Mocks) *Admin {
 }
 
 func (a *Admin) GetMocks(c echo.Context) error {
-	sessionID := ""
-	if sessionID = c.QueryParam("session"); sessionID == "" {
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
 		sessionID = a.mocksServices.GetLastSession().ID
 	}
 
@@ -38,15 +37,15 @@ func (a *Admin) GetMocks(c echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
-		if mock == nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("No mock found with ID %q", id))
-		}
+
 		return respondAccordingAccept(c, types.Mocks{mock})
 	}
+
 	mocks, err := a.mocksServices.GetMocks(sessionID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
+
 	return respondAccordingAccept(c, mocks)
 }
 
@@ -54,6 +53,7 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
 		a.mocksServices.Reset()
 	}
+
 	sessionID := a.mocksServices.GetLastSession().ID
 	var mocks []*types.Mock
 	if err := c.Bind(&mocks); err != nil {
@@ -79,16 +79,18 @@ func (a *Admin) AddMocks(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 	}
+
 	for _, mock := range mocks {
 		mock.State = &types.MockState{
 			CreationDate: time.Now(),
 			ID:           uuid.New().String(),
 		}
+
 		if mock.Context == nil {
 			mock.Context = &types.MockContext{}
 		}
-		_, err := a.mocksServices.AddMock(sessionID, mock)
-		if err != nil {
+
+		if _, err := a.mocksServices.AddMock(sessionID, mock); err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 	}
@@ -99,8 +101,8 @@ func (a *Admin) AddMocks(c echo.Context) error {
 }
 
 func (a *Admin) VerifyMocks(c echo.Context) error {
-	sessionID := ""
-	if sessionID = c.QueryParam("session"); sessionID == "" {
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
 		sessionID = a.mocksServices.GetLastSession().ID
 	}
 
@@ -108,6 +110,7 @@ func (a *Admin) VerifyMocks(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
+
 	failedMocks := types.Mocks{}
 	for _, mock := range mocks {
 		if mock.Context.Times > 0 && mock.Context.Times != mock.State.TimesCount {
@@ -129,15 +132,18 @@ func (a *Admin) VerifyMocks(c echo.Context) error {
 }
 
 func (a *Admin) GetHistory(c echo.Context) error {
-	sessionID := ""
-	if sessionID = c.QueryParam("session"); sessionID == "" {
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
 		sessionID = a.mocksServices.GetLastSession().ID
 	}
+
 	filter := c.QueryParam("filter")
 	history, err := a.mocksServices.GetHistoryByPath(sessionID, filter)
-	if err == services.UnknownSession {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
-	} else if err != nil {
+	if err != nil {
+		if err == services.SessionNotFound {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+
 		log.WithError(err).Error("Failed to retrieve history")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -145,9 +151,11 @@ func (a *Admin) GetHistory(c echo.Context) error {
 }
 
 type sessionSummary struct {
-	ID   string    `json:"id"`
-	Name string    `json:"name"`
-	Date time.Time `json:"date"`
+	ID      string        `json:"id"`
+	Name    string        `json:"name"`
+	Date    time.Time     `json:"date"`
+	History types.History `json:"-"`
+	Mocks   types.Mocks   `json:"-"`
 }
 
 func (a *Admin) GetSessions(c echo.Context) error {
@@ -159,11 +167,7 @@ func (a *Admin) SummarizeSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
 	sessionSummaries := []sessionSummary{}
 	for _, session := range sessions {
-		sessionSummaries = append(sessionSummaries, sessionSummary{
-			ID:   session.ID,
-			Name: session.Name,
-			Date: session.Date,
-		})
+		sessionSummaries = append(sessionSummaries, sessionSummary(*session))
 	}
 	return respondAccordingAccept(c, sessionSummaries)
 }
@@ -171,11 +175,7 @@ func (a *Admin) SummarizeSessions(c echo.Context) error {
 func (a *Admin) NewSession(c echo.Context) error {
 	name := c.QueryParam("name")
 	session := a.mocksServices.NewSession(name)
-	return respondAccordingAccept(c, sessionSummary{
-		ID:   session.ID,
-		Name: session.Name,
-		Date: session.Date,
-	})
+	return respondAccordingAccept(c, sessionSummary(*session))
 }
 
 type updateSessionBody struct {
@@ -188,12 +188,16 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 	if err := c.Bind(&body); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
 	session, err := a.mocksServices.UpdateSession(body.ID, body.Name)
-	if err == services.UnknownSession {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
-	} else if err != nil {
+	if err != nil {
+		if err == services.SessionNotFound {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
 	return respondAccordingAccept(c, sessionSummary{
 		ID:   session.ID,
 		Name: session.Name,
@@ -230,10 +234,12 @@ func respondAccordingAccept(c echo.Context, body interface{}) error {
 	if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
 		c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
 		c.Response().WriteHeader(http.StatusOK)
+
 		out, err := yaml.Marshal(body)
 		if err != nil {
 			return err
 		}
+
 		_, err = c.Response().Write(out)
 		return err
 	}

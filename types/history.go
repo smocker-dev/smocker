@@ -48,12 +48,12 @@ type Response struct {
 
 func HTTPRequestToRequest(req *http.Request) Request {
 	bodyBytes := []byte{}
-	var err error
 	if req.Body != nil {
+		var err error
 		bodyBytes, err = ioutil.ReadAll(req.Body)
-	}
-	if err != nil {
-		log.WithError(err).Error("Failed to read request body")
+		if err != nil {
+			log.WithError(err).Error("Failed to read request body")
+		}
 	}
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 	var body interface{}

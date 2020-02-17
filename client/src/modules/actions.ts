@@ -11,7 +11,7 @@ const newSession = createAsyncAction(
   "@APP/SESSIONS/NEW",
   "@APP/SESSIONS/NEW/SUCCESS",
   "@APP/SESSIONS/NEW/FAILURE"
-)<string, Session, Error>();
+)<void, Session, Error>();
 
 const updateSession = createAsyncAction(
   "@APP/SESSIONS/UPDATE",
