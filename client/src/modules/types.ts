@@ -1,7 +1,7 @@
 import { fold, left } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as t from "io-ts";
-import { reporter } from "io-ts-reporters";
+import { PathReporter } from "io-ts/lib/PathReporter";
 import { Observable, of, throwError } from "rxjs";
 
 export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
@@ -128,7 +128,8 @@ export function decode<C extends t.Mixed>(
     return pipe(
       codec.decode(json),
       fold(
-        error => throwError(new Error(reporter(left(error)).join("\n"))),
+        error =>
+          throwError(new Error(PathReporter.report(left(error)).join("\n"))),
         data => of(data)
       )
     );
