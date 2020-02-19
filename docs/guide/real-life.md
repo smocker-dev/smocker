@@ -1,12 +1,8 @@
 # Real Life Usage
 
-::: warning Work in Progress
-This page is not terminated yet.
-:::
-
 In real life scenarios, we not only use the **user interface of Smocker** but also its **API**. Smocker's API offers all the primitives to orchestrate your mocking environment in a fully automated way.
 
-At [OVHCloud](https://www.ovhcloud.com/fr/), **we use Smocker in complement of [Venom](https://github.com/ovh/venom)**, an integration testing framework. Venom provides primitives to create HTTP calls, manipulate databases and message queues, and much more. It also provides a powerful context for writing assertions. This is completely optional though, simple shell scripts would work just fine, although they are less expressive and more complex to write.
+At [OVHCloud](https://www.ovhcloud.com/fr/) for example, **Smocker is used in complement of [Venom](https://github.com/ovh/venom)**, an integration testing framework. Venom provides primitives to create HTTP calls, manipulate databases and message queues, and much more. It also provides a powerful context for writing assertions. This is completely optional though, simple shell scripts would work just fine, although they are less expressive and more complex to write.
 
 ## Introduction
 
@@ -112,6 +108,8 @@ type Reservation struct {
 
 ## Docker Compose File
 
+Let's synthesize this in a docker-compose file:
+
 ```yml
 version: "3"
 services:
@@ -137,7 +135,16 @@ services:
       GATEWAY_ADDR: http://smocker:8080
 ```
 
+As you can see, we do not define the `users` service since we intend to mock it.
+
+We also set **Smocker** as the gateway API on the `reservations` service using the **GATEWAY_ADDR** environment variable.
+This could be done using configuration files or any other method.
+
+The important thing is to make sure that your services calls go through **Smocker**.
+
 ## Test Files
+
+Now that we can launch our services, let's set up the venom test.
 
 ### Directory
 
@@ -151,7 +158,9 @@ tests/
 
 ### Database Fixture
 
-- reservations.yml
+Venom has a [dbfixture executor](https://github.com/ovh/venom/tree/master/executors/dbfixtures) which allows you to populate a database using yaml files.
+
+- reservations.yml (**file name <=> table name** in database)
 
 ```yml
 - id: 1
@@ -163,7 +172,13 @@ tests/
   release_date: "2020-01-02T12:00:00Z"
 ```
 
+For our purpose, we created a booking in the **reservations** table.
+
 ### Venom
+
+#### Mocks
+
+Let's go to the interesting part, the **mocks definition**.
 
 - mocks.yml
 
@@ -199,6 +214,16 @@ tests/
       ]
 ```
 
+As you can see in the file, we have defined two mocks:
+
+- A **proxy mock** on all requests which have `reservations` as `X-SERVICE-NAME` header
+- A **response mock** on `POST /search` requests which have `users` as `X-SERVICE-NAME` header \
+  (in our case, the body's matcher is redundant and could be removed as we will only make one call)
+
+#### Tests
+
+And finally, the venom test.
+
 - test.yml
 
 ```yml
@@ -217,7 +242,6 @@ testcases:
         database: postgres
         dsn: "{{.dsn}}"
         files:
-          - fixtures/users.yml
           - fixtures/reservations.yml
       - type: http
         method: POST
@@ -246,3 +270,14 @@ testcases:
           - result.bodyjson.entry_date ShouldEqual "2020-01-01T18:00:00Z"
           - result.bodyjson.release_date ShouldEqual "2020-01-02T12:00:00Z"
 ```
+
+To simply describe the above test, venom will
+
+- Init the dabase using the `reservations.yml` fixture file
+- Create a smocker session named `test1` (optional, because Smocker automatically create a session on the first call)
+- Set the mocks into Smocker using the `mocks.yml` file
+- Call the reservation API through the gateway API (a.k.a **Smocker**) and make assertions on result. \
+  We chose to make the initial call through Smocker in order to
+  - Show an example of a **proxy mock**
+  - Display the venom call in Smocker history. \
+    If we had made the call directly on `reservations` service, we would only have the call to `users` service on Smocker's history.
