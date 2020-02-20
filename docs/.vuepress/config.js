@@ -77,7 +77,8 @@ module.exports = {
         sidebarDepth: 1,
         children: [
           "/technical-documentation/api",
-          "/technical-documentation/mock-definition"
+          "/technical-documentation/mock-definition",
+          "/technical-documentation/errors"
         ]
       }
     ]

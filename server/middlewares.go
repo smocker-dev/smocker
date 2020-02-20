@@ -45,7 +45,7 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			session := s.GetLastSession()
 			if c.Request() == nil {
-				return fmt.Errorf("empty request")
+				return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: Empty request", types.SmockerInternalError))
 			}
 
 			request := types.HTTPRequestToRequest(c.Request())
@@ -57,7 +57,7 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 			c.Response().Writer = writer
 
 			if err := next(c); err != nil {
-				return err
+				return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: %v", types.SmockerInternalError, err))
 			}
 
 			responseBytes := responseBody.Bytes()
@@ -91,7 +91,7 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 				},
 			})
 			if err != nil {
-				return err
+				return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: %v", types.SmockerInternalError, err))
 			}
 			return nil
 		}

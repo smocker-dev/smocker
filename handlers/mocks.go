@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -38,8 +39,8 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	session := m.mocksServices.GetLastSession()
 	mocks, err := m.mocksServices.GetMocks(session.ID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, echo.Map{
-			"message": err.Error(),
+		return c.JSON(types.StatusSmockerInternalError, echo.Map{
+			"message": fmt.Sprintf("%s: %v", types.SmockerInternalError, err),
 			"request": actualRequest,
 		})
 	}
@@ -59,16 +60,16 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
 				if err != nil {
-					return c.JSON(http.StatusInternalServerError, echo.Map{
-						"message": err.Error(),
+					return c.JSON(types.StatusSmockerEngineExecutionError, echo.Map{
+						"message": fmt.Sprintf("%s: %v", types.SmockerEngineExecutionError, err),
 						"request": actualRequest,
 					})
 				}
 			} else if mock.Proxy != nil {
 				response, err = mock.Proxy.Redirect(actualRequest)
 				if err != nil {
-					return c.JSON(http.StatusInternalServerError, echo.Map{
-						"message": err.Error(),
+					return c.JSON(types.StatusSmockerProxyRedirectionError, echo.Map{
+						"message": fmt.Sprintf("%s: %v", types.SmockerProxyRedirectionError, err),
 						"request": actualRequest,
 					})
 				}
@@ -87,7 +88,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 	if response == nil {
 		resp := echo.Map{
-			"message": "No mock found matching the request",
+			"message": types.SmockerMockNotFound,
 			"request": actualRequest,
 		}
 
@@ -95,13 +96,13 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			for _, mock := range exceededMocks {
 				mock.State.TimesCount++
 			}
-			resp["message"] = "Matching mock found but was exceeded"
+			resp["message"] = types.SmockerMockExceeded
 			resp["nearest"] = exceededMocks
 		}
 
 		b, _ = yaml.Marshal(resp)
 		log.Debugf("No mock found, returning:\n---\n%s\n", string(b))
-		return c.JSON(666, resp)
+		return c.JSON(types.StatusSmockerMockNotFound, resp)
 	}
 
 	/* Response writing */
@@ -126,7 +127,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	// Body
 	if _, err = c.Response().Write([]byte(response.Body)); err != nil {
 		log.WithError(err).Error("Failed to write response body")
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: %v", types.SmockerInternalError, err))
 	}
 
 	b, _ = yaml.Marshal(response)
