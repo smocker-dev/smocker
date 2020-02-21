@@ -3,8 +3,8 @@ package server
 import (
 	"strconv"
 
-	"github.com/Thiht/smocker/handlers"
-	"github.com/Thiht/smocker/services"
+	"github.com/Thiht/smocker/server/handlers"
+	"github.com/Thiht/smocker/server/services"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 )

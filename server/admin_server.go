@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Thiht/smocker/config"
-	"github.com/Thiht/smocker/handlers"
+	"github.com/Thiht/smocker/server/config"
+	"github.com/Thiht/smocker/server/handlers"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 )

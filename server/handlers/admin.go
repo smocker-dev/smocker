@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Thiht/smocker/services"
-	"github.com/Thiht/smocker/types"
+	"github.com/Thiht/smocker/server/services"
+	"github.com/Thiht/smocker/server/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
