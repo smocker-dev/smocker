@@ -19,6 +19,12 @@ const updateSession = createAsyncAction(
   "@APP/SESSIONS/UPDATE/FAILURE"
 )<Session, Session, Error>();
 
+const uploadSessions = createAsyncAction(
+  "@APP/SESSIONS/UPLOAD",
+  "@APP/SESSIONS/UPLOAD/SUCCESS",
+  "@APP/SESSIONS/UPLOAD/FAILURE"
+)<any[], Sessions, Error>();
+
 const selectSession = createAction("@APP/SESSIONS/SELECT")<string>();
 
 const fetchHistory = createAsyncAction(
@@ -54,6 +60,7 @@ export const actions = {
   newSession,
   updateSession,
   selectSession,
+  uploadSessions,
   fetchHistory,
   fetchMocks,
   addMocks,

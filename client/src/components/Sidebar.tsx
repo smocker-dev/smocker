@@ -13,7 +13,8 @@ import {
   Popover,
   Row,
   Spin,
-  Typography
+  Typography,
+  Tooltip
 } from "antd";
 import "./Sidebar.scss";
 import { Sessions, Session } from "~modules/types";
@@ -83,6 +84,7 @@ interface Props {
   selectSession: (sessionID: string) => void;
   newSession: () => void;
   updateSession: (session: Session) => void;
+  uploadSessions: (sessions: any[]) => void;
 }
 
 const SideBar = ({
@@ -92,7 +94,8 @@ const SideBar = ({
   loading,
   selectSession,
   updateSession,
-  newSession
+  newSession,
+  uploadSessions
 }: Props) => {
   const [, , setPolling] = usePoll(10000, fetch);
   if (!selected && sessions.length > 0) {
@@ -119,8 +122,34 @@ const SideBar = ({
     </Menu.Item>
   ));
 
+  const onFileUpload = (event: any) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (ev: any) => {
+      try {
+        const sessionToUpload = JSON.parse(ev.target.result);
+        uploadSessions(sessionToUpload);
+      } catch (e) {
+        console.error(e); // tslint:disable-line no-console
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const title: any = (
     <Spin spinning={loading}>
+      <Tooltip
+        title="Upload a session file"
+        placement="right"
+        mouseEnterDelay={0.5}
+      >
+        <label>
+          <input type="file" onChange={onFileUpload} />
+          <a>
+            <Icon type="upload" />
+          </a>
+        </label>
+      </Tooltip>
       <span>Sessions</span>
     </Spin>
   );
@@ -161,6 +190,8 @@ export default connect(
       dispatch(actions.selectSession(sessionID)),
     newSession: () => dispatch(actions.newSession.request()),
     updateSession: (session: Session) =>
-      dispatch(actions.updateSession.request(session))
+      dispatch(actions.updateSession.request(session)),
+    uploadSessions: (sessions: Sessions) =>
+      dispatch(actions.uploadSessions.request(sessions))
   })
 )(SideBar);

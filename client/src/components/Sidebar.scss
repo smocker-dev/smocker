@@ -18,6 +18,15 @@
   .menu {
     height: 100%;
     border-right: 0;
+
+    input[type="file"] {
+      display: none;
+
+      & + a {
+        margin-right: 0.5em;
+      }
+    }
+
     .group {
       height: 100%;
       .ant-menu-item-group-title {

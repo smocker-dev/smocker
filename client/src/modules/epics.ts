@@ -17,6 +17,7 @@ const {
   fetchSessions,
   newSession,
   updateSession,
+  uploadSessions,
   fetchHistory,
   fetchMocks,
   addMocks,
@@ -79,6 +80,27 @@ const updateSessionEpic: Epic<Actions> = action$ =>
           }),
           catchError(error => {
             return of(updateSession.failure(extractError(error)));
+          })
+        );
+    })
+  );
+
+const uploadSessionsEpic: Epic<Actions> = action$ =>
+  action$.pipe(
+    filter(isActionOf(uploadSessions.request)),
+    exhaustMap(action => {
+      return ajax
+        .post(trimedPath + "/sessions/import", action.payload, {
+          "Content-Type": "application/json"
+        })
+        .pipe(
+          mergeMap(({ response }) => {
+            return decode(SessionsCodec)(response).pipe(
+              map(resp => uploadSessions.success(resp))
+            );
+          }),
+          catchError(error => {
+            return of(uploadSessions.failure(extractError(error)));
           })
         );
     })
@@ -157,6 +179,7 @@ export default combineEpics(
   fetchSessionsEpic,
   newSessionEpic,
   updateSessionEpic,
+  uploadSessionsEpic,
   fetchHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,
