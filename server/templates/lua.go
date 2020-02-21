@@ -3,7 +3,7 @@ package templates
 import (
 	"fmt"
 
-	"github.com/Thiht/smocker/types"
+	"github.com/Thiht/smocker/server/types"
 	json "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"

@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/Thiht/smocker/config"
 	"github.com/Thiht/smocker/server"
+	"github.com/Thiht/smocker/server/config"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
 )

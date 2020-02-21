@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Thiht/smocker/types"
+	"github.com/Thiht/smocker/server/types"
 	"github.com/google/uuid"
 )
 
