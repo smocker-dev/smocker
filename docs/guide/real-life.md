@@ -281,3 +281,5 @@ To simply describe the above test, venom will
   - Show an example of a **proxy mock**
   - Display the venom call in Smocker history. \
     If we had made the call directly on `reservations` service, we would only have the call to `users` service on Smocker's history.
+
+For real venom tests examples, we invite you to check the [Smocker's venom tests](https://github.com/Thiht/smocker/tree/master/tests/features).

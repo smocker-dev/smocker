@@ -1,9 +1,5 @@
 # Mock Definition
 
-::: warning Work in Progress
-This page is not terminated yet.
-:::
-
 Mocks are written mainly using YAML.
 
 A mock must respect this format:
