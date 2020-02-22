@@ -38,13 +38,13 @@ func Serve(config config.Config) {
 	// Admin Routes
 	e.GET("/mocks", handler.GetMocks)
 	e.POST("/mocks", handler.AddMocks)
-	e.POST("/mocks/verify", handler.VerifyMocks)
 	e.GET("/history", handler.GetHistory)
 	e.GET("/sessions", handler.GetSessions)
 	e.POST("/sessions", handler.NewSession)
 	e.PUT("/sessions", handler.UpdateSession)
 	e.GET("/sessions/summary", handler.SummarizeSessions)
 	e.POST("/sessions/import", handler.ImportSession)
+	e.POST("/verify", handler.Verify)
 	e.POST("/reset", handler.Reset)
 
 	// Health Check Route

@@ -58,6 +58,14 @@ func (m *Mock) Validate() error {
 	return nil
 }
 
+func (m *Mock) Verify() bool {
+	isTimesDefined := m.Context.Times > 0
+	isRelaxed := m.Context.Relaxed
+	hasBeenCalledRightNumberOfTimes := m.State.TimesCount == m.Context.Times
+	didNotExceedLimit := m.State.TimesCount <= m.Context.Times
+	return !isTimesDefined || isRelaxed && didNotExceedLimit || hasBeenCalledRightNumberOfTimes
+}
+
 type MockRequest struct {
 	Path        StringMatcher    `json:"path" yaml:"path"`
 	Method      StringMatcher    `json:"method" yaml:"method"`
@@ -137,7 +145,8 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 }
 
 type MockContext struct {
-	Times int `json:"times,omitempty" yaml:"times,omitempty"`
+	Times   int  `json:"times,omitempty" yaml:"times,omitempty"`
+	Relaxed bool `json:"relaxed,omitempty" yaml:"relaxed,omitempty"`
 }
 
 type MockState struct {
