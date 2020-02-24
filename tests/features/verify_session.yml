@@ -68,7 +68,7 @@ testcases:
       # The mocks should be verified
       - type: http
         method: POST
-        url: http://localhost:8081/verify
+        url: http://localhost:8081/sessions/verify
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.mocks.verified ShouldBeTrue
@@ -90,7 +90,7 @@ testcases:
       # After the extra call the expectations should failed
       - type: http
         method: POST
-        url: http://localhost:8081/verify
+        url: http://localhost:8081/sessions/verify
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.mocks.verified ShouldBeFalse
@@ -119,7 +119,7 @@ testcases:
       # After that there should be an unused mocks
       - type: http
         method: POST
-        url: http://localhost:8081/verify
+        url: http://localhost:8081/sessions/verify
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.mocks.message ShouldEqual "Some mocks don't match expectations"

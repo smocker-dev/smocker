@@ -42,9 +42,9 @@ func Serve(config config.Config) {
 	e.GET("/sessions", handler.GetSessions)
 	e.POST("/sessions", handler.NewSession)
 	e.PUT("/sessions", handler.UpdateSession)
+	e.POST("/sessions/verify", handler.Verify)
 	e.GET("/sessions/summary", handler.SummarizeSessions)
 	e.POST("/sessions/import", handler.ImportSession)
-	e.POST("/verify", handler.Verify)
 	e.POST("/reset", handler.Reset)
 
 	// Health Check Route
