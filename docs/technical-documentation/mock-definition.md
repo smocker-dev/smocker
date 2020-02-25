@@ -1,9 +1,5 @@
 # Mock Definition
 
-::: warning Work in Progress
-This page is not terminated yet.
-:::
-
 Mocks are written mainly using YAML.
 
 A mock must respect this format:
@@ -47,7 +43,45 @@ A mock must respect this format:
 
 ## Format of `request` section
 
-A Smocker `request` is an object composed of _matchers_ to apply on different fields of an HTTP request, such as the method, the path, the headers, etc.
+`request` has the following format:
+
+```yaml
+request:
+  # string matcher
+  method: PUT
+
+  # string matcher
+  path: /foo/bar
+
+  # multi map matcher
+  query_params:
+    limit: 10
+    offset: 0
+    filter: [foo, bar]
+
+  # multi map matcher
+  headers:
+    Content-Type: application/json
+
+  # string matcher
+  body:
+    matcher: ShouldEqualJSON
+    value: >
+      {
+        "hello": "world"
+      }
+```
+
+The above request will match the following request:
+
+```sh
+curl -XPUT \
+  --header 'Content-Type: application/json' \
+  --data '{ "hello": "world" }'
+  'localhost:8080/foo/bar?limit=10&offset=0&filter=foo&filter=bar'
+```
+
+As described above a `request` is an object composed of _matchers_ to apply on different fields of an HTTP request, such as the method, the path, the headers, etc.
 
 Matchers are used to apply a predicate on a field. The most basic example of matcher is `ShouldEqual` which is used to compare a field to a text. Smocker defines two types of matchers: **string matchers** and **multi map matchers**.
 
@@ -99,56 +133,6 @@ The whole list of available matchers is:
 | `ShouldMatch` / `ShouldNotMatch`                       | Regexp match           |
 
 ---
-
-`request` has the following format:
-
-```yaml
-request:
-  # string matcher
-  method: PUT
-
-  # string matcher
-  path: /foo/bar
-
-  # multi map matcher
-  query_params:
-    limit: 10
-    offset: 0
-    filter: [foo, bar]
-
-  # multi map matcher
-  headers:
-    Content-Type: application/json
-
-  # string matcher
-  body:
-    matcher: ShouldEqualJSON
-    value: >
-      {
-        "hello": "world"
-      }
-```
-
-The above request will match the following request:
-
-```sh
-curl -XPUT \
-  --header 'Content-Type: application/json' \
-  --data '{ "hello": "world" }'
-  'localhost:8080/foo/bar?limit=10&offset=0&filter=foo&filter=bar'
-```
-
-Each of the fields of the request can also be defined as a matcher, in order to do dynamic matching. For example, the following request will match all the `GET` requests on the subroutes of `/foo` (`/foo/bar`, `/foo/baz`, ...):
-
-```yaml
-request:
-  method: GET
-  path:
-    matcher: ShouldMatch
-    value: /foo/.*
-```
-
-The list of the available matchers is available [Matchers page](https://github.com/Thiht/smocker/wiki/Matchers).
 
 ## Format of `context` section
 
