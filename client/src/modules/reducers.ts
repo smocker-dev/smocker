@@ -4,11 +4,18 @@ import { Actions, actions } from "./actions";
 import { Error, History, Mocks, Sessions } from "./types";
 
 const loadingSessions = (state = false, action: Actions) => {
-  const { fetchSessions, newSession, updateSession, reset } = actions;
+  const {
+    fetchSessions,
+    newSession,
+    updateSession,
+    uploadSessions,
+    reset
+  } = actions;
   switch (action.type) {
     case getType(fetchSessions.request):
     case getType(newSession.request):
     case getType(updateSession.request):
+    case getType(uploadSessions.request):
     case getType(reset.request): {
       return true;
     }
@@ -18,6 +25,8 @@ const loadingSessions = (state = false, action: Actions) => {
     case getType(newSession.failure):
     case getType(updateSession.success):
     case getType(updateSession.failure):
+    case getType(uploadSessions.success):
+    case getType(uploadSessions.failure):
     case getType(reset.success):
     case getType(reset.failure): {
       return false;
@@ -28,12 +37,19 @@ const loadingSessions = (state = false, action: Actions) => {
 };
 
 const sessionList = (state: Sessions = [], action: Actions) => {
-  const { fetchSessions, newSession, updateSession, reset } = actions;
+  const {
+    fetchSessions,
+    newSession,
+    updateSession,
+    uploadSessions,
+    reset
+  } = actions;
   switch (action.type) {
     case getType(reset.success): {
       return [];
     }
-    case getType(fetchSessions.success): {
+    case getType(fetchSessions.success):
+    case getType(uploadSessions.success): {
       return [...action.payload];
     }
     case getType(newSession.success): {
@@ -50,17 +66,25 @@ const sessionList = (state: Sessions = [], action: Actions) => {
 };
 
 const sessionError = (state: Error | null = null, action: Actions) => {
-  const { fetchSessions, newSession, updateSession, reset } = actions;
+  const {
+    fetchSessions,
+    newSession,
+    updateSession,
+    uploadSessions,
+    reset
+  } = actions;
   switch (action.type) {
     case getType(fetchSessions.failure):
     case getType(newSession.failure):
     case getType(updateSession.failure):
+    case getType(uploadSessions.failure):
     case getType(reset.failure): {
       return action.payload;
     }
     case getType(fetchSessions.success):
     case getType(newSession.success):
     case getType(updateSession.success):
+    case getType(uploadSessions.success):
     case getType(reset.success): {
       return null;
     }
@@ -75,6 +99,7 @@ const selectedSession = (state: string = "", action: Actions) => {
     newSession,
     selectSession,
     updateSession,
+    uploadSessions,
     reset
   } = actions;
   switch (action.type) {
@@ -88,7 +113,8 @@ const selectedSession = (state: string = "", action: Actions) => {
     case getType(updateSession.success): {
       return action.payload.id;
     }
-    case getType(fetchSessions.success): {
+    case getType(fetchSessions.success):
+    case getType(uploadSessions.success): {
       if (!state) {
         return "";
       }
