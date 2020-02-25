@@ -58,6 +58,12 @@ func (m *Mock) Validate() error {
 	return nil
 }
 
+func (m *Mock) Verify() bool {
+	isTimesDefined := m.Context.Times > 0
+	hasBeenCalledRightNumberOfTimes := m.State.TimesCount == m.Context.Times
+	return !isTimesDefined || hasBeenCalledRightNumberOfTimes
+}
+
 type MockRequest struct {
 	Path        StringMatcher    `json:"path" yaml:"path"`
 	Method      StringMatcher    `json:"method" yaml:"method"`

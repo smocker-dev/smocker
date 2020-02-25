@@ -68,11 +68,14 @@ testcases:
       # The mocks should be verified
       - type: http
         method: POST
-        url: http://localhost:8081/mocks/verify
+        url: http://localhost:8081/sessions/verify
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.message ShouldEqual "All mocks match expectations"
-          - result.bodyjson.verified ShouldBeTrue
+          - result.bodyjson.mocks.verified ShouldBeTrue
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.mocks.message ShouldEqual "All mocks match expectations"
+          - result.bodyjson.history.verified ShouldBeTrue
+          - result.bodyjson.history.message ShouldEqual "History is clean"
 
       # We add an extra call to 'test'/'test2' wich should failed because call times was exceeded
       - type: http
@@ -87,9 +90,38 @@ testcases:
       # After the extra call the expectations should failed
       - type: http
         method: POST
-        url: http://localhost:8081/mocks/verify
+        url: http://localhost:8081/sessions/verify
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.message ShouldEqual "Some mocks don't match expectations"
-          - result.bodyjson.verified ShouldBeFalse
-          - result.bodyjson.mocks.__len__ ShouldEqual 2
+          - result.bodyjson.mocks.verified ShouldBeFalse
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.mocks.message ShouldEqual "Some mocks don't match expectations"
+          - result.bodyjson.mocks.failures.__len__ ShouldEqual 2
+          - result.bodyjson.history.verified ShouldBeFalse
+          - result.bodyjson.history.failures.__len__ ShouldEqual 1
+
+      # We add an extra unused mocks
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        body: >
+          - request:
+              method: GET
+              path: /test
+            response:
+              status: 200
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
+      # After that there should be an unused mocks
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions/verify
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.message ShouldEqual "Some mocks don't match expectations"
+          - result.bodyjson.mocks.all_used ShouldBeFalse
+          - result.bodyjson.mocks.unused.__len__ ShouldEqual 1
