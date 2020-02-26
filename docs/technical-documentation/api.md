@@ -152,66 +152,6 @@ Retrieves the mocks declared into Smocker for a session (by default the last one
 The mocks will be ordered from highest to lowest priority.
 :::
 
-## Verify Mocks
-
-Verifies that the mocks have been called the right number of times according their `context` for a session (by default the last one).
-
-- **Endpoint**: `POST /mocks/verify`
-- **Query Parameters**:
-
-| Name      | Description                                                                                   |
-| --------- | --------------------------------------------------------------------------------------------- |
-| `session` | _Optional_, the ID of the session to which the mock(s) belong. (**default**: last session ID) |
-
-- **Headers**:
-
-| Name     | Values                                   | Description                                                                           |
-| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
-
-- **Errors**:
-
-  - `404 Not Found`, if no session match the ID passed in parameter.
-
-- **Sample Response**:
-
-```json
-{
-  "message": "All mocks match expectations"
-}
-```
-
-- **Sample Response**:
-
-```json
-{
-  "message": "Some mocks don't match expectations",
-  "mocks": [
-    {
-      "request": {
-        "path": "/test",
-        "method": "GET"
-      },
-      "response": {
-        "body": "{\"message\": \"test\"}",
-        "status": 200,
-        "headers": {
-          "Content-Type": ["application/json"]
-        }
-      },
-      "context": {
-        "times": 1
-      },
-      "state": {
-        "id": "9532f001-86d4-4962-ae3d-8e2786aca243",
-        "times_count": 2,
-        "creation_date": "2020-02-01T03:47:48.911207+01:00"
-      }
-    }
-  ]
-}
-```
-
 ## Get History
 
 Retrieves the history of calls made to Smocker for a session (by default the last one).
@@ -522,6 +462,201 @@ Updates a session's name.
   "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
   "name": "test",
   "date": "2020-02-12T00:04:43.3337425+01:00"
+}
+```
+
+## Verify Session
+
+Verifies that for a session (by default the last one) the mocks have been called the right number of times according their `context` and
+that there is no Smocker error in history.
+
+- **Endpoint**: `POST /sessions/verify`
+- **Query Parameters**:
+
+| Name      | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `session` | _Optional_, the ID of the session to which the mock(s) belong. (**default**: last session ID) |
+
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `404 Not Found`, if no session match the ID passed in parameter.
+
+- **Sample Response**:
+
+```json
+{
+  "mocks": {
+    "verified": true,
+    "all_used": true,
+    "message": "All mocks match expectations"
+  },
+  "history": {
+    "verified": true,
+    "message": "History is clean"
+  }
+}
+```
+
+- **Sample Response**:
+
+```json
+{
+  "mocks": {
+    "verified": false,
+    "all_used": false,
+    "message": "Some mocks don't match expectations",
+    "failures": [
+      {
+        "request": {
+          "path": "/test",
+          "method": "GET"
+        },
+        "response": {
+          "body": "{\"message\": \"test2\"}\n",
+          "status": 200,
+          "headers": {
+            "Content-Type": ["application/json"]
+          }
+        },
+        "context": {
+          "times": 1
+        },
+        "state": {
+          "id": "6ecbd8f8-e2a7-4119-9be6-ad5ec83c58b6",
+          "times_count": 2,
+          "creation_date": "2020-02-26T12:11:34.713399+01:00"
+        }
+      },
+      {
+        "request": {
+          "path": "/test",
+          "method": "GET"
+        },
+        "response": {
+          "body": "{\"message\": \"test\"}\n",
+          "status": 200,
+          "headers": {
+            "Content-Type": ["application/json"]
+          }
+        },
+        "context": {
+          "times": 1
+        },
+        "state": {
+          "id": "30266b21-77c0-48e6-b27e-5aa02d7defd8",
+          "times_count": 2,
+          "creation_date": "2020-02-26T12:11:34.713396+01:00"
+        }
+      }
+    ],
+    "unused": [
+      {
+        "request": {
+          "path": "/test",
+          "method": "GET"
+        },
+        "response": {
+          "status": 200
+        },
+        "context": {},
+        "state": {
+          "id": "d9ce47d4-86b7-4cb5-b7e9-829063704cec",
+          "times_count": 0,
+          "creation_date": "2020-02-26T12:11:34.747289+01:00"
+        }
+      }
+    ]
+  },
+  "history": {
+    "verified": false,
+    "message": "There are errors in the history",
+    "failures": [
+      {
+        "request": {
+          "path": "/test",
+          "method": "GET",
+          "body": "",
+          "headers": {
+            "Accept-Encoding": ["gzip"],
+            "Host": ["localhost:8080"],
+            "User-Agent": ["Go-http-client/1.1"]
+          },
+          "date": "2020-02-26T12:11:34.737809+01:00"
+        },
+        "response": {
+          "status": 666,
+          "body": {
+            "message": "Matching mock found but was exceeded",
+            "nearest": [
+              {
+                "context": {
+                  "times": 1
+                },
+                "request": {
+                  "method": "GET",
+                  "path": "/test"
+                },
+                "response": {
+                  "body": "{\"message\": \"test2\"}\n",
+                  "headers": {
+                    "Content-Type": ["application/json"]
+                  },
+                  "status": 200
+                },
+                "state": {
+                  "creation_date": "2020-02-26T12:11:34.713399+01:00",
+                  "id": "6ecbd8f8-e2a7-4119-9be6-ad5ec83c58b6",
+                  "times_count": 2
+                }
+              },
+              {
+                "context": {
+                  "times": 1
+                },
+                "request": {
+                  "method": "GET",
+                  "path": "/test"
+                },
+                "response": {
+                  "body": "{\"message\": \"test\"}\n",
+                  "headers": {
+                    "Content-Type": ["application/json"]
+                  },
+                  "status": 200
+                },
+                "state": {
+                  "creation_date": "2020-02-26T12:11:34.713396+01:00",
+                  "id": "30266b21-77c0-48e6-b27e-5aa02d7defd8",
+                  "times_count": 2
+                }
+              }
+            ],
+            "request": {
+              "body": "",
+              "date": "2020-02-26T12:11:34.737814+01:00",
+              "headers": {
+                "Accept-Encoding": ["gzip"],
+                "Host": ["localhost:8080"],
+                "User-Agent": ["Go-http-client/1.1"]
+              },
+              "method": "GET",
+              "path": "/test"
+            }
+          },
+          "headers": {
+            "Content-Type": ["application/json; charset=UTF-8"]
+          },
+          "date": "2020-02-26T12:11:34.738625+01:00"
+        }
+      }
+    ]
+  }
 }
 ```
 
