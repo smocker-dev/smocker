@@ -1,0 +1,9 @@
+@import "~/variables.scss";
+
+#root .visualize {
+  padding: 1em 8em 0;
+
+  @media screen and (max-width: 1200px) {
+    padding: 1em 2em 0;
+  }
+}

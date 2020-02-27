@@ -19,6 +19,7 @@ import History from "./History";
 import Mocks from "./Mocks";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import Visualize from "./Visualize";
 
 const epicMiddleware = createEpicMiddleware<Actions>();
 
@@ -42,6 +43,7 @@ const App = () => (
                 <Route exact path="/pages/history" component={History} />
                 <Route exact path="/pages/mocks" component={Mocks} />
                 <Route exact path="/pages/mocks/:mock_id" component={Mocks} />
+                <Route exact path="/pages/visualize" component={Visualize} />
                 <Redirect to="/pages/history" />
               </Switch>
             </Layout.Content>
