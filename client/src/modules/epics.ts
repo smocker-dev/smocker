@@ -19,6 +19,7 @@ const {
   updateSession,
   uploadSessions,
   fetchHistory,
+  visualizeHistory,
   fetchMocks,
   addMocks,
   reset,
@@ -124,6 +125,22 @@ const fetchHistoryEpic: Epic<Actions> = (action$) =>
     })
   );
 
+const visualizeHistoryEpic: Epic<Actions> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(visualizeHistory.request)),
+    exhaustMap((action) => {
+      const query = action.payload ? `?session=${action.payload}` : "";
+      return ajax.get(trimedPath + "/history/visualize" + query).pipe(
+        map(({ response }) => {
+          return visualizeHistory.success(response.message);
+        }),
+        catchError((error) => {
+          return of(visualizeHistory.failure(extractError(error)));
+        })
+      );
+    })
+  );
+
 const fetchMocksEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf([fetchMocks.request, addMocks.success])),
@@ -181,6 +198,7 @@ export default combineEpics(
   updateSessionEpic,
   uploadSessionsEpic,
   fetchHistoryEpic,
+  visualizeHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,
   resetEpic

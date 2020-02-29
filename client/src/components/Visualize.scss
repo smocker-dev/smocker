@@ -6,4 +6,57 @@
   @media screen and (max-width: 1200px) {
     padding: 1em 2em 0;
   }
+
+  .container {
+    position: relative;
+    .card {
+      min-width: 50%;
+      .mermaid {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+      }
+    }
+
+    .absolute {
+      position: absolute;
+      bottom: 0;
+      right: 1em;
+    }
+  }
+
+  .action.buttons {
+    button {
+      margin-left: 0.5em;
+    }
+  }
+
+  .drawer {
+    .ant-drawer-body {
+      overflow-y: auto;
+      .form {
+        background-color: #263238;
+        border-radius: 3px;
+        height: 100%;
+        .CodeMirror {
+          position: relative;
+          height: auto;
+          overflow-y: hidden;
+          padding: 0.5em 0 0.5em 0.5em;
+          margin: 0;
+          border-radius: 3px;
+
+          .CodeMirror-scroll {
+            height: auto;
+          }
+        }
+      }
+    }
+    .action.buttons {
+      text-align: right;
+      button {
+        margin-left: 0.5em;
+      }
+    }
+  }
 }

@@ -15,6 +15,7 @@
     "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
   },
   "devDependencies": {
+    "@ant-design/icons": "^4.0.0",
     "@babel/core": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
     "@hot-loader/react-dom": "^16.10.2",
@@ -64,6 +65,7 @@
     "antd": "^4.2.5",
     "classnames": "^2.2.6",
     "codemirror": "^5.49.0",
+    "core-js": "^3.6.4",
     "fp-ts": "^2.1.1",
     "io-ts": "^2.0.1",
     "js-yaml": "^3.13.1",
@@ -79,6 +81,7 @@
     "redux": "^4.0.4",
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
+    "save-svg-as-png": "^1.4.17",
     "typesafe-actions": "^5.1.0"
   },
   "peerDependencies": {

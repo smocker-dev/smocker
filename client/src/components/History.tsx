@@ -1,4 +1,5 @@
 import {
+  PartitionOutlined,
   PauseCircleFilled,
   PlayCircleFilled,
   PlusCircleOutlined,
@@ -247,7 +248,7 @@ const History = ({
             <div className="action buttons">
               <Button
                 type="primary"
-                icon="eye"
+                icon={<PartitionOutlined />}
                 className="visualize-button"
                 onClick={onVisualize}
               >

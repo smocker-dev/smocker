@@ -183,10 +183,26 @@ const entryError = (state: Error | null = null, action: Actions) => {
   }
 };
 
+const historyGraph = (state = "", action: Actions) => {
+  const { visualizeHistory, reset } = actions;
+  switch (action.type) {
+    case getType(visualizeHistory.success): {
+      return action.payload;
+    }
+    case getType(visualizeHistory.failure):
+    case getType(reset.success): {
+      return "";
+    }
+    default:
+      return state;
+  }
+};
+
 const history = combineReducers({
   loading: loadingHistory,
   list: entryList,
   error: entryError,
+  graph: historyGraph,
 });
 
 const loadingMocks = (state = false, action: Actions) => {
