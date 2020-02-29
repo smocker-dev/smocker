@@ -1,9 +1,9 @@
-import { EditOutlined, SaveOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Card, Drawer, Form, PageHeader, Row } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
+import { RouteComponentProps, withRouter } from "react-router-dom";
 import { Dispatch } from "redux";
-import { saveSvgAsPng } from "save-svg-as-png";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import Code from "./Code";
@@ -39,13 +39,13 @@ const EditGraph = ({
   );
 };
 
-interface Props {
+interface Props extends RouteComponentProps<{}> {
   sessionID: string;
   graph: string;
   visualize: (sessionID: string) => void;
 }
 
-const Visualize = ({ sessionID, graph, visualize }: Props) => {
+const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   const [diagram, setDiagram] = React.useState("");
   const [editGraph, setEditGraph] = React.useState(false);
 
@@ -60,14 +60,8 @@ const Visualize = ({ sessionID, graph, visualize }: Props) => {
   const handleEditGraph = () => setEditGraph(true);
   const handleChangeGraph = (diag: string) => setDiagram(diag);
   const handleCloseEditGraph = () => setEditGraph(false);
-  const handleSaveGraph = () => {
-    saveSvgAsPng(document.getElementById("diagram"), "diagram.png", {
-      backgroundColor: "white",
-      scale: 2,
-      encoderOptions: 1,
-      ignoreMouse: true,
-      ignoreAnimation: true,
-    });
+  const handleBack = () => {
+    history.push("/pages/history");
   };
   return (
     <div className="visualize">
@@ -75,15 +69,15 @@ const Visualize = ({ sessionID, graph, visualize }: Props) => {
         title={"Diagram of calls"}
         extra={
           <div className="action buttons">
+            <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
+              Back to History
+            </Button>
             <Button
               type="primary"
               icon={<EditOutlined />}
               onClick={handleEditGraph}
             >
               Edit
-            </Button>
-            <Button icon={<SaveOutlined />} onClick={handleSaveGraph}>
-              Save
             </Button>
           </div>
         }
@@ -109,16 +103,18 @@ const Visualize = ({ sessionID, graph, visualize }: Props) => {
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, history } = state;
-    return {
-      sessionID: sessions.selected,
-      graph: history.graph,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    visualize: (sessionID: string) =>
-      dispatch(actions.visualizeHistory.request(sessionID)),
-  })
-)(Visualize);
+export default withRouter(
+  connect(
+    (state: AppState) => {
+      const { sessions, history } = state;
+      return {
+        sessionID: sessions.selected,
+        graph: history.graph,
+      };
+    },
+    (dispatch: Dispatch<Actions>) => ({
+      visualize: (sessionID: string) =>
+        dispatch(actions.visualizeHistory.request(sessionID)),
+    })
+  )(Visualize)
+);

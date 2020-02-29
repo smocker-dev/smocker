@@ -24,7 +24,10 @@ export const Mermaid = ({ name, chart }: any) => {
 
   return (
     <div className="mermaid">
-      <div dangerouslySetInnerHTML={{ __html: diagram }} />
+      <div
+        style={{ width: "100%" }}
+        dangerouslySetInnerHTML={{ __html: diagram }}
+      />
       {error && (
         <Alert
           message="Unable to render"

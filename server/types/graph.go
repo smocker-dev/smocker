@@ -5,7 +5,6 @@ import "time"
 type GraphConfig struct {
 	SrcHeader  string `query:"src"`
 	DestHeader string `query:"dest"`
-	HideProxy  bool   `query:"hideProxy"`
 }
 
 type GraphEntry struct {

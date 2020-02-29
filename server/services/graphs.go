@@ -60,9 +60,11 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 			params = "?" + params
 		}
 
+		requestMessage := ellipsis(entry.Request.Method + " " + entry.Request.Path + params)
+
 		history = append(history, types.GraphEntry{
 			Type:    "request",
-			Message: entry.Request.Method + " " + entry.Request.Path + params,
+			Message: requestMessage,
 			From:    from,
 			To:      to,
 			Date:    entry.Request.Date,
@@ -76,35 +78,45 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 			Date:    entry.Response.Date,
 		})
 
-		if entry.MockID != "" && mocksByID[entry.MockID].Proxy != nil {
-			host := mocksByID[entry.MockID].Proxy.Host
-			u, err := url.Parse(host)
-			if err == nil {
-				host = u.Host
-			}
-			if _, ok := endpointsFromOrigin[host]; !ok {
-				enpointNumber := len(endpointsFromOrigin) + 1
-				endpointsFromOrigin[host] = fmt.Sprintf("Endpoint %d", enpointNumber)
-				endpoints = append(endpoints, endpoint{
-					Name:  endpointsFromOrigin[host],
-					Alias: fmt.Sprintf("E%d", enpointNumber),
+		if entry.MockID != "" {
+			if mocksByID[entry.MockID].Proxy != nil {
+				host := mocksByID[entry.MockID].Proxy.Host
+				u, err := url.Parse(host)
+				if err == nil {
+					host = u.Host
+				}
+				if _, ok := endpointsFromOrigin[host]; !ok {
+					enpointNumber := len(endpointsFromOrigin) + 1
+					endpointsFromOrigin[host] = fmt.Sprintf("Endpoint %d", enpointNumber)
+					endpoints = append(endpoints, endpoint{
+						Name:  endpointsFromOrigin[host],
+						Alias: fmt.Sprintf("E%d", enpointNumber),
+					})
+				}
+				history = append(history, types.GraphEntry{
+					Type:    "request",
+					Message: requestMessage,
+					From:    endpoints.GetAlias("Smocker"),
+					To:      endpoints.GetAlias(endpointsFromOrigin[host]),
+					Date:    entry.Request.Date.Add(1 * time.Nanosecond),
+				})
+
+				history = append(history, types.GraphEntry{
+					Type:    "response",
+					Message: fmt.Sprintf("%d", entry.Response.Status),
+					From:    endpoints.GetAlias(endpointsFromOrigin[host]),
+					To:      endpoints.GetAlias("Smocker"),
+					Date:    entry.Response.Date.Add(-1 * time.Nanosecond),
+				})
+			} else {
+				history = append(history, types.GraphEntry{
+					Type:    "processing",
+					Message: "use response mock",
+					From:    to,
+					To:      to,
+					Date:    entry.Response.Date.Add(-1 * time.Nanosecond),
 				})
 			}
-			history = append(history, types.GraphEntry{
-				Type:    "request",
-				Message: entry.Request.Method + " " + entry.Request.Path + params,
-				From:    endpoints.GetAlias("Smocker"),
-				To:      endpoints.GetAlias(endpointsFromOrigin[host]),
-				Date:    entry.Request.Date.Add(1 * time.Millisecond),
-			})
-
-			history = append(history, types.GraphEntry{
-				Type:    "response",
-				Message: fmt.Sprintf("%d", entry.Response.Status),
-				From:    endpoints.GetAlias(endpointsFromOrigin[host]),
-				To:      endpoints.GetAlias("Smocker"),
-				Date:    entry.Response.Date.Add(-1 * time.Millisecond),
-			})
 		}
 
 	}
@@ -123,9 +135,11 @@ func renderGraph(gh types.GraphHistory, eps endpoints) string {
 		if entry.From == "C" {
 			res += fmt.Sprintln("    rect rgb(250, 250, 250)")
 		}
-		arrow := "-->>-"
+		arrow := "-->>"
 		if entry.Type == "request" {
 			arrow = "->>+"
+		} else if entry.Type == "response" {
+			arrow = "-->>-"
 		}
 		res += fmt.Sprintf("      %s%s%s: %s\n", entry.From, arrow, entry.To, entry.Message)
 		if entry.To == "C" {
@@ -133,4 +147,12 @@ func renderGraph(gh types.GraphHistory, eps endpoints) string {
 		}
 	}
 	return res
+}
+
+func ellipsis(s string) string {
+	const maxSize = 50
+	if len(s) > maxSize {
+		return s[:maxSize-3] + "..."
+	}
+	return s
 }

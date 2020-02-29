@@ -81,7 +81,6 @@
     "redux": "^4.0.4",
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
-    "save-svg-as-png": "^1.4.17",
     "typesafe-actions": "^5.1.0"
   },
   "peerDependencies": {
