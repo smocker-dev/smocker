@@ -34,6 +34,11 @@ const Navbar = ({ loading, reset, location }: Props) => {
           <Menu.Item key="/pages/mocks">
             <Link to="/pages/mocks">Mocks</Link>
           </Menu.Item>
+          <Menu.Item>
+            <a href="https://smocker.dev/" target="_blank">
+              Documentation
+            </a>
+          </Menu.Item>
         </Menu>
         <Button
           type="danger"
