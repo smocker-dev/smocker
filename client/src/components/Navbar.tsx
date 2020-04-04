@@ -56,10 +56,10 @@ const Navbar = ({ loading, reset, location }: Props) => {
 export default withRouter(
   connect(
     (state: AppState) => ({
-      loading: state.history.loading || state.mocks.loading
+      loading: state.history.loading || state.mocks.loading,
     }),
     (dispatch: Dispatch<Actions>) => ({
-      reset: () => dispatch(actions.reset.request())
+      reset: () => dispatch(actions.reset.request()),
     })
   )(Navbar)
 );

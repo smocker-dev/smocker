@@ -7,14 +7,14 @@ import { Observable, of, throwError } from "rxjs";
 export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
 
 export const ErrorCodec = t.type({
-  message: t.any
+  message: t.any,
 });
 export type Error = t.TypeOf<typeof ErrorCodec>;
 
 export const SessionCodec = t.type({
   id: t.string,
   name: t.string,
-  date: t.string
+  date: t.string,
 });
 export type Session = t.TypeOf<typeof SessionCodec>;
 
@@ -26,13 +26,13 @@ export type Multimap = t.TypeOf<typeof MultimapCodec>;
 
 const StringMatcherCodec = t.type({
   matcher: t.string,
-  value: t.string
+  value: t.string,
 });
 export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 
 const MultimapMatcherCodec = t.type({
   matcher: t.string,
-  values: MultimapCodec
+  values: MultimapCodec,
 });
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 
@@ -42,7 +42,7 @@ const EntryRequestCodec = t.type({
   body: t.union([t.any, t.undefined]),
   query_params: t.union([MultimapCodec, t.undefined]),
   headers: t.union([MultimapCodec, t.undefined]),
-  date: t.string
+  date: t.string,
 });
 export type EntryRequest = t.TypeOf<typeof EntryRequestCodec>;
 
@@ -50,14 +50,14 @@ const EntryResponseCodec = t.type({
   status: t.number,
   body: t.union([t.undefined, t.any]),
   headers: t.union([MultimapCodec, t.undefined]),
-  date: t.string
+  date: t.string,
 });
 export type EntryResponse = t.TypeOf<typeof EntryResponseCodec>;
 
 const EntryCodec = t.type({
   mock_id: t.union([t.undefined, t.string]),
   request: EntryRequestCodec,
-  response: EntryResponseCodec
+  response: EntryResponseCodec,
 });
 export type Entry = t.TypeOf<typeof EntryCodec>;
 
@@ -69,14 +69,14 @@ const MockRequestCodec = t.type({
   method: t.union([t.string, StringMatcherCodec]),
   body: t.union([t.string, StringMatcherCodec, t.undefined]),
   query_params: t.union([MultimapCodec, MultimapMatcherCodec, t.undefined]),
-  headers: t.union([MultimapCodec, MultimapMatcherCodec, t.undefined])
+  headers: t.union([MultimapCodec, MultimapMatcherCodec, t.undefined]),
 });
 export type MockRequest = t.TypeOf<typeof MockRequestCodec>;
 
 const MockResponseCodec = t.type({
   status: t.number,
   body: t.union([t.undefined, t.any]),
-  headers: t.union([MultimapCodec, t.undefined])
+  headers: t.union([MultimapCodec, t.undefined]),
 });
 export type MockResponse = t.TypeOf<typeof MockResponseCodec>;
 
@@ -85,26 +85,26 @@ const MockDynamicResponseCodec = t.type({
     t.literal("go_template"),
     t.literal("go_template_yaml"),
     t.literal("go_template_json"),
-    t.literal("lua")
+    t.literal("lua"),
   ]),
-  script: t.string
+  script: t.string,
 });
 export type MockDynamicResponse = t.TypeOf<typeof MockDynamicResponseCodec>;
 
 const MockProxyCodec = t.type({
-  host: t.string
+  host: t.string,
 });
 export type MockProxy = t.TypeOf<typeof MockProxyCodec>;
 
 const MockContextCodec = t.type({
-  times: t.union([t.number, t.undefined])
+  times: t.union([t.number, t.undefined]),
 });
 export type MockContext = t.TypeOf<typeof MockContextCodec>;
 
 const MockStateCodec = t.type({
   times_count: t.number,
   creation_date: t.string,
-  id: t.string
+  id: t.string,
 });
 export type MockState = t.TypeOf<typeof MockStateCodec>;
 
@@ -114,7 +114,7 @@ const MockCodec = t.type({
   dynamic_response: t.union([MockDynamicResponseCodec, t.undefined]),
   proxy: t.union([MockProxyCodec, t.undefined]),
   context: MockContextCodec,
-  state: MockStateCodec
+  state: MockStateCodec,
 });
 export type Mock = t.TypeOf<typeof MockCodec>;
 
@@ -124,13 +124,13 @@ export type Mocks = t.TypeOf<typeof MocksCodec>;
 export function decode<C extends t.Mixed>(
   codec: C
 ): (json: any) => Observable<t.TypeOf<C>> {
-  return json => {
+  return (json) => {
     return pipe(
       codec.decode(json),
       fold(
-        error =>
+        (error) =>
           throwError(new Error(PathReporter.report(left(error)).join("\n"))),
-        data => of(data)
+        (data) => of(data)
       )
     );
   };

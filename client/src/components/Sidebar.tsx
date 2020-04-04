@@ -14,7 +14,7 @@ import {
   Row,
   Spin,
   Typography,
-  Tooltip
+  Tooltip,
 } from "antd";
 import "./Sidebar.scss";
 import { Sessions, Session } from "~modules/types";
@@ -95,7 +95,7 @@ const SideBar = ({
   selectSession,
   updateSession,
   newSession,
-  uploadSessions
+  uploadSessions,
 }: Props) => {
   const [, , setPolling] = usePoll(10000, fetch);
   if (!selected && sessions.length > 0) {
@@ -182,7 +182,7 @@ export default connect(
   (state: AppState) => ({
     sessions: state.sessions.list,
     loading: state.sessions.loading,
-    selected: state.sessions.selected
+    selected: state.sessions.selected,
   }),
   (dispatch: Dispatch<Actions>) => ({
     fetch: () => dispatch(actions.fetchSessions.request()),
@@ -192,6 +192,6 @@ export default connect(
     updateSession: (session: Session) =>
       dispatch(actions.updateSession.request(session)),
     uploadSessions: (sessions: Sessions) =>
-      dispatch(actions.uploadSessions.request(sessions))
+      dispatch(actions.uploadSessions.request(sessions)),
   })
 )(SideBar);

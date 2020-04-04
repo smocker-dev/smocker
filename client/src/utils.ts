@@ -36,7 +36,7 @@ export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
     "?" +
     Object.keys(values)
       .reduce((acc: string[], key) => {
-        values[key].forEach(value => {
+        values[key].forEach((value) => {
           acc.push(key + "=" + encodeURIComponent(value));
         });
         return acc;

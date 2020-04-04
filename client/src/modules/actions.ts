@@ -64,7 +64,7 @@ export const actions = {
   fetchHistory,
   fetchMocks,
   addMocks,
-  reset
+  reset,
 };
 
 export type Actions = ActionType<typeof actions>;

@@ -10,7 +10,7 @@ import {
   HistoryCodec,
   MocksCodec,
   SessionCodec,
-  SessionsCodec
+  SessionsCodec,
 } from "./types";
 
 const {
@@ -21,154 +21,154 @@ const {
   fetchHistory,
   fetchMocks,
   addMocks,
-  reset
+  reset,
 } = actions;
 
 const extractError = (error: any) => ({
   message:
     (error.xhr && error.xhr.response && error.xhr.response.message) ||
-    error.message
+    error.message,
 });
 
-const fetchSessionsEpic: Epic<Actions> = action$ =>
+const fetchSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(fetchSessions.request)),
     exhaustMap(() =>
       ajax.get(trimedPath + "/sessions/summary").pipe(
         mergeMap(({ response }) => {
           return decode(SessionsCodec)(response).pipe(
-            map(resp => fetchSessions.success(resp))
+            map((resp) => fetchSessions.success(resp))
           );
         }),
-        catchError(error => {
+        catchError((error) => {
           return of(fetchSessions.failure(extractError(error)));
         })
       )
     )
   );
 
-const newSessionEpic: Epic<Actions> = action$ =>
+const newSessionEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(newSession.request)),
     exhaustMap(() => {
       return ajax.post(trimedPath + "/sessions").pipe(
         mergeMap(({ response }) => {
           return decode(SessionCodec)(response).pipe(
-            map(resp => newSession.success(resp))
+            map((resp) => newSession.success(resp))
           );
         }),
-        catchError(error => {
+        catchError((error) => {
           return of(newSession.failure(extractError(error)));
         })
       );
     })
   );
 
-const updateSessionEpic: Epic<Actions> = action$ =>
+const updateSessionEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(updateSession.request)),
-    exhaustMap(action => {
+    exhaustMap((action) => {
       return ajax
         .put(trimedPath + "/sessions", action.payload, {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         })
         .pipe(
           mergeMap(({ response }) => {
             return decode(SessionCodec)(response).pipe(
-              map(resp => updateSession.success(resp))
+              map((resp) => updateSession.success(resp))
             );
           }),
-          catchError(error => {
+          catchError((error) => {
             return of(updateSession.failure(extractError(error)));
           })
         );
     })
   );
 
-const uploadSessionsEpic: Epic<Actions> = action$ =>
+const uploadSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(uploadSessions.request)),
-    exhaustMap(action => {
+    exhaustMap((action) => {
       return ajax
         .post(trimedPath + "/sessions/import", action.payload, {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         })
         .pipe(
           mergeMap(({ response }) => {
             return decode(SessionsCodec)(response).pipe(
-              map(resp => uploadSessions.success(resp))
+              map((resp) => uploadSessions.success(resp))
             );
           }),
-          catchError(error => {
+          catchError((error) => {
             return of(uploadSessions.failure(extractError(error)));
           })
         );
     })
   );
 
-const fetchHistoryEpic: Epic<Actions> = action$ =>
+const fetchHistoryEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(fetchHistory.request)),
-    exhaustMap(action => {
+    exhaustMap((action) => {
       const query = action.payload ? `?session=${action.payload}` : "";
       return ajax.get(trimedPath + "/history" + query).pipe(
         mergeMap(({ response }) => {
           return decode(HistoryCodec)(response).pipe(
-            map(resp => fetchHistory.success(resp))
+            map((resp) => fetchHistory.success(resp))
           );
         }),
-        catchError(error => {
+        catchError((error) => {
           return of(fetchHistory.failure(extractError(error)));
         })
       );
     })
   );
 
-const fetchMocksEpic: Epic<Actions> = action$ =>
+const fetchMocksEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf([fetchMocks.request, addMocks.success])),
-    exhaustMap(action => {
+    exhaustMap((action) => {
       const query = action.payload ? `?session=${action.payload}` : "";
       return ajax.get(trimedPath + "/mocks" + query).pipe(
         mergeMap(({ response }) => {
           return decode(MocksCodec)(response).pipe(
-            map(resp => fetchMocks.success(resp))
+            map((resp) => fetchMocks.success(resp))
           );
         }),
-        catchError(error => {
+        catchError((error) => {
           return of(fetchMocks.failure(extractError(error)));
         })
       );
     })
   );
 
-const addMocksEpic: Epic<Actions> = action$ =>
+const addMocksEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(addMocks.request)),
-    exhaustMap(action => {
+    exhaustMap((action) => {
       const query = action.payload.sessionID
         ? `?session=${action.payload.sessionID}`
         : "";
       return ajax
         .post(trimedPath + "/mocks" + query, action.payload.mocks, {
-          "Content-Type": "application/x-yaml"
+          "Content-Type": "application/x-yaml",
         })
         .pipe(
           map(() => addMocks.success()),
-          catchError(error => {
+          catchError((error) => {
             return of(addMocks.failure(extractError(error)));
           })
         );
     })
   );
 
-const resetEpic: Epic<Actions> = action$ =>
+const resetEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(reset.request)),
     exhaustMap(() =>
       ajax.post(trimedPath + "/reset").pipe(
         map(() => reset.success()),
-        catchError(error => {
+        catchError((error) => {
           return of(reset.failure(extractError(error)));
         })
       )
