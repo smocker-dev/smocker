@@ -19,7 +19,7 @@ import {
   Tag,
   Row,
   Spin,
-  Typography
+  Typography,
 } from "antd";
 import "./History.scss";
 import Code from "./Code";
@@ -118,7 +118,7 @@ const History = ({
   loading,
   canPoll,
   error,
-  fetch
+  fetch,
 }: Props) => {
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
@@ -134,7 +134,7 @@ const History = ({
     if (ref.current) {
       ref.current.scrollIntoView({
         behavior: "smooth",
-        block: "start"
+        block: "start",
       });
     }
   }, [page, pageSize]);
@@ -242,11 +242,11 @@ export default connect(
       loading: history.loading,
       history: history.list,
       error: history.error,
-      canPoll
+      canPoll,
     };
   },
   (dispatch: Dispatch<Actions>) => ({
     fetch: (sessionID: string) =>
-      dispatch(actions.fetchHistory.request(sessionID))
+      dispatch(actions.fetchHistory.request(sessionID)),
   })
 )(History);

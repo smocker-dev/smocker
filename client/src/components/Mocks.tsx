@@ -4,7 +4,7 @@ import {
   toMultimap,
   toString,
   extractMatcher,
-  usePoll
+  usePoll,
 } from "~utils";
 import {
   Mock,
@@ -13,7 +13,7 @@ import {
   MockRequest,
   Mocks,
   Error,
-  dateFormat
+  dateFormat,
 } from "~modules/types";
 import { connect } from "react-redux";
 import { AppState } from "~modules/reducers";
@@ -33,7 +33,7 @@ import {
   Tag,
   Row,
   Spin,
-  Form
+  Form,
 } from "antd";
 import "./Mocks.scss";
 import Code from "./Code";
@@ -198,7 +198,7 @@ const Mock = ({ mock }: { mock: Mock }) => {
 
 const NewMock = ({
   onSave,
-  onClose
+  onClose,
 }: {
   onSave: (mocks: string) => void;
   onClose: () => void;
@@ -249,7 +249,7 @@ const Mocks = ({
   mocks,
   error,
   fetch,
-  addMocks
+  addMocks,
 }: Props) => {
   const minPageSize = 10;
   const [page, setPage] = React.useState(1);
@@ -261,7 +261,7 @@ const Mocks = ({
     if (ref.current) {
       ref.current.scrollIntoView({
         behavior: "smooth",
-        block: "start"
+        block: "start",
       });
     }
   }, [page, pageSize]);
@@ -273,7 +273,7 @@ const Mocks = ({
   } else if (isEmpty) {
     body = <Empty description="No mocks found." />;
   } else {
-    filteredMocks = mocks.filter(mock => {
+    filteredMocks = mocks.filter((mock) => {
       const mock_id = match.params.mock_id;
       return !mock_id || mock.state.id === mock_id;
     });
@@ -313,7 +313,7 @@ const Mocks = ({
     body = (
       <>
         {pagination}
-        {paginatedMocks.map(mock => (
+        {paginatedMocks.map((mock) => (
           <Mock key={`mock-${mock.state.id}`} mock={mock} />
         ))}
         {filteredMocks.length > minPageSize && pagination}
@@ -404,14 +404,14 @@ export default withRouter(
         loading: mocks.loading,
         mocks: mocks.list,
         error: mocks.error,
-        canPoll
+        canPoll,
       };
     },
     (dispatch: Dispatch<Actions>) => ({
       fetch: (sessionID: string) =>
         dispatch(actions.fetchMocks.request(sessionID)),
       addMocks: (sessionID: string, mocks: string) =>
-        dispatch(actions.addMocks.request({ sessionID, mocks }))
+        dispatch(actions.addMocks.request({ sessionID, mocks })),
     })
   )(Mocks)
 );

@@ -9,7 +9,7 @@ const loadingSessions = (state = false, action: Actions) => {
     newSession,
     updateSession,
     uploadSessions,
-    reset
+    reset,
   } = actions;
   switch (action.type) {
     case getType(fetchSessions.request):
@@ -42,7 +42,7 @@ const sessionList = (state: Sessions = [], action: Actions) => {
     newSession,
     updateSession,
     uploadSessions,
-    reset
+    reset,
   } = actions;
   switch (action.type) {
     case getType(reset.success): {
@@ -56,7 +56,7 @@ const sessionList = (state: Sessions = [], action: Actions) => {
       return [...state, action.payload];
     }
     case getType(updateSession.success): {
-      return state.map(session =>
+      return state.map((session) =>
         session.id === action.payload.id ? action.payload : session
       );
     }
@@ -71,7 +71,7 @@ const sessionError = (state: Error | null = null, action: Actions) => {
     newSession,
     updateSession,
     uploadSessions,
-    reset
+    reset,
   } = actions;
   switch (action.type) {
     case getType(fetchSessions.failure):
@@ -100,7 +100,7 @@ const selectedSession = (state: string = "", action: Actions) => {
     selectSession,
     updateSession,
     uploadSessions,
-    reset
+    reset,
   } = actions;
   switch (action.type) {
     case getType(selectSession): {
@@ -118,7 +118,8 @@ const selectedSession = (state: string = "", action: Actions) => {
       if (!state) {
         return "";
       }
-      return action.payload.filter(session => session.id === state).length === 0
+      return action.payload.filter((session) => session.id === state).length ===
+        0
         ? ""
         : state;
     }
@@ -131,7 +132,7 @@ const sessions = combineReducers({
   loading: loadingSessions,
   list: sessionList,
   error: sessionError,
-  selected: selectedSession
+  selected: selectedSession,
 });
 
 const loadingHistory = (state = false, action: Actions) => {
@@ -185,7 +186,7 @@ const entryError = (state: Error | null = null, action: Actions) => {
 const history = combineReducers({
   loading: loadingHistory,
   list: entryList,
-  error: entryError
+  error: entryError,
 });
 
 const loadingMocks = (state = false, action: Actions) => {
@@ -244,13 +245,13 @@ const mocksError = (state: Error | null = null, action: Actions) => {
 const mocks = combineReducers({
   loading: loadingMocks,
   list: mockList,
-  error: mocksError
+  error: mocksError,
 });
 
 const reducers = combineReducers({
   sessions,
   history,
-  mocks
+  mocks,
 });
 
 export type AppState = StateType<typeof reducers>;

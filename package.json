@@ -30,7 +30,7 @@
     "husky": ">=1",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
-    "prettier": "^1.19.1",
+    "prettier": "2.0.2",
     "react-hot-loader": "^4.12.15",
     "redux-devtools-extension": "^2.13.8",
     "sass": "^1.23.0",
@@ -77,9 +77,6 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,html,scss,json}": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.{ts,tsx,html,scss,json}": "prettier --write"
   }
 }

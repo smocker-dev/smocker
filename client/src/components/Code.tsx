@@ -42,7 +42,7 @@ const codeMirrorOptions = {
   readOnly: true,
   viewportMargin: Infinity,
   foldGutter: true,
-  gutters: ["CodeMirror-foldgutter"]
+  gutters: ["CodeMirror-foldgutter"],
 };
 
 const Code = ({ value, language, onBeforeChange }: Props) => {
@@ -62,7 +62,7 @@ const Code = ({ value, language, onBeforeChange }: Props) => {
         value={value}
         options={{
           ...codeMirrorOptions,
-          mode
+          mode,
         }}
       />
     );
@@ -84,8 +84,8 @@ const Code = ({ value, language, onBeforeChange }: Props) => {
         gutters: [
           ...codeMirrorOptions.gutters,
           "CodeMirror-lint-markers",
-          "CodeMirror-linenumbers"
-        ]
+          "CodeMirror-linenumbers",
+        ],
       }}
       onBeforeChange={onBeforeChangeWrapper}
     />
