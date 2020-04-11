@@ -23,6 +23,7 @@ import {
 } from "antd";
 import "./History.scss";
 import Code from "./Code";
+import { entryToCurl } from "~modules/utils";
 
 Settings.defaultLocale = "en-US";
 
@@ -58,6 +59,11 @@ const Entry = React.memo(({ value }: { value: Entry }) => (
           language="json"
         />
       )}
+      <div className="actions">
+        <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
+          Copy as curl
+        </Typography.Paragraph>
+      </div>
     </div>
     <div className="response">
       <div className="details">
