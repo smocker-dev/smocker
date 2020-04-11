@@ -154,6 +154,8 @@ The frontend is written with TypeScript and React. You can use the following com
 - `yarn build`: generate the transpiled and minified files and assets
 - `yarn lint`: run static analysis on the code
 - `yarn format`: automatically format the frontend code
+- `yarn test`: execute unit tests
+- `yarn test:watch`: execute unit tests, with live reload
 
 ### Documentation
 
