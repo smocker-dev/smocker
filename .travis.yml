@@ -10,6 +10,7 @@ services:
 before_script:
   - nvm install
   - nvm use
+  - yarn install --frozen-lockfile
 
 script:
   - make test
