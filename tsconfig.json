@@ -2,9 +2,9 @@
   "compilerOptions": {
     "baseUrl": "./client/src",
     "allowSyntheticDefaultImports": true,
-    "module": "esnext",
-    "target": "es5",
-    "lib": ["es6", "dom"],
+    "module": "ESNext",
+    "target": "ES5",
+    "lib": ["ES6", "DOM", "ES2019.Array"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
