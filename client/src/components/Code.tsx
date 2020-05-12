@@ -68,7 +68,9 @@ const Code = ({ value, language, onBeforeChange }: Props) => {
   }
 
   const onBeforeChangeWrapper = (_: any, __: any, newValue: string) => {
-    onBeforeChange && onBeforeChange(newValue);
+    if (onBeforeChange) {
+      onBeforeChange(newValue);
+    }
   };
   body = (
     <Controlled
