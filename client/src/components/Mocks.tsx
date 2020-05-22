@@ -197,13 +197,15 @@ const Mock = ({ mock }: { mock: Mock }) => {
 };
 
 const NewMock = ({
+  defaultValue,
   onSave,
   onClose,
 }: {
+  defaultValue: string;
   onSave: (mocks: string) => void;
   onClose: () => void;
 }) => {
-  const [mock, changeMock] = React.useState("");
+  const [mock, changeMock] = React.useState(defaultValue);
   const handleSubmit = (event: React.MouseEvent) => {
     event.preventDefault();
     onSave(mock);
@@ -236,9 +238,11 @@ interface Props extends RouteComponentProps<OwnProps> {
   loading: boolean;
   canPoll: boolean;
   mocks: Mocks;
+  mockEditor: [boolean, string];
   error: Error | null;
   fetch: (sessionID: string) => any;
   addMocks: (sessionID: string, mocks: string) => any;
+  setDisplayNewMock: (display: boolean, defaultValue: string) => any;
 }
 
 const Mocks = ({
@@ -247,16 +251,18 @@ const Mocks = ({
   loading,
   canPoll,
   mocks,
+  mockEditor,
   error,
   fetch,
   addMocks,
+  setDisplayNewMock,
 }: Props) => {
   const minPageSize = 10;
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
-  const [displayNewMock, setDisplayNewMock] = React.useState(false);
   const ref = React.createRef<any>();
+  const displayNewMock = mockEditor[0];
   React.useLayoutEffect(() => {
     if (ref.current) {
       ref.current.scrollIntoView({
@@ -321,10 +327,10 @@ const Mocks = ({
     );
   }
 
-  const handleAddNewMock = () => setDisplayNewMock(true);
-  const handleCancelNewMock = () => setDisplayNewMock(false);
+  const handleAddNewMock = () => setDisplayNewMock(true, "");
+  const handleCancelNewMock = () => setDisplayNewMock(false, "");
   const handleSaveNewMock = (id: string) => (newMocks: string) => {
-    setDisplayNewMock(false);
+    setDisplayNewMock(false, "");
     addMocks(id, newMocks);
   };
   return (
@@ -383,6 +389,7 @@ const Mocks = ({
           getContainer={false}
         >
           <NewMock
+            defaultValue={mockEditor[1]}
             onSave={handleSaveNewMock(sessionID)}
             onClose={handleCancelNewMock}
           />
@@ -403,6 +410,7 @@ export default withRouter(
         sessionID: sessions.selected,
         loading: mocks.loading,
         mocks: mocks.list,
+        mockEditor: mocks.editor,
         error: mocks.error,
         canPoll,
       };
@@ -412,6 +420,8 @@ export default withRouter(
         dispatch(actions.fetchMocks.request(sessionID)),
       addMocks: (sessionID: string, mocks: string) =>
         dispatch(actions.addMocks.request({ sessionID, mocks })),
+      setDisplayNewMock: (display: boolean, defaultValue: string) =>
+        dispatch(actions.openMockEditor([display, defaultValue])),
     })
   )(Mocks)
 );
