@@ -97,6 +97,7 @@ const Entry = React.memo(
           <Typography.Paragraph>
             <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
               <Button block type="dashed">
+                <Icon type="plus-circle" theme="outlined" />
                 Create mock from request
               </Button>
             </Link>
