@@ -68,8 +68,7 @@
     "redux": "^4.0.4",
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
-    "typesafe-actions": "^5.1.0",
-    "yaml": "^1.10.0"
+    "typesafe-actions": "^5.1.0"
   },
   "peerDependencies": {
     "puppeteer": "^2.1.1"

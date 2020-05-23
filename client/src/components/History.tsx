@@ -1,6 +1,6 @@
 import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
-import YAML from "yaml";
+import yaml from "js-yaml";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -180,7 +180,7 @@ const History = ({
     const handleDisplayNewMock = (entry: Entry) => () =>
       setDisplayNewMock(
         true,
-        YAML.stringify([{ request: cleanupRequest(entry) }])
+        yaml.safeDump([{ request: cleanupRequest(entry) }])
       );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => {
