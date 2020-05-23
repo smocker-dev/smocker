@@ -91,14 +91,16 @@ const Entry = React.memo(
           <span className="date">
             {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
           </span>
-          {value.response.status > 600 && (
-            <div>
-              <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
-                <Button type="dashed">Create mock from request</Button>
-              </Link>
-            </div>
-          )}
         </div>
+        {value.response.status > 600 && (
+          <Typography.Paragraph>
+            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
+              <Button block type="dashed">
+                Create mock from request
+              </Button>
+            </Link>
+          </Typography.Paragraph>
+        )}
         {value.response.headers && (
           <table>
             <tbody>
