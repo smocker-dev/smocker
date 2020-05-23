@@ -1,5 +1,6 @@
 import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
+import YAML from "yaml";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -23,7 +24,7 @@ import {
 } from "antd";
 import "./History.scss";
 import Code from "./Code";
-import { entryToCurl } from "~modules/utils";
+import { cleanupRequest, entryToCurl } from "~modules/utils";
 
 Settings.defaultLocale = "en-US";
 
@@ -175,7 +176,11 @@ const History = ({
       Math.max((page - 1) * pageSize, 0),
       Math.min(page * pageSize, history.length)
     );
-    const handleDisplayNewMock = () => setDisplayNewMock(true, "");
+    const handleDisplayNewMock = (entry: Entry) => () =>
+      setDisplayNewMock(
+        true,
+        YAML.stringify([{ request: cleanupRequest(entry) }])
+      );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => {
       setPage(p);
@@ -212,7 +217,7 @@ const History = ({
           <Entry
             key={`entry-${index}`}
             value={entry}
-            handleDisplayNewMock={handleDisplayNewMock}
+            handleDisplayNewMock={handleDisplayNewMock(entry)}
           />
         ))}
         {history.length > minPageSize && pagination}
