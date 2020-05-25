@@ -27,6 +27,10 @@ const uploadSessions = createAsyncAction(
 
 const selectSession = createAction("@APP/SESSIONS/SELECT")<string>();
 
+const openMockEditor = createAction("@APP/MOCKEDITOR/OPEN")<
+  [boolean, string]
+>();
+
 const fetchHistory = createAsyncAction(
   "@APP/HISTORY/FETCH",
   "@APP/HISTORY/FETCH/SUCCESS",
@@ -60,6 +64,7 @@ export const actions = {
   newSession,
   updateSession,
   selectSession,
+  openMockEditor,
   uploadSessions,
   fetchHistory,
   fetchMocks,

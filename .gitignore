@@ -1,6 +1,7 @@
+.cache/
 .vscode/
 build/
-node_modules/
 client/dist/
-.cache/
 docs/.vuepress/dist/
+node_modules/
+yarn-error.log

@@ -224,6 +224,19 @@ const mockList = (state: Mocks = [], action: Actions) => {
   }
 };
 
+const mockEditor = (
+  state: [boolean, string] = [false, ""],
+  action: Actions
+) => {
+  const { openMockEditor } = actions;
+  switch (action.type) {
+    case getType(openMockEditor):
+      return [action.payload[0], action.payload[1]];
+    default:
+      return state;
+  }
+};
+
 const mocksError = (state: Error | null = null, action: Actions) => {
   const { fetchMocks, addMocks, reset } = actions;
   switch (action.type) {
@@ -245,6 +258,7 @@ const mocksError = (state: Error | null = null, action: Actions) => {
 const mocks = combineReducers({
   loading: loadingMocks,
   list: mockList,
+  editor: mockEditor,
   error: mocksError,
 });
 

@@ -1,5 +1,6 @@
 import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
+import yaml from "js-yaml";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -23,91 +24,110 @@ import {
 } from "antd";
 import "./History.scss";
 import Code from "./Code";
-import { entryToCurl } from "~modules/utils";
+import { cleanupRequest, entryToCurl } from "~modules/utils";
 
 Settings.defaultLocale = "en-US";
 
-const Entry = React.memo(({ value }: { value: Entry }) => (
-  <div className="entry">
-    <div className="request">
-      <div className="details">
-        <Tag color="blue">{value.request.method}</Tag>
-        <span className="path">
-          {value.request.path + formQueryParams(value.request.query_params)}
-        </span>
-        <span className="date">
-          {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
-        </span>
-      </div>
-      {value.request.headers && (
-        <table>
-          <tbody>
-            {Object.entries(value.request.headers).map(([key, values]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{values.join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {value.request.body && (
-        <Code
-          value={
-            JSON.stringify(value.request.body, null, "  ") || value.request.body
-          }
-          language="json"
-        />
-      )}
-      <div className="actions">
-        <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
-          Copy as curl
-        </Typography.Paragraph>
-      </div>
-    </div>
-    <div className="response">
-      <div className="details">
-        <Tag color={value.response.status > 600 ? "red" : "blue"}>
-          {value.response.status}
-        </Tag>
-        {value.response.status > 600 && (
-          <Typography.Text type="danger" ellipsis>
-            {value.response.body.message}
-          </Typography.Text>
+const Entry = React.memo(
+  ({
+    value,
+    handleDisplayNewMock,
+  }: {
+    value: Entry;
+    handleDisplayNewMock: () => any;
+  }) => (
+    <div className="entry">
+      <div className="request">
+        <div className="details">
+          <Tag color="blue">{value.request.method}</Tag>
+          <span className="path">
+            {value.request.path + formQueryParams(value.request.query_params)}
+          </span>
+          <span className="date">
+            {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
+          </span>
+        </div>
+        {value.request.headers && (
+          <table>
+            <tbody>
+              {Object.entries(value.request.headers).map(([key, values]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{values.join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
-        <Typography.Text ellipsis>
-          {value.mock_id && (
-            <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
-          )}
-        </Typography.Text>
-        <span className="date">
-          {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
-        </span>
+        {value.request.body && (
+          <Code
+            value={
+              JSON.stringify(value.request.body, null, "  ") ||
+              value.request.body
+            }
+            language="json"
+          />
+        )}
+        <div className="actions">
+          <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
+            Copy as curl
+          </Typography.Paragraph>
+        </div>
       </div>
-      {value.response.headers && (
-        <table>
-          <tbody>
-            {Object.entries(value.response.headers).map(([key, values]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{values.join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {value.response.body && (
-        <Code
-          value={
-            JSON.stringify(value.response.body, null, "  ") ||
-            value.response.body
-          }
-          language="json"
-        />
-      )}
+      <div className="response">
+        <div className="details">
+          <Tag color={value.response.status > 600 ? "red" : "blue"}>
+            {value.response.status}
+          </Tag>
+          {value.response.status > 600 && (
+            <Typography.Text type="danger" ellipsis>
+              {value.response.body.message}
+            </Typography.Text>
+          )}
+          <Typography.Text ellipsis>
+            {value.mock_id && (
+              <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
+            )}
+          </Typography.Text>
+          <span className="date">
+            {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
+          </span>
+        </div>
+        {value.response.status > 600 && (
+          <Typography.Paragraph>
+            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
+              <Button block type="dashed">
+                <Icon type="plus-circle" theme="outlined" />
+                Create mock from request
+              </Button>
+            </Link>
+          </Typography.Paragraph>
+        )}
+        {value.response.headers && (
+          <table>
+            <tbody>
+              {Object.entries(value.response.headers).map(([key, values]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{values.join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {value.response.body && (
+          <Code
+            value={
+              JSON.stringify(value.response.body, null, "  ") ||
+              value.response.body
+            }
+            language="json"
+          />
+        )}
+      </div>
     </div>
-  </div>
-));
+  )
+);
 
 interface Props {
   sessionID: string;
@@ -116,6 +136,7 @@ interface Props {
   history: History;
   error: Error | null;
   fetch: (sessionID: string) => any;
+  setDisplayNewMock: (display: boolean, defaultValue: string) => any;
 }
 
 const History = ({
@@ -125,6 +146,7 @@ const History = ({
   canPoll,
   error,
   fetch,
+  setDisplayNewMock,
 }: Props) => {
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
@@ -155,6 +177,11 @@ const History = ({
       Math.max((page - 1) * pageSize, 0),
       Math.min(page * pageSize, history.length)
     );
+    const handleDisplayNewMock = (entry: Entry) => () =>
+      setDisplayNewMock(
+        true,
+        yaml.safeDump([{ request: cleanupRequest(entry) }])
+      );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => {
       setPage(p);
@@ -188,7 +215,11 @@ const History = ({
       <>
         {pagination}
         {entries.map((entry, index) => (
-          <Entry key={`entry-${index}`} value={entry} />
+          <Entry
+            key={`entry-${index}`}
+            value={entry}
+            handleDisplayNewMock={handleDisplayNewMock(entry)}
+          />
         ))}
         {history.length > minPageSize && pagination}
       </>
@@ -254,5 +285,7 @@ export default connect(
   (dispatch: Dispatch<Actions>) => ({
     fetch: (sessionID: string) =>
       dispatch(actions.fetchHistory.request(sessionID)),
+    setDisplayNewMock: (display: boolean, defaultValue: string) =>
+      dispatch(actions.openMockEditor([display, defaultValue])),
   })
 )(History);
