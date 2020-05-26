@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const puppeteer = require("puppeteer");
 const path = require("path");
 const axios = require("axios");
@@ -31,7 +32,7 @@ const mocks = `
 `;
 
 const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
-  const rect = await page.evaluate(selector => {
+  const rect = await page.evaluate((selector) => {
     const element = document.querySelector(selector);
     const { x, y, width, height } = element.getBoundingClientRect();
     return { left: x, top: y, width, height, id: element.id };
@@ -43,8 +44,8 @@ const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
       x: rect.left - padding,
       y: rect.top - padding,
       width: rect.width + padding * 2,
-      height: rect.height + padding * 2
-    }
+      height: rect.height + padding * 2,
+    },
   });
 };
 
@@ -61,18 +62,18 @@ async function main() {
   await axios.post(smockerAdminHost + "/reset");
   await page.goto(smockerAdminHost + "/pages/history");
   await page.waitForSelector("li.ant-menu-item:nth-child(1)", {
-    visible: true
+    visible: true,
   });
   await page.waitFor(300);
   await screenshotElement({
     page,
     name: "screenshot-sessions.png",
-    selector: ".sidebar"
+    selector: ".sidebar",
   });
   await screenshotPage(page, "screenshot-empty-history.png");
   await page.goto(smockerAdminHost + "/pages/mocks");
   await page.waitForSelector("li.ant-menu-item:nth-child(1)", {
-    visible: true
+    visible: true,
   });
   await page.waitFor(300);
   await screenshotPage(page, "screenshot-empty-mocks.png");
@@ -93,12 +94,12 @@ async function main() {
     page,
     name: "screenshot-hello-world-666.png",
     selector: ".entry:nth-child(2)",
-    padding: 5
+    padding: 5,
   });
 
   // Screenshot mocks
   await axios.post(smockerAdminHost + "/mocks", mocks, {
-    headers: { "Content-Type": "application/x-yaml" }
+    headers: { "Content-Type": "application/x-yaml" },
   });
   await page.goto(smockerAdminHost + "/pages/mocks");
   await page.waitForSelector(".mocks", { visible: true });
@@ -119,14 +120,14 @@ async function main() {
     page,
     name: "screenshot-hello-world-200.png",
     selector: ".entry:nth-child(2)",
-    padding: 5
+    padding: 5,
   });
   await browser.close();
 }
 
 main()
   .then(() => process.exit(0))
-  .catch(e => {
+  .catch((e) => {
     console.log("err: " + e);
     process.exit(1);
   });
