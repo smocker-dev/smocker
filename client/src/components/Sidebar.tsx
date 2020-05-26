@@ -130,7 +130,7 @@ const SideBar = ({
         const sessionToUpload = JSON.parse(ev.target.result);
         uploadSessions(sessionToUpload);
       } catch (e) {
-        console.error(e); // tslint:disable-line no-console
+        console.error(e);
       }
     };
     reader.readAsText(file);

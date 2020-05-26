@@ -93,7 +93,7 @@ const sessionError = (state: Error | null = null, action: Actions) => {
   }
 };
 
-const selectedSession = (state: string = "", action: Actions) => {
+const selectedSession = (state = "", action: Actions) => {
   const {
     fetchSessions,
     newSession,

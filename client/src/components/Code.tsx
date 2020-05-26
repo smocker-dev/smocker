@@ -45,12 +45,20 @@ const codeMirrorOptions = {
 
 const Code = ({ value, language, onBeforeChange }: Props) => {
   let mode: string = language;
-  if (mode === "lua") {
-    mode = "ruby"; // because lua mode doesn't handle fold
-  } else if (mode === "json" || mode === "go_template_json") {
-    mode = "application/json";
-  } else if (mode === "go_template" || mode === "go_template_yaml") {
-    mode = "yaml";
+  switch (mode) {
+    case "lua":
+      mode = "ruby"; // because lua mode doesn't handle fold
+      break;
+
+    case "json":
+    case "go_template_json":
+      mode = "application/json";
+      break;
+
+    case "go_template":
+    case "go_template_yaml":
+      mode = "yaml";
+      break;
   }
 
   let body = null;

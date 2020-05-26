@@ -128,6 +128,7 @@ const Entry = React.memo(
     </div>
   )
 );
+Entry.displayName = "Entry";
 
 interface Props {
   sessionID: string;
