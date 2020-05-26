@@ -22,29 +22,24 @@ export const toString = (s: StringMatcher | string): string => {
   return (s as string).trim();
 };
 
-export const toMultimap = (multimap: MultimapMatcher | Multimap) => {
-  return (multimap.values || multimap) as Multimap;
-};
-
 export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
   if (!params) {
     return "";
   }
-
-  const values = toMultimap(params);
-  let res =
+  const res =
     "?" +
-    Object.keys(values)
+    Object.keys(params)
       .reduce((acc: string[], key) => {
-        values[key].forEach((value) => {
-          acc.push(key + "=" + encodeURIComponent(value));
+        (params[key]["value"] || params[key]).forEach((value: string) => {
+          const encodedValue = encodeURIComponent(value);
+          const param = params[key]["matcher"]
+            ? `${key}=>(${params[key]["matcher"]} ${encodedValue})`
+            : `${key}=${encodedValue}`;
+          acc.push(param);
         });
         return acc;
       }, [])
       .join("&");
-  if (extractMatcher(params)) {
-    res = res + ` (${extractMatcher(params)})`;
-  }
   return res;
 };
 

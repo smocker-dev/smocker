@@ -41,6 +41,7 @@
     "jest": "^25.3.0",
     "lint-staged": ">=8",
     "parcel": "^1.12.4",
+    "parcel-plugin-bundle-visualiser": "^1.2.0",
     "prettier": "2.0.5",
     "react-hot-loader": "^4.12.15",
     "redux-devtools-extension": "^2.13.8",
@@ -74,7 +75,7 @@
     "typesafe-actions": "^5.1.0"
   },
   "peerDependencies": {
-    "puppeteer": "^2.1.1"
+    "puppeteer": "^3.1.0"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

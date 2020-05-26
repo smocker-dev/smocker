@@ -1,42 +1,36 @@
-import * as React from "react";
 import {
-  formQueryParams,
-  toMultimap,
-  toString,
-  extractMatcher,
-  usePoll,
-} from "~utils";
-import {
-  Mock,
-  MockResponse,
-  MockDynamicResponse,
-  MockRequest,
-  Mocks,
-  Error,
-  dateFormat,
-} from "~modules/types";
-import { connect } from "react-redux";
-import { AppState } from "~modules/reducers";
-import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
-import { withRouter, RouteComponentProps } from "react-router";
-import { Settings, DateTime } from "luxon";
-import { Link } from "react-router-dom";
-import {
+  Alert,
+  Button,
   Drawer,
   Empty,
-  Button,
+  Form,
   Icon,
   PageHeader,
   Pagination,
-  Alert,
-  Tag,
   Row,
   Spin,
-  Form,
+  Tag,
 } from "antd";
-import "./Mocks.scss";
+import { DateTime, Settings } from "luxon";
+import * as React from "react";
+import { connect } from "react-redux";
+import { RouteComponentProps, withRouter } from "react-router";
+import { Link } from "react-router-dom";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
+import { AppState } from "~modules/reducers";
+import {
+  dateFormat,
+  Error,
+  Mock,
+  MockDynamicResponse,
+  MockRequest,
+  MockResponse,
+  Mocks,
+} from "~modules/types";
+import { extractMatcher, formQueryParams, toString, usePoll } from "~utils";
 import Code from "./Code";
+import "./Mocks.scss";
 
 Settings.defaultLocale = "en-US";
 
@@ -130,7 +124,6 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   const pathMatcher = extractMatcher(request.path);
   const path = toString(request.path);
   const bodyMatcher = extractMatcher(request.body);
-  const headersMatcher = extractMatcher(request.headers);
   return (
     <div className="request">
       <div className="details">
@@ -148,17 +141,17 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
       {request.headers && (
         <table>
           <tbody>
-            {Object.entries(toMultimap(request.headers)).map(
-              ([key, values]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>
-                    {headersMatcher && <strong>{headersMatcher + ": "}</strong>}
-                    {values.join(", ")}
-                  </td>
-                </tr>
-              )
-            )}
+            {Object.entries(request.headers).map(([key, sliceMatcher]) => (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>
+                  {sliceMatcher["matcher"] && (
+                    <strong>{sliceMatcher["matcher"] + ": "}</strong>
+                  )}
+                  {(sliceMatcher["value"] || sliceMatcher).join(", ")}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}

@@ -106,8 +106,8 @@ testcases:
           - result.bodyjson.bodyjson3.request.method.value ShouldEqual "PO"
           - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldEqualJSON"
           - result.bodyjson.bodyjson2.request.body.value ShouldContainSubstring id
-          - result.bodyjson.bodyjson1.request.headers.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson1.request.headers.values.content-type.content-type0 ShouldEqual application/.*
+          - result.bodyjson.bodyjson1.request.headers.content-type.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson1.request.headers.content-type.value.value0 ShouldEqual application/.*
           - result.bodyjson.bodyjson0.request.query_params.test.test0 ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
 
   - name: Add dynamic mocks

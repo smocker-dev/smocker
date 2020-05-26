@@ -118,7 +118,7 @@ testcases:
           - result.bodyjson.message ShouldEqual test4
       - type: http
         method: PATCH
-        url: http://localhost:8080/test?test=true
+        url: http://localhost:8080/test?test=true&test2=test3
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5

@@ -92,8 +92,8 @@ const Code = ({ value, language, onBeforeChange }: Props) => {
         lint: true,
         gutters: [
           ...codeMirrorOptions.gutters,
-          "CodeMirror-lint-markers",
           "CodeMirror-linenumbers",
+          "CodeMirror-lint-markers",
         ],
       }}
       onBeforeChange={onBeforeChangeWrapper}

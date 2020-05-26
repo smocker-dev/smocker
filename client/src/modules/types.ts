@@ -30,10 +30,16 @@ const StringMatcherCodec = t.type({
 });
 export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 
-const MultimapMatcherCodec = t.type({
-  matcher: t.string,
-  values: MultimapCodec,
-});
+const MultimapMatcherCodec = t.dictionary(
+  t.string,
+  t.union([
+    t.type({
+      matcher: t.string,
+      value: t.array(t.string),
+    }),
+    t.array(t.string),
+  ])
+);
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 
 const EntryRequestCodec = t.type({
@@ -68,8 +74,8 @@ const MockRequestCodec = t.type({
   path: t.union([t.string, StringMatcherCodec]),
   method: t.union([t.string, StringMatcherCodec]),
   body: t.union([t.string, StringMatcherCodec, t.undefined]),
-  query_params: t.union([MultimapCodec, MultimapMatcherCodec, t.undefined]),
-  headers: t.union([MultimapCodec, MultimapMatcherCodec, t.undefined]),
+  query_params: t.union([MultimapMatcherCodec, t.undefined]),
+  headers: t.union([MultimapMatcherCodec, t.undefined]),
 });
 export type MockRequest = t.TypeOf<typeof MockRequestCodec>;
 

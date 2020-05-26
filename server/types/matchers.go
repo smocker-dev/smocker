@@ -169,103 +169,120 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return nil
 }
 
-type MultiMapMatcher struct {
+type StringSliceMatcher struct {
 	Matcher string
-	Values  MapStringSlice
+	Value   StringSlice
 }
 
-func (mm MultiMapMatcher) Match(values map[string][]string) bool {
-	matcher := asserts[mm.Matcher]
+func (ssm StringSliceMatcher) Match(values StringSlice) bool {
+	matcher := asserts[ssm.Matcher]
 	if matcher == nil {
-		log.WithField("matcher", mm.Matcher).Error("Invalid matcher")
+		log.WithField("matcher", ssm.Matcher).Error("Invalid matcher")
 		return false
 	}
 
-	for key, matchingValues := range mm.Values {
-		expectedValues, ok := values[key]
-		if !ok || len(matchingValues) > len(expectedValues) {
-			return false
-		}
+	if len(ssm.Value) > len(values) {
+		return false
+	}
 
-		for i, value := range matchingValues {
-			if res := matcher(expectedValues[i], value); res != "" {
-				log.WithFields(log.Fields{
-					"key": key,
-				}).Tracef("Value doesn't match:\n%s", res)
-				return false
+	for _, value := range ssm.Value {
+		matched := false
+		for _, v := range values {
+			if res := matcher(v, value); res == "" {
+				matched = true
+				break
 			}
+		}
+		if !matched {
+			log.Tracef("Value %s didn't match", value)
+			return false
 		}
 	}
 
 	return true
 }
 
-func (mm MultiMapMatcher) MarshalJSON() ([]byte, error) {
-	if mm.Matcher == DefaultMatcher {
-		return json.Marshal(mm.Values)
+func (ssm StringSliceMatcher) MarshalJSON() ([]byte, error) {
+	if ssm.Matcher == DefaultMatcher {
+		return json.Marshal(ssm.Value)
 	}
 	return json.Marshal(&struct {
-		Matcher string         `json:"matcher"`
-		Values  MapStringSlice `json:"values"`
+		Matcher string      `json:"matcher"`
+		Value   StringSlice `json:"value"`
 	}{
-		Matcher: mm.Matcher,
-		Values:  mm.Values,
+		Matcher: ssm.Matcher,
+		Value:   ssm.Value,
 	})
 }
 
-func (mm *MultiMapMatcher) UnmarshalJSON(data []byte) error {
-	var v MapStringSlice
+func (ssm *StringSliceMatcher) UnmarshalJSON(data []byte) error {
+	var v StringSlice
 	if err := json.Unmarshal(data, &v); err == nil {
-		mm.Matcher = DefaultMatcher
-		mm.Values = v
+		ssm.Matcher = DefaultMatcher
+		ssm.Value = v
 		return nil
 	}
 
 	var res struct {
-		Matcher string         `json:"matcher"`
-		Values  MapStringSlice `json:"values"`
+		Matcher string      `json:"matcher"`
+		Value   StringSlice `json:"value"`
 	}
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
 
-	mm.Matcher = res.Matcher
-	mm.Values = res.Values
+	ssm.Matcher = res.Matcher
+	ssm.Value = res.Value
 	return nil
 }
 
-func (mm MultiMapMatcher) MarshalYAML() (interface{}, error) {
-	if mm.Matcher == DefaultMatcher {
-		value, err := yaml.Marshal(mm.Values)
+func (ssm StringSliceMatcher) MarshalYAML() (interface{}, error) {
+	if ssm.Matcher == DefaultMatcher {
+		value, err := yaml.Marshal(ssm.Value)
 		return string(value), err
 	}
 
 	value, err := yaml.Marshal(&struct {
-		Matcher string         `yaml:"matcher,flow"`
-		Values  MapStringSlice `yaml:"values"`
+		Matcher string      `yaml:"matcher,flow"`
+		Value   StringSlice `yaml:"value"`
 	}{
-		Matcher: mm.Matcher,
-		Values:  mm.Values,
+		Matcher: ssm.Matcher,
+		Value:   ssm.Value,
 	})
 
 	return string(value), err
 }
 
-func (mm *MultiMapMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v MapStringSlice
+func (ssm *StringSliceMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var v StringSlice
 	if err := unmarshal(&v); err == nil {
-		mm.Matcher = DefaultMatcher
-		mm.Values = v
+		ssm.Matcher = DefaultMatcher
+		ssm.Value = v
 		return nil
 	}
 	var res struct {
-		Matcher string         `yaml:"matcher,flow"`
-		Values  MapStringSlice `yaml:"values"`
+		Matcher string      `yaml:"matcher,flow"`
+		Value   StringSlice `yaml:"value"`
 	}
 	if err := unmarshal(&res); err != nil {
 		return err
 	}
-	mm.Matcher = res.Matcher
-	mm.Values = res.Values
+	ssm.Matcher = res.Matcher
+	ssm.Value = res.Value
 	return nil
+}
+
+type MultiMapMatcher map[string]StringSliceMatcher
+
+func (mmm MultiMapMatcher) Match(values map[string][]string) bool {
+	if len(mmm) > len(values) {
+		return false
+	}
+	for key, matcherValue := range mmm {
+		value, ok := values[key]
+		if !ok || !matcherValue.Match(value) {
+			return false
+		}
+	}
+	return true
 }

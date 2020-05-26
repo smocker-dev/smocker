@@ -65,11 +65,11 @@ func (m *Mock) Verify() bool {
 }
 
 type MockRequest struct {
-	Path        StringMatcher    `json:"path" yaml:"path"`
-	Method      StringMatcher    `json:"method" yaml:"method"`
-	Body        *StringMatcher   `json:"body,omitempty" yaml:"body,omitempty"`
-	QueryParams *MultiMapMatcher `json:"query_params,omitempty" yaml:"query_params,omitempty"`
-	Headers     *MultiMapMatcher `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Path        StringMatcher   `json:"path" yaml:"path"`
+	Method      StringMatcher   `json:"method" yaml:"method"`
+	Body        *StringMatcher  `json:"body,omitempty" yaml:"body,omitempty"`
+	QueryParams MultiMapMatcher `json:"query_params,omitempty" yaml:"query_params,omitempty"`
+	Headers     MultiMapMatcher `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 func (mr MockRequest) Match(req Request) bool {
