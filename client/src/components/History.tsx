@@ -1,6 +1,22 @@
-import { orderBy } from "lodash-es";
-import { DateTime, Settings } from "luxon";
+import {
+  PauseCircleFilled,
+  PlayCircleFilled,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
+import {
+  Alert,
+  Button,
+  Empty,
+  PageHeader,
+  Pagination,
+  Row,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
 import yaml from "js-yaml";
+import orderBy from "lodash/orderBy";
+import { DateTime, Settings } from "luxon";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -9,22 +25,10 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
-import { formQueryParams, usePoll } from "~utils";
-import {
-  Empty,
-  Button,
-  Icon,
-  PageHeader,
-  Pagination,
-  Alert,
-  Tag,
-  Row,
-  Spin,
-  Typography,
-} from "antd";
-import "./History.scss";
-import Code from "./Code";
 import { cleanupRequest, entryToCurl } from "~modules/utils";
+import { formatQueryParams, usePoll } from "~utils";
+import Code from "./Code";
+import "./History.scss";
 
 Settings.defaultLocale = "en-US";
 
@@ -41,7 +45,7 @@ const Entry = React.memo(
         <div className="details">
           <Tag color="blue">{value.request.method}</Tag>
           <span className="path">
-            {value.request.path + formQueryParams(value.request.query_params)}
+            {value.request.path + formatQueryParams(value.request.query_params)}
           </span>
           <span className="date">
             {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
@@ -97,7 +101,7 @@ const Entry = React.memo(
           <Typography.Paragraph>
             <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
               <Button block type="dashed">
-                <Icon type="plus-circle" theme="outlined" />
+                <PlusCircleOutlined />
                 Create mock from request
               </Button>
             </Link>
@@ -189,12 +193,7 @@ const History = ({
       setPageSize(ps);
     };
     const pagination = (
-      <Row
-        type="flex"
-        justify="space-between"
-        align="middle"
-        className="container"
-      >
+      <Row justify="space-between" align="middle" className="container">
         <div>
           <Pagination
             hideOnSinglePage={history.length <= minPageSize}
@@ -236,14 +235,11 @@ const History = ({
         extra={
           canPoll && (
             <Button
-              loading={loading && { delay: 300 }}
+              loading={loading}
               onClick={togglePolling}
-              type={polling ? "danger" : "default"}
+              danger={polling}
+              icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
             >
-              <Icon
-                type={polling ? "pause-circle" : "play-circle"}
-                theme={"filled"}
-              />
               Autorefresh
             </Button>
           )

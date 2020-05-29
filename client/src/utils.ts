@@ -1,4 +1,4 @@
-import { trimEnd } from "lodash-es";
+import trimEnd from "lodash/trimEnd";
 import * as React from "react";
 import { Multimap, MultimapMatcher, StringMatcher } from "~modules/types";
 
@@ -22,29 +22,46 @@ export const toString = (s: StringMatcher | string): string => {
   return (s as string).trim();
 };
 
-export const toMultimap = (multimap: MultimapMatcher | Multimap) => {
-  return (multimap.values || multimap) as Multimap;
-};
-
-export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
+export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
   if (!params) {
     return "";
   }
-
-  const values = toMultimap(params);
-  let res =
+  const res =
     "?" +
-    Object.keys(values)
+    Object.keys(params)
       .reduce((acc: string[], key) => {
-        values[key].forEach((value) => {
-          acc.push(key + "=" + encodeURIComponent(value));
+        const values =
+          typeof params[key] === "string"
+            ? ([params[key]] as string[])
+            : (params[key] as (StringMatcher | string)[]);
+        values.forEach((v) => {
+          const value = v["value"] || v;
+          const encodedValue = encodeURIComponent(value);
+          const param = v["matcher"]
+            ? `${key}=>(${v["matcher"]} ${encodedValue})`
+            : `${key}=${encodedValue}`;
+          acc.push(param);
         });
         return acc;
       }, [])
       .join("&");
-  if (extractMatcher(params)) {
-    res = res + ` (${extractMatcher(params)})`;
+  return res;
+};
+
+export const formatHeaderValue = (
+  headerValue?: string | (string | StringMatcher)[]
+) => {
+  if (!headerValue) {
+    return "";
   }
+  const res = (typeof headerValue === "string" ? [headerValue] : headerValue)
+    .reduce((acc: string[], v) => {
+      const value = v["value"] || v;
+      const param = v["matcher"] ? `${v["matcher"]}: ${value}` : `${value}`;
+      acc.push(param);
+      return acc;
+    }, [])
+    .join(", ");
   return res;
 };
 

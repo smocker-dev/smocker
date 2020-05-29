@@ -9,6 +9,7 @@ import (
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/handlers"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +32,7 @@ func Serve(config config.Config) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	e.Use(recoverMiddleware(), loggerMiddleware())
+	e.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
 	handler := handlers.NewAdmin(mockServer)
 

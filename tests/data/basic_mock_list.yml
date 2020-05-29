@@ -33,9 +33,25 @@
 - request:
     path: /test
     headers:
-      X-Custom-Header: [bar]
+      X-Custom-Header: bar
   response:
     headers:
       Content-Type: application/json
     body: >
       {"message": "test5"}
+- request:
+    path: /test
+    headers:
+      X-Custom-Header-1: bar
+      X-Custom-Header-2: [foo, bar]
+      X-Custom-Header-3:
+        - foo
+        - matcher: ShouldEqual
+          value: bar
+        - matcher: ShouldMatch
+          value: baz.*
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "test6"}

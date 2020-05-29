@@ -33,14 +33,14 @@ Content-Length: 206
 
 </details>
 
-If you refresh Smocker's user interface, you will see that it now display an entry in the history:
+If you refresh Smocker's user interface, you will see that it now displays an entry in the history:
 
 ![Smocker's user interface - History with an undeclared mock response](/screenshots/screenshot-history-666.png)
 
 Let's look closer at the call:
 
-- on the left, the request you made: method `GET`, path `/hello/world`, and curl headers,
-- on the right, the response of Smocker: error code `666`, and informations on the error.
+- on the left, you can see all the details of the request you made: method `GET`, path `/hello/world`, and headers,
+- on the right, you can see the response of Smocker: error code `666`, and informations regarding the error.
 
 ![Smocker's user interface - Entry with an undeclared mock response](/screenshots/screenshot-hello-world-666.png)
 
@@ -95,13 +95,13 @@ Once you refresh the user interface, you should notice that this last call is pr
 
 This covers the basic usage of Smocker, but it was just the beginning! Smocker covers many more topics:
 
-- Advanced filters,
-- Automation,
-- Dynamic calls,
-- Proxies,
-- Contexts,
+- advanced filters,
+- automation,
+- dynamic calls,
+- proxies,
+- contexts,
 - and everything you might need to mock your whole environment!
 
-For more details and explanations that just a **Hello World**, we invite you to check the [Real Life Usage](./real-life.md) section.
+For more details and explanations than just a **Hello World**, we invite you to check the [Real Life Usage](./real-life.md) section.
 
-And for advanced mocks you could check the [Mock Definition](/technical-documentation/mock-definition.md) documentation.
+And for advanced mocks you can check the [Mock Definition](/technical-documentation/mock-definition.md) documentation.

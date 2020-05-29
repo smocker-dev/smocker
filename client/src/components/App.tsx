@@ -1,25 +1,24 @@
-import { hot } from "react-hot-loader";
-import { composeWithDevTools } from "redux-devtools-extension";
-
+import { Layout } from "antd";
 import * as React from "react";
+import { hot } from "react-hot-loader";
+import { Provider } from "react-redux";
 import {
   BrowserRouter as Router,
-  Switch,
-  Route,
   Redirect,
+  Route,
+  Switch,
 } from "react-router-dom";
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import { applyMiddleware, createStore } from "redux";
+import { composeWithDevTools } from "redux-devtools-extension";
+import { createEpicMiddleware } from "redux-observable";
+import { Actions } from "~modules/actions";
+import rootEpic from "~modules/epics";
+import rootReducer from "~modules/reducers";
+import "./App.scss";
 import History from "./History";
 import Mocks from "./Mocks";
-import { createEpicMiddleware } from "redux-observable";
-import { createStore, applyMiddleware } from "redux";
-import rootReducer from "~modules/reducers";
-import rootEpic from "~modules/epics";
-import { Actions } from "~modules/actions";
-import { Provider } from "react-redux";
-import { Layout } from "antd";
-import "./App.scss";
+import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
 
 const epicMiddleware = createEpicMiddleware<Actions>();
 

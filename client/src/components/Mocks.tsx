@@ -1,42 +1,47 @@
-import * as React from "react";
 import {
-  formQueryParams,
-  toMultimap,
-  toString,
-  extractMatcher,
-  usePoll,
-} from "~utils";
+  PauseCircleFilled,
+  PlayCircleFilled,
+  PlusOutlined,
+} from "@ant-design/icons";
 import {
-  Mock,
-  MockResponse,
-  MockDynamicResponse,
-  MockRequest,
-  Mocks,
-  Error,
-  dateFormat,
-} from "~modules/types";
-import { connect } from "react-redux";
-import { AppState } from "~modules/reducers";
-import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
-import { withRouter, RouteComponentProps } from "react-router";
-import { Settings, DateTime } from "luxon";
-import { Link } from "react-router-dom";
-import {
+  Alert,
+  Button,
   Drawer,
   Empty,
-  Button,
-  Icon,
+  Form,
   PageHeader,
   Pagination,
-  Alert,
-  Tag,
   Row,
   Spin,
-  Form,
+  Tag,
+  Typography,
 } from "antd";
-import "./Mocks.scss";
+import { DateTime, Settings } from "luxon";
+import * as React from "react";
+import { connect } from "react-redux";
+import { RouteComponentProps, withRouter } from "react-router";
+import { Link } from "react-router-dom";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
+import { AppState } from "~modules/reducers";
+import {
+  dateFormat,
+  Error,
+  Mock,
+  MockDynamicResponse,
+  MockRequest,
+  MockResponse,
+  Mocks,
+} from "~modules/types";
+import {
+  extractMatcher,
+  formatHeaderValue,
+  formatQueryParams,
+  toString,
+  usePoll,
+} from "~utils";
 import Code from "./Code";
+import "./Mocks.scss";
 
 Settings.defaultLocale = "en-US";
 
@@ -130,7 +135,6 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   const pathMatcher = extractMatcher(request.path);
   const path = toString(request.path);
   const bodyMatcher = extractMatcher(request.body);
-  const headersMatcher = extractMatcher(request.headers);
   return (
     <div className="request">
       <div className="details">
@@ -139,26 +143,21 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
             {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
             {method}
           </Tag>
-          <span className="path">
+          <Typography.Text className="path" ellipsis>
             {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
-            {path + formQueryParams(request.query_params)}
-          </span>
+            {path + formatQueryParams(request.query_params)}
+          </Typography.Text>
         </div>
       </div>
       {request.headers && (
         <table>
           <tbody>
-            {Object.entries(toMultimap(request.headers)).map(
-              ([key, values]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>
-                    {headersMatcher && <strong>{headersMatcher + ": "}</strong>}
-                    {values.join(", ")}
-                  </td>
-                </tr>
-              )
-            )}
+            {Object.entries(request.headers).map(([key, sliceMatcher]) => (
+              <tr key={key}>
+                <td>{key}</td>
+                <td>{formatHeaderValue(sliceMatcher)}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
@@ -197,35 +196,43 @@ const Mock = ({ mock }: { mock: Mock }) => {
 };
 
 const NewMock = ({
+  display,
   defaultValue,
   onSave,
   onClose,
 }: {
+  display: boolean;
   defaultValue: string;
   onSave: (mocks: string) => void;
   onClose: () => void;
 }) => {
   const [mock, changeMock] = React.useState(defaultValue);
-  const handleSubmit = (event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     onSave(mock);
   };
-  const handleCancel = (event: React.MouseEvent) => {
-    event.preventDefault();
-    onClose();
-  };
   return (
-    <>
+    <Drawer
+      title="Add new mocks"
+      placement="right"
+      className="drawer"
+      closable={false}
+      onClose={onClose}
+      visible={display}
+      width="70vw"
+      getContainer={false}
+      footer={
+        <div className="action buttons">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} type="primary">
+            Save
+          </Button>
+        </div>
+      }
+    >
       <Form className="form">
         <Code value={mock} language="yaml" onBeforeChange={changeMock} />
       </Form>
-      <div className="action buttons">
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} type="primary">
-          Save
-        </Button>
-      </div>
-    </>
+    </Drawer>
   );
 };
 
@@ -293,12 +300,7 @@ const Mocks = ({
       setPageSize(ps);
     };
     const pagination = (
-      <Row
-        type="flex"
-        justify="space-between"
-        align="middle"
-        className="container"
-      >
+      <Row justify="space-between" align="middle" className="container">
         <div>
           <Pagination
             hideOnSinglePage={filteredMocks.length <= minPageSize}
@@ -343,7 +345,7 @@ const Mocks = ({
             <div className="action buttons">
               <Button
                 type="primary"
-                icon="plus"
+                icon={<PlusOutlined />}
                 disabled={displayNewMock}
                 onClick={handleAddNewMock}
                 className="add-mocks-button"
@@ -351,14 +353,11 @@ const Mocks = ({
                 Add Mocks
               </Button>
               <Button
-                loading={loading && { delay: 300 }}
+                loading={loading}
                 onClick={togglePolling}
-                type={polling ? "danger" : "default"}
+                danger={polling}
+                icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
               >
-                <Icon
-                  type={polling ? "pause-circle" : "play-circle"}
-                  theme={"filled"}
-                />
                 Autorefresh
               </Button>
             </div>
@@ -378,22 +377,12 @@ const Mocks = ({
         </Spin>
       </PageHeader>
       {displayNewMock && (
-        <Drawer
-          title="Add new mocks"
-          placement="right"
-          className="drawer"
-          closable={false}
+        <NewMock
+          display={displayNewMock}
+          defaultValue={mockEditor[1]}
+          onSave={handleSaveNewMock(sessionID)}
           onClose={handleCancelNewMock}
-          visible={displayNewMock}
-          width="70vw"
-          getContainer={false}
-        >
-          <NewMock
-            defaultValue={mockEditor[1]}
-            onSave={handleSaveNewMock(sessionID)}
-            onClose={handleCancelNewMock}
-          />
-        </Drawer>
+        />
       )}
     </div>
   );

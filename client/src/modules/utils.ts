@@ -1,5 +1,6 @@
+import omit from "lodash/omit";
+import pickBy from "lodash/pickBy";
 import { Entry } from "./types";
-import { omit, pickBy } from "lodash-es";
 
 export function entryToCurl(historyEntry: Entry) {
   const escape = (unsafe: string) => unsafe.replace(/'/g, "\\'");

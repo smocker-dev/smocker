@@ -33,9 +33,9 @@
     path: /test
     method: PUT
     headers:
-      matcher: ShouldMatch
-      values:
-        Content-Type: "application/.*"
+      Content-Type:
+        - matcher: ShouldMatch
+          value: "application/.*"
   response:
     headers:
       Content-Type: application/json
@@ -49,9 +49,12 @@
       # query_params:
       #   test: ["true"]
       # because 'ShouldEqual' is the default matcher
-      matcher: ShouldEqual
-      values:
-        test: "true"
+      test:
+        - matcher: ShouldEqual
+          value: "true"
+      test2:
+        - matcher: ShouldContainSubstring
+          value: "test3"
   response:
     headers:
       Content-Type: application/json

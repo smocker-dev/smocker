@@ -24,9 +24,7 @@
   }
 
   .drawer {
-    position: absolute;
     .ant-drawer-body {
-      height: calc(100% - 100px);
       overflow-y: auto;
       .form {
         background-color: #263238;
@@ -47,15 +45,7 @@
       }
     }
     .action.buttons {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      border-top: 1px solid #e9e9e9;
-      padding: 0.5em;
-      background: #fff;
       text-align: right;
-      z-index: 5;
       button {
         margin-left: 0.5em;
       }
@@ -182,9 +172,7 @@
 
         .path {
           font-family: monospace;
-          white-space: pre-wrap;
           font-weight: bold;
-          word-break: break-all;
         }
       }
 

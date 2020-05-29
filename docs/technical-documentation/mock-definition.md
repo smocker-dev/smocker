@@ -118,6 +118,23 @@ query_params:
   key: [foo, bar, baz]
 ```
 
+They have the following format:
+
+```yaml
+query_params:
+  key1: foo
+  key2: [foo, bar]
+  key3:
+    - matcher: ShouldMatch
+      value: foo.*bar
+  key4:
+    - foo
+    - matcher: ShouldMatch
+      value: bar.*
+    - matcher: ShouldContainSubstring
+      value:  baz
+```
+
 ---
 
 The whole list of available matchers is:
