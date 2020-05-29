@@ -1,15 +1,20 @@
 import {
+  PauseCircleFilled,
+  PlayCircleFilled,
+  PlusOutlined,
+} from "@ant-design/icons";
+import {
   Alert,
   Button,
   Drawer,
   Empty,
   Form,
-  Icon,
   PageHeader,
   Pagination,
   Row,
   Spin,
   Tag,
+  Typography,
 } from "antd";
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
@@ -138,10 +143,10 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
             {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
             {method}
           </Tag>
-          <span className="path">
+          <Typography.Text className="path" ellipsis>
             {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
             {path + formatQueryParams(request.query_params)}
-          </span>
+          </Typography.Text>
         </div>
       </div>
       {request.headers && (
@@ -191,35 +196,43 @@ const Mock = ({ mock }: { mock: Mock }) => {
 };
 
 const NewMock = ({
+  display,
   defaultValue,
   onSave,
   onClose,
 }: {
+  display: boolean;
   defaultValue: string;
   onSave: (mocks: string) => void;
   onClose: () => void;
 }) => {
   const [mock, changeMock] = React.useState(defaultValue);
-  const handleSubmit = (event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     onSave(mock);
   };
-  const handleCancel = (event: React.MouseEvent) => {
-    event.preventDefault();
-    onClose();
-  };
   return (
-    <>
+    <Drawer
+      title="Add new mocks"
+      placement="right"
+      className="drawer"
+      closable={false}
+      onClose={onClose}
+      visible={display}
+      width="70vw"
+      getContainer={false}
+      footer={
+        <div className="action buttons">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} type="primary">
+            Save
+          </Button>
+        </div>
+      }
+    >
       <Form className="form">
         <Code value={mock} language="yaml" onBeforeChange={changeMock} />
       </Form>
-      <div className="action buttons">
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} type="primary">
-          Save
-        </Button>
-      </div>
-    </>
+    </Drawer>
   );
 };
 
@@ -287,12 +300,7 @@ const Mocks = ({
       setPageSize(ps);
     };
     const pagination = (
-      <Row
-        type="flex"
-        justify="space-between"
-        align="middle"
-        className="container"
-      >
+      <Row justify="space-between" align="middle" className="container">
         <div>
           <Pagination
             hideOnSinglePage={filteredMocks.length <= minPageSize}
@@ -337,7 +345,7 @@ const Mocks = ({
             <div className="action buttons">
               <Button
                 type="primary"
-                icon="plus"
+                icon={<PlusOutlined />}
                 disabled={displayNewMock}
                 onClick={handleAddNewMock}
                 className="add-mocks-button"
@@ -345,14 +353,11 @@ const Mocks = ({
                 Add Mocks
               </Button>
               <Button
-                loading={loading && { delay: 300 }}
+                loading={loading}
                 onClick={togglePolling}
-                type={polling ? "danger" : "default"}
+                danger={polling}
+                icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
               >
-                <Icon
-                  type={polling ? "pause-circle" : "play-circle"}
-                  theme={"filled"}
-                />
                 Autorefresh
               </Button>
             </div>
@@ -372,22 +377,12 @@ const Mocks = ({
         </Spin>
       </PageHeader>
       {displayNewMock && (
-        <Drawer
-          title="Add new mocks"
-          placement="right"
-          className="drawer"
-          closable={false}
+        <NewMock
+          display={displayNewMock}
+          defaultValue={mockEditor[1]}
+          onSave={handleSaveNewMock(sessionID)}
           onClose={handleCancelNewMock}
-          visible={displayNewMock}
-          width="70vw"
-          getContainer={false}
-        >
-          <NewMock
-            defaultValue={mockEditor[1]}
-            onSave={handleSaveNewMock(sessionID)}
-            onClose={handleCancelNewMock}
-          />
-        </Drawer>
+        />
       )}
     </div>
   );

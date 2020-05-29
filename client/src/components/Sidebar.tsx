@@ -1,24 +1,24 @@
-import * as React from "react";
-import { connect } from "react-redux";
-import { AppState } from "~modules/reducers";
-import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
+import { EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import {
   Button,
   Form,
-  Icon,
   Input,
   Layout,
   Menu,
   Popover,
   Row,
   Spin,
-  Typography,
   Tooltip,
+  Typography,
 } from "antd";
-import "./Sidebar.scss";
-import { Sessions, Session } from "~modules/types";
+import * as React from "react";
+import { connect } from "react-redux";
+import { Dispatch } from "redux";
+import { Actions, actions } from "~modules/actions";
+import { AppState } from "~modules/reducers";
+import { Session, Sessions } from "~modules/types";
 import { usePoll } from "~utils";
+import "./Sidebar.scss";
 
 const NewButton = ({ onValidate }: any) => {
   const onClick = (event: React.MouseEvent) => {
@@ -26,11 +26,11 @@ const NewButton = ({ onValidate }: any) => {
     onValidate();
   };
   return (
-    <Row align="middle" justify="center" type="flex">
+    <Row align="middle" justify="center">
       <Button
         ghost
         type="primary"
-        icon="plus"
+        icon={<PlusOutlined />}
         className="session-button"
         onClick={onClick}
       >
@@ -43,7 +43,7 @@ const NewButton = ({ onValidate }: any) => {
 const EditableItem = ({ value, onValidate }: any) => {
   const [visible, setVisible] = React.useState(false);
   const [name, setName] = React.useState(value || "");
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     event.preventDefault();
     onValidate(name.trim());
     setVisible(false);
@@ -57,12 +57,12 @@ const EditableItem = ({ value, onValidate }: any) => {
       visible={visible}
       onVisibleChange={setVisible}
       content={
-        <Form layout="inline" onSubmit={onSubmit}>
+        <Form layout="inline">
           <Form.Item>
             <Input value={name} onChange={onChange} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" onClick={onSubmit}>
               Save
             </Button>
           </Form.Item>
@@ -71,7 +71,7 @@ const EditableItem = ({ value, onValidate }: any) => {
       title="Edit session's name"
       trigger="click"
     >
-      <Icon type="edit" />
+      <EditOutlined />
     </Popover>
   );
 };
@@ -110,7 +110,7 @@ const SideBar = ({
   };
   const items = sessions.map((session: Session, index: number) => (
     <Menu.Item key={session.id}>
-      <Row type="flex" justify="space-between" align="middle">
+      <Row justify="space-between" align="middle">
         <Typography.Text ellipsis className="menu-item">
           {session.name || session.id}
         </Typography.Text>
@@ -146,7 +146,7 @@ const SideBar = ({
         <label>
           <input type="file" onChange={onFileUpload} />
           <a>
-            <Icon type="upload" />
+            <UploadOutlined />
           </a>
         </label>
       </Tooltip>

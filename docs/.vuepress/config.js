@@ -84,6 +84,7 @@ module.exports = {
     ]
   },
   plugins: [
+    "fulltext-search",
     "vuepress-plugin-mermaidjs",
     [
       "one-click-copy",

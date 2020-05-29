@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Link, withRouter, RouteComponentProps } from "react-router-dom";
-import Logo from "~assets/logo.png";
-import { connect } from "react-redux";
-import { AppState } from "~modules/reducers";
-import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
 import { Button, Layout, Menu, Row } from "antd";
+import * as React from "react";
+import { connect } from "react-redux";
+import { Link, RouteComponentProps, withRouter } from "react-router-dom";
+import { Dispatch } from "redux";
+import Logo from "~assets/logo.png";
+import { Actions, actions } from "~modules/actions";
+import { AppState } from "~modules/reducers";
 import "./Navbar.scss";
 
 interface Props extends RouteComponentProps {
@@ -16,7 +16,7 @@ interface Props extends RouteComponentProps {
 const Navbar = ({ loading, reset, location }: Props) => {
   return (
     <Layout.Header className="navbar">
-      <Row type="flex" justify="start" align="middle">
+      <Row justify="start" align="middle">
         <Link className="logo" to="/">
           <img height={42} src={Logo} />
           Smocker
@@ -40,12 +40,7 @@ const Navbar = ({ loading, reset, location }: Props) => {
             </a>
           </Menu.Item>
         </Menu>
-        <Button
-          type="danger"
-          ghost
-          loading={loading && { delay: 300 }}
-          onClick={reset}
-        >
+        <Button danger ghost loading={loading} onClick={reset}>
           Reset
         </Button>
       </Row>

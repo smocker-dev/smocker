@@ -1,8 +1,12 @@
 import {
+  PauseCircleFilled,
+  PlayCircleFilled,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
+import {
   Alert,
   Button,
   Empty,
-  Icon,
   PageHeader,
   Pagination,
   Row,
@@ -97,7 +101,7 @@ const Entry = React.memo(
           <Typography.Paragraph>
             <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
               <Button block type="dashed">
-                <Icon type="plus-circle" theme="outlined" />
+                <PlusCircleOutlined />
                 Create mock from request
               </Button>
             </Link>
@@ -189,12 +193,7 @@ const History = ({
       setPageSize(ps);
     };
     const pagination = (
-      <Row
-        type="flex"
-        justify="space-between"
-        align="middle"
-        className="container"
-      >
+      <Row justify="space-between" align="middle" className="container">
         <div>
           <Pagination
             hideOnSinglePage={history.length <= minPageSize}
@@ -236,14 +235,11 @@ const History = ({
         extra={
           canPoll && (
             <Button
-              loading={loading && { delay: 300 }}
+              loading={loading}
               onClick={togglePolling}
-              type={polling ? "danger" : "default"}
+              danger={polling}
+              icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
             >
-              <Icon
-                type={polling ? "pause-circle" : "play-circle"}
-                theme={"filled"}
-              />
               Autorefresh
             </Button>
           )
