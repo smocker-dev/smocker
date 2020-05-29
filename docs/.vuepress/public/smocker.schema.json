@@ -15,7 +15,7 @@
         "request": { "$ref": "#/definitions/request" },
         "response": { "$ref": "#/definitions/response" },
         "dynamic_response": { "$ref": "#/definitions/dynamic_response" },
-        "proxy": { "$ref": "#/definitions/request" }
+        "proxy": { "$ref": "#/definitions/proxy" }
       },
       "required": ["request"]
     },
@@ -62,12 +62,17 @@
                   { "type": "string" },
                   {
                     "type": "array",
-                    "items": { "type": "string" }
+                    "items": {
+                      "oneOf": [
+                        { "type": "string" },
+                        { "$ref": "#/definitions/string_matcher" }
+                      ]
+                    }
                   }
                 ]
               }
             },
-            { "$ref": "#/definitions/multi_map_matcher" }
+            { "$ref": "#/definitions/string_matcher" }
           ]
         },
         "headers": {
@@ -79,12 +84,17 @@
                   { "type": "string" },
                   {
                     "type": "array",
-                    "items": { "type": "string" }
+                    "items": {
+                      "oneOf": [
+                        { "type": "string" },
+                        { "$ref": "#/definitions/string_matcher" }
+                      ]
+                    }
                   }
                 ]
               }
             },
-            { "$ref": "#/definitions/multi_map_matcher" }
+            { "$ref": "#/definitions/string_matcher" }
           ]
         }
       }
@@ -111,8 +121,7 @@
                   }
                 ]
               }
-            },
-            { "$ref": "#/definitions/multi_map_matcher" }
+            }
           ]
         }
       }
@@ -160,44 +169,6 @@
         "value": { "type": "string" }
       },
       "required": ["matcher", "value"]
-    },
-    "multi_map_matcher": {
-      "type": "object",
-      "properties": {
-        "matcher": {
-          "type": "string",
-          "enum": [
-            "ShouldResemble",
-            "ShouldAlmostEqual",
-            "ShouldContainSubstring",
-            "ShouldEndWith",
-            "ShouldEqual",
-            "ShouldEqualJSON",
-            "ShouldStartWith",
-            "ShouldMatch",
-            "ShouldNotResemble",
-            "ShouldNotAlmostEqual",
-            "ShouldNotContainSubstring",
-            "ShouldNotEndWith",
-            "ShouldNotEqual",
-            "ShouldNotStartWith",
-            "ShouldNotMatch"
-          ]
-        },
-        "values": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              { "type": "string" },
-              {
-                "type": "array",
-                "items": { "type": "string" }
-              }
-            ]
-          }
-        }
-      },
-      "required": ["matcher", "values"]
     }
   }
 }
