@@ -11,7 +11,7 @@ import {
   Typography,
 } from "antd";
 import yaml from "js-yaml";
-import { orderBy } from "lodash-es";
+import orderBy from "lodash/orderBy";
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
 import { connect } from "react-redux";

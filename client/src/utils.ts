@@ -1,4 +1,4 @@
-import { trimEnd } from "lodash-es";
+import trimEnd from "lodash/trimEnd";
 import * as React from "react";
 import { Multimap, MultimapMatcher, StringMatcher } from "~modules/types";
 
