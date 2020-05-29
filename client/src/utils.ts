@@ -22,7 +22,7 @@ export const toString = (s: StringMatcher | string): string => {
   return (s as string).trim();
 };
 
-export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
+export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
   if (!params) {
     return "";
   }
@@ -30,16 +30,38 @@ export const formQueryParams = (params?: MultimapMatcher | Multimap) => {
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
-        (params[key]["value"] || params[key]).forEach((value: string) => {
+        const values =
+          typeof params[key] === "string"
+            ? ([params[key]] as string[])
+            : (params[key] as (StringMatcher | string)[]);
+        values.forEach((v) => {
+          const value = v["value"] || v;
           const encodedValue = encodeURIComponent(value);
-          const param = params[key]["matcher"]
-            ? `${key}=>(${params[key]["matcher"]} ${encodedValue})`
+          const param = v["matcher"]
+            ? `${key}=>(${v["matcher"]} ${encodedValue})`
             : `${key}=${encodedValue}`;
           acc.push(param);
         });
         return acc;
       }, [])
       .join("&");
+  return res;
+};
+
+export const formatHeaderValue = (
+  headerValue?: string | (string | StringMatcher)[]
+) => {
+  if (!headerValue) {
+    return "";
+  }
+  const res = (typeof headerValue === "string" ? [headerValue] : headerValue)
+    .reduce((acc: string[], v) => {
+      const value = v["value"] || v;
+      const param = v["matcher"] ? `${v["matcher"]}: ${value}` : `${value}`;
+      acc.push(param);
+      return acc;
+    }, [])
+    .join(", ");
   return res;
 };
 

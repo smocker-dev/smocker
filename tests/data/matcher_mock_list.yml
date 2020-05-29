@@ -34,8 +34,8 @@
     method: PUT
     headers:
       Content-Type:
-        matcher: ShouldMatch
-        value: "application/.*"
+        - matcher: ShouldMatch
+          value: "application/.*"
   response:
     headers:
       Content-Type: application/json
@@ -50,11 +50,11 @@
       #   test: ["true"]
       # because 'ShouldEqual' is the default matcher
       test:
-        matcher: ShouldEqual
-        value: "true"
+        - matcher: ShouldEqual
+          value: "true"
       test2:
-        matcher: ShouldContainSubstring
-        value: "test3"
+        - matcher: ShouldContainSubstring
+          value: "test3"
   response:
     headers:
       Content-Type: application/json

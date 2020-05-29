@@ -169,110 +169,94 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return nil
 }
 
-type StringSliceMatcher struct {
-	Matcher string
-	Value   StringSlice
-}
+type StringMatcherSlice []StringMatcher
 
-func (ssm StringSliceMatcher) Match(values StringSlice) bool {
-	matcher := asserts[ssm.Matcher]
-	if matcher == nil {
-		log.WithField("matcher", ssm.Matcher).Error("Invalid matcher")
+func (sms StringMatcherSlice) Match(values []string) bool {
+	if len(sms) > len(values) {
 		return false
 	}
-
-	if len(ssm.Value) > len(values) {
-		return false
-	}
-
-	for _, value := range ssm.Value {
+	for _, matcher := range sms {
 		matched := false
 		for _, v := range values {
-			if res := matcher(v, value); res == "" {
+			if matcher.Match(v) {
 				matched = true
 				break
 			}
 		}
 		if !matched {
-			log.Tracef("Value %s didn't match", value)
 			return false
 		}
 	}
-
 	return true
 }
 
-func (ssm StringSliceMatcher) MarshalJSON() ([]byte, error) {
-	if ssm.Matcher == DefaultMatcher {
-		return json.Marshal(ssm.Value)
+func (sms StringMatcherSlice) MarshalJSON() ([]byte, error) {
+	if len(sms) == 1 && sms[0].Matcher == DefaultMatcher {
+		return json.Marshal(sms[0].Value)
 	}
-	return json.Marshal(&struct {
-		Matcher string      `json:"matcher"`
-		Value   StringSlice `json:"value"`
-	}{
-		Matcher: ssm.Matcher,
-		Value:   ssm.Value,
-	})
+	res := make([]StringMatcher, len(sms))
+	for i, v := range sms {
+		res[i] = StringMatcher{
+			Matcher: v.Matcher,
+			Value:   v.Value,
+		}
+	}
+	return json.Marshal(res)
 }
 
-func (ssm *StringSliceMatcher) UnmarshalJSON(data []byte) error {
-	var v StringSlice
-	if err := json.Unmarshal(data, &v); err == nil {
-		ssm.Matcher = DefaultMatcher
-		ssm.Value = v
+func (sms *StringMatcherSlice) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*sms = []StringMatcher{{
+			Matcher: DefaultMatcher,
+			Value:   s,
+		}}
 		return nil
 	}
 
-	var res struct {
-		Matcher string      `json:"matcher"`
-		Value   StringSlice `json:"value"`
-	}
+	var res []StringMatcher
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
-
-	ssm.Matcher = res.Matcher
-	ssm.Value = res.Value
+	*sms = res
 	return nil
 }
 
-func (ssm StringSliceMatcher) MarshalYAML() (interface{}, error) {
-	if ssm.Matcher == DefaultMatcher {
-		value, err := yaml.Marshal(ssm.Value)
+func (sms StringMatcherSlice) MarshalYAML() (interface{}, error) {
+	if len(sms) == 1 && sms[0].Matcher == DefaultMatcher {
+		value, err := yaml.Marshal(sms[0].Value)
 		return string(value), err
 	}
-
-	value, err := yaml.Marshal(&struct {
-		Matcher string      `yaml:"matcher,flow"`
-		Value   StringSlice `yaml:"value"`
-	}{
-		Matcher: ssm.Matcher,
-		Value:   ssm.Value,
-	})
-
+	res := make([]StringMatcher, len(sms))
+	for i, v := range sms {
+		res[i] = StringMatcher{
+			Matcher: v.Matcher,
+			Value:   v.Value,
+		}
+	}
+	value, err := yaml.Marshal(res)
 	return string(value), err
 }
 
-func (ssm *StringSliceMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var v StringSlice
-	if err := unmarshal(&v); err == nil {
-		ssm.Matcher = DefaultMatcher
-		ssm.Value = v
+func (sms *StringMatcherSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	if err := unmarshal(&s); err == nil {
+		*sms = []StringMatcher{{
+			Matcher: DefaultMatcher,
+			Value:   s,
+		}}
 		return nil
 	}
-	var res struct {
-		Matcher string      `yaml:"matcher,flow"`
-		Value   StringSlice `yaml:"value"`
-	}
+
+	var res []StringMatcher
 	if err := unmarshal(&res); err != nil {
 		return err
 	}
-	ssm.Matcher = res.Matcher
-	ssm.Value = res.Value
+	*sms = res
 	return nil
 }
 
-type MultiMapMatcher map[string]StringSliceMatcher
+type MultiMapMatcher map[string]StringMatcherSlice
 
 func (mmm MultiMapMatcher) Match(values map[string][]string) bool {
 	if len(mmm) > len(values) {

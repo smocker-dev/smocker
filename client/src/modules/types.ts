@@ -32,13 +32,7 @@ export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 
 const MultimapMatcherCodec = t.dictionary(
   t.string,
-  t.union([
-    t.type({
-      matcher: t.string,
-      value: t.array(t.string),
-    }),
-    t.array(t.string),
-  ])
+  t.union([t.array(t.union([t.string, StringMatcherCodec])), t.string])
 );
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 

@@ -43,14 +43,15 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 5
+          - result.bodyjson.__len__ ShouldEqual 6
 
           # Mocks are stored as a stack
-          - result.bodyjson.bodyjson4.request.method.value ShouldEqual .*
-          - result.bodyjson.bodyjson3.request.method ShouldEqual POST
-          - result.bodyjson.bodyjson2.request.method ShouldEqual DELETE
+          - result.bodyjson.bodyjson5.request.method.value ShouldEqual .*
+          - result.bodyjson.bodyjson4.request.method ShouldEqual POST
+          - result.bodyjson.bodyjson3.request.method ShouldEqual DELETE
+          - result.bodyjson.bodyjson2.request.method.value ShouldEqual .*
           - result.bodyjson.bodyjson1.request.method.value ShouldEqual .*
-          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
+          - result.bodyjson.bodyjson0.request.headers.x-custom-header-1 ShouldEqual bar
 
   - name: Add basic mock with reset after a basic mock list
     steps:
@@ -67,7 +68,7 @@ testcases:
         method: GET
         url: http://localhost:8081/mocks
         assertions:
-          - result.bodyjson.__len__ ShouldEqual 5
+          - result.bodyjson.__len__ ShouldEqual 6
       - type: http
         method: POST
         url: http://localhost:8081/mocks?reset=true
@@ -106,9 +107,9 @@ testcases:
           - result.bodyjson.bodyjson3.request.method.value ShouldEqual "PO"
           - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldEqualJSON"
           - result.bodyjson.bodyjson2.request.body.value ShouldContainSubstring id
-          - result.bodyjson.bodyjson1.request.headers.content-type.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson1.request.headers.content-type.value.value0 ShouldEqual application/.*
-          - result.bodyjson.bodyjson0.request.query_params.test.test0 ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
+          - result.bodyjson.bodyjson1.request.headers.content-type.content-type0.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson1.request.headers.content-type.content-type0.value ShouldEqual application/.*
+          - result.bodyjson.bodyjson0.request.query_params.test ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
 
   - name: Add dynamic mocks
     steps:

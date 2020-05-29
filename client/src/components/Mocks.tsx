@@ -28,7 +28,13 @@ import {
   MockResponse,
   Mocks,
 } from "~modules/types";
-import { extractMatcher, formQueryParams, toString, usePoll } from "~utils";
+import {
+  extractMatcher,
+  formatHeaderValue,
+  formatQueryParams,
+  toString,
+  usePoll,
+} from "~utils";
 import Code from "./Code";
 import "./Mocks.scss";
 
@@ -134,7 +140,7 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
           </Tag>
           <span className="path">
             {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
-            {path + formQueryParams(request.query_params)}
+            {path + formatQueryParams(request.query_params)}
           </span>
         </div>
       </div>
@@ -144,12 +150,7 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
             {Object.entries(request.headers).map(([key, sliceMatcher]) => (
               <tr key={key}>
                 <td>{key}</td>
-                <td>
-                  {sliceMatcher["matcher"] && (
-                    <strong>{sliceMatcher["matcher"] + ": "}</strong>
-                  )}
-                  {(sliceMatcher["value"] || sliceMatcher).join(", ")}
-                </td>
+                <td>{formatHeaderValue(sliceMatcher)}</td>
               </tr>
             ))}
           </tbody>

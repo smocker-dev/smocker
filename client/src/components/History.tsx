@@ -1,6 +1,18 @@
+import {
+  Alert,
+  Button,
+  Empty,
+  Icon,
+  PageHeader,
+  Pagination,
+  Row,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
+import yaml from "js-yaml";
 import { orderBy } from "lodash-es";
 import { DateTime, Settings } from "luxon";
-import yaml from "js-yaml";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -9,22 +21,10 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
-import { formQueryParams, usePoll } from "~utils";
-import {
-  Empty,
-  Button,
-  Icon,
-  PageHeader,
-  Pagination,
-  Alert,
-  Tag,
-  Row,
-  Spin,
-  Typography,
-} from "antd";
-import "./History.scss";
-import Code from "./Code";
 import { cleanupRequest, entryToCurl } from "~modules/utils";
+import { formatQueryParams, usePoll } from "~utils";
+import Code from "./Code";
+import "./History.scss";
 
 Settings.defaultLocale = "en-US";
 
@@ -41,7 +41,7 @@ const Entry = React.memo(
         <div className="details">
           <Tag color="blue">{value.request.method}</Tag>
           <span className="path">
-            {value.request.path + formQueryParams(value.request.query_params)}
+            {value.request.path + formatQueryParams(value.request.query_params)}
           </span>
           <span className="date">
             {DateTime.fromISO(value.request.date).toFormat(dateFormat)}

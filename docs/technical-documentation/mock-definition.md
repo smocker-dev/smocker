@@ -122,15 +122,17 @@ They have the following format:
 
 ```yaml
 query_params:
-  key:
-    matcher: ShouldMatch
-    value: foo.*bar
-  key2:
-    matcher: ShouldContainSubstring
-    value: baz
+  key1: foo
+  key2: [foo, bar]
   key3:
-    matcher: ShouldMatch
-    value: [foo.*, bar.*, baz.*]
+    - matcher: ShouldMatch
+      value: foo.*bar
+  key4:
+    - foo
+    - matcher: ShouldMatch
+      value: bar.*
+    - matcher: ShouldContainSubstring
+      value:  baz
 ```
 
 ---
