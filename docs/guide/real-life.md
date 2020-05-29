@@ -117,6 +117,7 @@ type Reservation struct {
 </td>
 <td>int64</td>
 <td>
+
 ```json
 {
   "id": 1,
