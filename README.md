@@ -106,6 +106,7 @@ You can then register it to the configuration server with the following command:
 
 ```sh
 curl -XPOST \
+  --header "Content-Type: application/x-yaml" \
   --data-binary "@helloworld.yml" \
   localhost:8081/mocks
 ```
