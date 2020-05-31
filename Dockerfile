@@ -1,11 +1,11 @@
-FROM golang:1.13-alpine AS build-backend
+FROM golang:1.14-alpine AS build-backend
 ARG VERSION=snapshot
 WORKDIR /go/src/github.com/Thiht/smocker
 COPY . .
 RUN apk add git make && \
   make VERSION=$VERSION RELEASE=1 build
 
-FROM node:10-alpine AS build-frontend
+FROM node:12-alpine AS build-frontend
 WORKDIR /wd
 COPY . .
 RUN yarn install --frozen-lockfile && \
