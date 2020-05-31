@@ -12,9 +12,11 @@ RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 FROM node:12-alpine AS build-frontend
 WORKDIR /wd
 ENV PARCEL_WORKERS 1
-COPY . .
-RUN yarn install --frozen-lockfile && \
-  yarn build
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+COPY .babelrc tsconfig.json ./
+COPY client/ ./client/
+RUN yarn build
 
 FROM alpine
 WORKDIR /opt

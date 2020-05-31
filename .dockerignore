@@ -1,7 +1,7 @@
-# Do not add node_modules/ to .dockerignore, it's used to speed up builds if present
 .cache/
 .git/
 .vscode/
 build/
 docs/
+node_modules/
 tests/
