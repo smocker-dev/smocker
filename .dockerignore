@@ -4,3 +4,4 @@
 .vscode/
 build/
 docs/
+tests/
