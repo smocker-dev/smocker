@@ -1,9 +1,9 @@
 FROM golang:1.14-alpine AS build-backend
 ARG VERSION=snapshot
+ARG COMMIT
 WORKDIR /go/src/github.com/Thiht/smocker
-COPY . .
-RUN apk add git make && \
-  make VERSION=$VERSION RELEASE=1 build
+RUN apk add --no-cache make && \
+  make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 
 FROM node:12-alpine AS build-frontend
 WORKDIR /wd
