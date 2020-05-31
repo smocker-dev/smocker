@@ -1,6 +1,6 @@
 APPNAME:=$(shell basename $(shell go list))
 VERSION?=snapshot
-COMMIT:=$(shell git rev-parse --verify HEAD)
+COMMIT?=$(shell git rev-parse --verify HEAD)
 DATE:=$(shell date +%FT%T%z)
 RELEASE?=0
 
@@ -77,7 +77,7 @@ clean:
 
 .PHONY: build-docker
 build-docker:
-	docker build --build-arg VERSION=$(VERSION) --tag $(DOCKER_IMAGE):latest .
+	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: start-docker

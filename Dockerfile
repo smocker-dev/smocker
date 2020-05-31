@@ -1,19 +1,26 @@
-FROM golang:1.13-alpine AS build-backend
+FROM golang:1.14-alpine AS build-backend
+RUN apk add --no-cache make
 ARG VERSION=snapshot
+ARG COMMIT
 WORKDIR /go/src/github.com/Thiht/smocker
-COPY . .
-RUN apk add git make && \
-  make VERSION=$VERSION RELEASE=1 build
+COPY go.mod go.sum ./
+RUN go mod download
+COPY Makefile main.go ./
+COPY server/ ./server/
+RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 
-FROM node:10-alpine AS build-frontend
+FROM node:12-alpine AS build-frontend
 WORKDIR /wd
-COPY . .
-RUN yarn install --frozen-lockfile && \
-  yarn build
+ENV PARCEL_WORKERS 1
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+COPY .babelrc tsconfig.json ./
+COPY client/ ./client/
+RUN yarn build
 
 FROM alpine
-COPY --from=build-backend /go/src/github.com/Thiht/smocker/build/* /opt/
-COPY --from=build-frontend /wd/build/* /opt/
 WORKDIR /opt
 EXPOSE 8080 8081
+COPY --from=build-backend /go/src/github.com/Thiht/smocker/build/* /opt/
+COPY --from=build-frontend /wd/build/* /opt/
 CMD ["/opt/smocker"]
