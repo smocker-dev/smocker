@@ -8,6 +8,7 @@ RUN apk add git make && \
 FROM node:12-alpine AS build-frontend
 WORKDIR /wd
 COPY . .
+ENV PARCEL_WORKERS 1
 RUN yarn install --frozen-lockfile && \
   yarn build
 
