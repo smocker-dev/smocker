@@ -31,7 +31,7 @@ sequenceDiagram
     G->>+U: Redirect to
     U-->>-G: Return users
     G-->>-R: Forward users
-    R-->>-G: Retur booking
+    R-->>-G: Return booking
     G-->>-C: Forward booking
 ```
 
