@@ -1,4 +1,5 @@
 - request:
+    method: GET
     path:
       matcher: ShouldMatch
       value: /.*
@@ -78,3 +79,10 @@
   response:
     body: >
       {"message": "test9"}
+- request:
+    path: /test10
+    body:
+      key1: test
+  response:
+    body: >
+      {"message": "test11"}

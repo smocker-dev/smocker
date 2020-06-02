@@ -100,18 +100,19 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 7
-          - result.bodyjson.bodyjson6.request.path.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson6.request.path.value ShouldEqual "/.*"
-          - result.bodyjson.bodyjson5.request.method.matcher ShouldEqual "ShouldContainSubstring"
-          - result.bodyjson.bodyjson5.request.method.value ShouldEqual "PO"
-          - result.bodyjson.bodyjson4.request.body.matcher ShouldEqual "ShouldEqualJSON"
-          - result.bodyjson.bodyjson4.request.body.value ShouldContainSubstring id
-          - result.bodyjson.bodyjson3.request.headers.content-type.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson3.request.headers.content-type.value ShouldEqual application/.*
-          - result.bodyjson.bodyjson2.request.query_params.test ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
-          - result.bodyjson.bodyjson1.request.body.matcher ShouldEqual "ShouldNotBeEmpty"
-          - result.bodyjson.bodyjson0.request.query_params.test.value ShouldEqual true
+          - result.bodyjson.__len__ ShouldEqual 8
+          - result.bodyjson.bodyjson7.request.path.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson7.request.path.value ShouldEqual "/.*"
+          - result.bodyjson.bodyjson6.request.method.matcher ShouldEqual "ShouldContainSubstring"
+          - result.bodyjson.bodyjson6.request.method.value ShouldEqual "PO"
+          - result.bodyjson.bodyjson5.request.body.matcher ShouldEqual "ShouldEqualJSON"
+          - result.bodyjson.bodyjson5.request.body.value ShouldContainSubstring id
+          - result.bodyjson.bodyjson4.request.headers.content-type.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson4.request.headers.content-type.value ShouldEqual application/.*
+          - result.bodyjson.bodyjson3.request.query_params.test ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
+          - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldNotBeEmpty"
+          - result.bodyjson.bodyjson1.request.query_params.test.value ShouldEqual true
+          - result.bodyjson.bodyjson0.request.body.key1 ShouldEqual test
 
   - name: Add dynamic mocks
     steps:

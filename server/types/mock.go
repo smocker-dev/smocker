@@ -67,28 +67,38 @@ func (m *Mock) Verify() bool {
 type MockRequest struct {
 	Path        StringMatcher   `json:"path" yaml:"path"`
 	Method      StringMatcher   `json:"method" yaml:"method"`
-	Body        *StringMatcher  `json:"body,omitempty" yaml:"body,omitempty"`
+	Body        *BodyMatcher    `json:"body,omitempty" yaml:"body,omitempty"`
 	QueryParams MultiMapMatcher `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     MultiMapMatcher `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 func (mr MockRequest) Match(req Request) bool {
-	matchPath := mr.Path.Match(req.Path)
 	matchMethod := mr.Method.Match(req.Method)
-	matchBody := mr.Body == nil || mr.Body.Match(req.BodyString)
-	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
+	if !matchMethod {
+		log.Trace("Didn't match method")
+		return false
+	}
+	matchPath := mr.Path.Match(req.Path)
+	if !matchPath {
+		log.Trace("Didn't match path")
+		return false
+	}
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
-
-	match := matchPath && matchMethod && matchBody && matchQueryParams && matchHeaders
-	logEntry := log.WithFields(log.Fields{
-		"matchPath":        matchPath,
-		"matchMethod":      matchMethod,
-		"matchBody":        matchBody,
-		"matchQueryParams": matchQueryParams,
-		"matchHeaders":     matchHeaders,
-	})
-	logEntry.Trace("Is matching: ", match)
-	return match
+	if !matchHeaders {
+		log.Trace("Didn't match headers")
+		return false
+	}
+	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
+	if !matchQueryParams {
+		log.Trace("Didn't match query params")
+		return false
+	}
+	matchBody := mr.Body == nil || mr.Body.Match(req.BodyString)
+	if !matchBody {
+		log.Trace("Didn't match body")
+		return false
+	}
+	return true
 }
 
 type MockResponse struct {

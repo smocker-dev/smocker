@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/smartystreets/assertions"
+	"github.com/stretchr/objx"
 	"gopkg.in/yaml.v3"
 )
 
@@ -298,4 +299,81 @@ func (mmm MultiMapMatcher) Match(values map[string][]string) bool {
 		}
 	}
 	return true
+}
+
+type BodyMatcher struct {
+	bodyString *StringMatcher
+	bodyJson   map[string]StringMatcher
+}
+
+func (bm BodyMatcher) Match(value string) bool {
+	if bm.bodyString != nil {
+		return bm.bodyString.Match(value)
+	}
+
+	j, err := objx.FromJSON(value)
+	if err != nil {
+		return false
+	}
+	for path, matcher := range bm.bodyJson {
+		value := j.Get(path)
+		if value == nil {
+			return false
+		}
+		if ok := matcher.Match(value.String()); !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func (bm BodyMatcher) MarshalJSON() ([]byte, error) {
+	if bm.bodyString != nil {
+		return json.Marshal(bm.bodyString)
+	}
+	return json.Marshal(bm.bodyJson)
+}
+
+func (bm *BodyMatcher) UnmarshalJSON(data []byte) error {
+	var s StringMatcher
+	if err := json.Unmarshal(data, &s); err == nil {
+		if _, ok := asserts[s.Matcher]; ok {
+			bm.bodyString = &s
+			return nil
+		}
+	}
+
+	var res map[string]StringMatcher
+	if err := json.Unmarshal(data, &res); err != nil {
+		return err
+	}
+	bm.bodyJson = res
+	return nil
+}
+
+func (bm BodyMatcher) MarshalYAML() (interface{}, error) {
+	if bm.bodyString != nil {
+		value, err := yaml.Marshal(bm.bodyString)
+		return string(value), err
+	}
+
+	value, err := yaml.Marshal(bm.bodyJson)
+	return string(value), err
+}
+
+func (bm *BodyMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s StringMatcher
+	if err := unmarshal(&s); err == nil {
+		if _, ok := asserts[s.Matcher]; ok {
+			bm.bodyString = &s
+			return nil
+		}
+	}
+
+	var res map[string]StringMatcher
+	if err := unmarshal(&res); err != nil {
+		return err
+	}
+	bm.bodyJson = res
+	return nil
 }
