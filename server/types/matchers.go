@@ -24,6 +24,7 @@ var asserts = map[string]Assertion{
 	"ShouldEqual":            assertions.ShouldEqual,
 	"ShouldEqualJSON":        assertions.ShouldEqualJSON,
 	"ShouldStartWith":        assertions.ShouldStartWith,
+	"ShouldBeEmpty":          ShouldBeEmpty,
 	"ShouldMatch":            ShouldMatch,
 
 	"ShouldNotResemble":         assertions.ShouldNotResemble,
@@ -32,6 +33,7 @@ var asserts = map[string]Assertion{
 	"ShouldNotEndWith":          assertions.ShouldNotEndWith,
 	"ShouldNotEqual":            assertions.ShouldNotEqual,
 	"ShouldNotStartWith":        assertions.ShouldNotStartWith,
+	"ShouldNotBeEmpty":          ShouldNotBeEmpty,
 	"ShouldNotMatch":            ShouldNotMatch,
 }
 
@@ -53,6 +55,14 @@ func ShouldMatch(value interface{}, patterns ...interface{}) string {
 	}
 
 	return ""
+}
+
+func ShouldBeEmpty(value interface{}, patterns ...interface{}) string {
+	return assertions.ShouldBeEmpty(value)
+}
+
+func ShouldNotBeEmpty(value interface{}, patterns ...interface{}) string {
+	return assertions.ShouldNotBeEmpty(value)
 }
 
 func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
@@ -191,8 +201,11 @@ func (sms StringMatcherSlice) Match(values []string) bool {
 }
 
 func (sms StringMatcherSlice) MarshalJSON() ([]byte, error) {
-	if len(sms) == 1 && sms[0].Matcher == DefaultMatcher {
-		return json.Marshal(sms[0].Value)
+	if len(sms) == 1 {
+		if sms[0].Matcher == DefaultMatcher {
+			return json.Marshal(sms[0].Value)
+		}
+		return json.Marshal(sms[0])
 	}
 	res := make([]StringMatcher, len(sms))
 	for i, v := range sms {
@@ -214,6 +227,12 @@ func (sms *StringMatcherSlice) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	var sm StringMatcher
+	if err := json.Unmarshal(data, &sm); err == nil {
+		*sms = []StringMatcher{sm}
+		return nil
+	}
+
 	var res []StringMatcher
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
@@ -223,8 +242,12 @@ func (sms *StringMatcherSlice) UnmarshalJSON(data []byte) error {
 }
 
 func (sms StringMatcherSlice) MarshalYAML() (interface{}, error) {
-	if len(sms) == 1 && sms[0].Matcher == DefaultMatcher {
-		value, err := yaml.Marshal(sms[0].Value)
+	if len(sms) == 1 {
+		if sms[0].Matcher == DefaultMatcher {
+			value, err := yaml.Marshal(sms[0].Value)
+			return string(value), err
+		}
+		value, err := yaml.Marshal(sms[0])
 		return string(value), err
 	}
 	res := make([]StringMatcher, len(sms))
@@ -245,6 +268,12 @@ func (sms *StringMatcherSlice) UnmarshalYAML(unmarshal func(interface{}) error) 
 			Matcher: DefaultMatcher,
 			Value:   s,
 		}}
+		return nil
+	}
+
+	var sm StringMatcher
+	if err := unmarshal(&sm); err == nil {
+		*sms = []StringMatcher{sm}
 		return nil
 	}
 

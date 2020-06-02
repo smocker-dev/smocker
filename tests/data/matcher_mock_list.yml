@@ -60,3 +60,21 @@
       Content-Type: application/json
     body: >
       {"message": "test5"}
+- request:
+    path: /test6
+    body:
+      matcher: ShouldNotBeEmpty
+  response:
+    body: >
+      {"message": "test7"}
+- request:
+    path: /test8
+    body:
+      matcher: ShouldNotBeEmpty
+    query_params:
+      test:
+        matcher: ShouldContainSubstring
+        value: "true"
+  response:
+    body: >
+      {"message": "test9"}

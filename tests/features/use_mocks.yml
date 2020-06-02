@@ -122,6 +122,14 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5
+      - type: http
+        method: GET
+        url: http://localhost:8080/test6
+        body: >
+          "notEmpty"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test7
 
   - name: Use dynamic mock list
     steps:
