@@ -130,7 +130,7 @@ func TestMultiMapMatcher_JSON(t *testing.T) {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 
-	test = `{"test":[{"matcher":"test2","value":"test3"}]}`
+	test = `{"test":{"matcher":"test2","value":"test3"}}`
 	res = MultiMapMatcher{}
 	if err = json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
