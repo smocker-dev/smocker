@@ -50,7 +50,22 @@ module.exports = {
         content: "/logo/favicon/browserconfig.xml"
       }
     ],
-    ["meta", { name: "theme-color", content: "#ffffff" }]
+    // See: https://css-tricks.com/essential-meta-tags-social-media/#article-header-id-2
+    ["meta", { name: "theme-color", content: "#ffffff" }],
+    ["meta", { property: "og:title", content: "Smocker" }],
+    [
+      "meta",
+      {
+        property: "og:description",
+        content: "Smocker is a simple and efficient HTTP mock server."
+      }
+    ],
+    [
+      "meta",
+      { property: "og:image", content: "https://smocker.dev/logo/cover.png" }
+    ],
+    ["meta", { property: "og:url", content: "https://smocker.dev/" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }]
   ],
   chainWebpack: (config, _) => {
     config.resolve.alias.set("@root", path.resolve(__dirname, ".."));
