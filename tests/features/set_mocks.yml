@@ -47,11 +47,11 @@ testcases:
 
           # Mocks are stored as a stack
           - result.bodyjson.bodyjson5.request.method.value ShouldEqual .*
-          - result.bodyjson.bodyjson4.request.method ShouldEqual POST
-          - result.bodyjson.bodyjson3.request.method ShouldEqual DELETE
+          - result.bodyjson.bodyjson4.request.method.value ShouldEqual POST
+          - result.bodyjson.bodyjson3.request.method.value ShouldEqual DELETE
           - result.bodyjson.bodyjson2.request.method.value ShouldEqual .*
           - result.bodyjson.bodyjson1.request.method.value ShouldEqual .*
-          - result.bodyjson.bodyjson0.request.headers.x-custom-header-1 ShouldEqual bar
+          - result.bodyjson.bodyjson0.request.headers.x-custom-header-1.x-custom-header-10.value ShouldEqual bar
 
   - name: Add basic mock with reset after a basic mock list
     steps:
@@ -107,12 +107,12 @@ testcases:
           - result.bodyjson.bodyjson6.request.method.value ShouldEqual "PO"
           - result.bodyjson.bodyjson5.request.body.matcher ShouldEqual "ShouldEqualJSON"
           - result.bodyjson.bodyjson5.request.body.value ShouldContainSubstring id
-          - result.bodyjson.bodyjson4.request.headers.content-type.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson4.request.headers.content-type.value ShouldEqual application/.*
-          - result.bodyjson.bodyjson3.request.query_params.test ShouldEqual true # it was factorized in smocker because 'ShouldEqual' is the default matcher
+          - result.bodyjson.bodyjson4.request.headers.content-type.content-type0.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson4.request.headers.content-type.content-type0.value ShouldEqual application/.*
+          - result.bodyjson.bodyjson3.request.query_params.test.test0.value ShouldEqual true
           - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual "ShouldNotBeEmpty"
-          - result.bodyjson.bodyjson1.request.query_params.test.value ShouldEqual true
-          - result.bodyjson.bodyjson0.request.body.key1 ShouldEqual test
+          - result.bodyjson.bodyjson1.request.query_params.test.test0.value ShouldEqual true
+          - result.bodyjson.bodyjson0.request.body.key1.value ShouldEqual test
 
   - name: Add dynamic mocks
     steps:

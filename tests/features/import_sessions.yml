@@ -90,5 +90,5 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 1
-          - result.bodyjson.bodyjson0.request.path ShouldEqual /hello/world
+          - result.bodyjson.bodyjson0.request.path.value ShouldEqual /hello/world
           - result.bodyjson.bodyjson0.response.status ShouldEqual 200

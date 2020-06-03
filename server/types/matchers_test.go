@@ -10,6 +10,7 @@ import (
 
 func TestStringMatcher_JSON(t *testing.T) {
 	test := `"test"`
+	serialized := `{"matcher":"ShouldEqual","value":"test"}`
 
 	var res StringMatcher
 	if err := json.Unmarshal([]byte(test), &res); err != nil {
@@ -27,11 +28,12 @@ func TestStringMatcher_JSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(b) != test {
+	if string(b) != serialized {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 
 	test = `{"matcher":"test","value":"test2"}`
+	serialized = test
 	res = StringMatcher{}
 	if err = json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
@@ -49,7 +51,7 @@ func TestStringMatcher_JSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if string(b) != test {
+	if string(b) != serialized {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 }
@@ -97,6 +99,7 @@ func TestStringMatcher_YAML(t *testing.T) {
 
 func TestMultiMapMatcher_JSON(t *testing.T) {
 	test := `{"test":"test"}`
+	serialized := `{"test":[{"matcher":"ShouldEqual","value":"test"}]}`
 	var res MultiMapMatcher
 	if err := json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
@@ -126,11 +129,12 @@ func TestMultiMapMatcher_JSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if string(b) != test {
+	if string(b) != serialized {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 
 	test = `{"test":{"matcher":"test2","value":"test3"}}`
+	serialized = `{"test":[{"matcher":"test2","value":"test3"}]}`
 	res = MultiMapMatcher{}
 	if err = json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
@@ -155,7 +159,7 @@ func TestMultiMapMatcher_JSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if string(b) != test {
+	if string(b) != serialized {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 }

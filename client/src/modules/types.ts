@@ -5,6 +5,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import { Observable, of, throwError } from "rxjs";
 
 export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
+export const defaultMatcher = "ShouldEqual";
 
 export const ErrorCodec = t.type({
   message: t.any,
@@ -24,13 +25,10 @@ export type Sessions = t.TypeOf<typeof SessionsCodec>;
 const MultimapCodec = t.dictionary(t.string, t.array(t.string));
 export type Multimap = t.TypeOf<typeof MultimapCodec>;
 
-const StringMatcherCodec = t.union([
-  t.string,
-  t.type({
-    matcher: t.string,
-    value: t.string,
-  }),
-]);
+const StringMatcherCodec = t.type({
+  matcher: t.string,
+  value: t.string,
+});
 export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 
 const StringMatcherSliceCodec = t.array(StringMatcherCodec);
@@ -39,10 +37,7 @@ export type StringMatcherSlice = t.TypeOf<typeof StringMatcherSliceCodec>;
 const StringMatcherMapCodec = t.dictionary(t.string, StringMatcherCodec);
 export type StringMatcherMap = t.TypeOf<typeof StringMatcherMapCodec>;
 
-const MultimapMatcherCodec = t.dictionary(
-  t.string,
-  t.union([StringMatcherCodec, StringMatcherSliceCodec])
-);
+const MultimapMatcherCodec = t.dictionary(t.string, StringMatcherSliceCodec);
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 
 const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);

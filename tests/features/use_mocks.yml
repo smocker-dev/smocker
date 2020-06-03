@@ -125,11 +125,17 @@ testcases:
       - type: http
         method: GET
         url: http://localhost:8080/test6
-        body: >
-          "notEmpty"
+        body: "notEmpty"
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test7
+      - type: http
+        method: GET
+        url: http://localhost:8080/test8?test=trueeeeee
+        body: "notEmpty"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test9
       - type: http
         method: POST
         url: http://localhost:8080/test10

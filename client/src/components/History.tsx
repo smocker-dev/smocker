@@ -245,7 +245,9 @@ const History = ({
           )
         }
       >
-        <p>This is the history of the requests made since the last reset.</p>
+        <p>
+          This is the history of the requests made during the selected session.
+        </p>
         <p>
           Entries are sorted by
           <Button onClick={onSort} type="link">

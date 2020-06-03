@@ -26,6 +26,7 @@ import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import {
   dateFormat,
+  defaultMatcher,
   Error,
   Mock,
   MockDynamicResponse,
@@ -36,11 +37,10 @@ import {
   StringMatcherMap,
 } from "~modules/types";
 import {
-  extractMatcher,
+  bodyToString,
   formatHeaderValue,
   formatQueryParams,
   isStringMatcher,
-  toString,
   usePoll,
 } from "~utils";
 import Code from "./Code";
@@ -135,21 +135,23 @@ const MockProxy = ({ mock }: { mock: Mock }) => {
 };
 
 const MockRequest = ({ request }: { request: MockRequest }) => {
-  const methodMatcher = extractMatcher(request.method);
-  const method = toString(request.method);
-  const pathMatcher = extractMatcher(request.path);
-  const path = toString(request.path);
+  const showMethodMatcher = request.method.matcher !== defaultMatcher;
+  const showPathMatcher = request.path.matcher !== defaultMatcher;
+  const isBodyStringMatcher = isStringMatcher(request.body);
+  const showBody = isBodyStringMatcher && bodyToString(request.body);
   return (
     <div className="request">
       <div className="details">
         <div className="group">
           <Tag color="blue">
-            {methodMatcher && `Method: ${methodMatcher} `}
-            {method}
+            {showMethodMatcher
+              ? `Method: ${request.method.matcher} "${request.method.value}"`
+              : request.method.value}
           </Tag>
           <Typography.Text className="path" ellipsis>
-            {pathMatcher && `Path: ${pathMatcher} `}
-            {path + formatQueryParams(request.query_params)}
+            {(showPathMatcher
+              ? `Path: ${request.path.matcher} "${request.path.value}"`
+              : request.path.value) + formatQueryParams(request.query_params)}
           </Typography.Text>
         </div>
       </div>
@@ -165,28 +167,26 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
           </tbody>
         </table>
       )}
-      {request.body && isStringMatcher(request.body) && (
+      {request.body && isBodyStringMatcher && (
         <>
           <strong className="body-matcher">
-            {`Body ${request.body["matcher"] || "ShouldEqual"}`}
+            {`Body ${request.body["matcher"]}`}
           </strong>
-          {toString(request.body) && (
-            <Code value={toString(request.body)} language="json" />
+          {showBody && (
+            <Code value={bodyToString(request.body)} language="json" />
           )}
         </>
       )}
-      {request.body && !isStringMatcher(request.body) && (
+      {request.body && !isBodyStringMatcher && (
         <>
           <strong className="body-matcher">{"In Body"}</strong>
           <ul>
             {Object.entries<StringMatcher>(
               request.body as StringMatcherMap
-            ).map(([key, matcher]) => (
+            ).map(([key, value]) => (
               <li key={key}>
                 <strong>{`${key}`}</strong>
-                {matcher["matcher"] &&
-                  `: ${matcher["matcher"]} ${matcher["value"]}`}
-                {!matcher["matcher"] && `: ShouldEqual ${matcher}`}
+                {`: ${value.matcher} "${value.value}"`}
               </li>
             ))}
           </ul>
