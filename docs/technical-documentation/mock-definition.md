@@ -145,7 +145,7 @@ query_params:
 ---
 
 **Body Matcher** is specific to the `body` field.
-It allows you to define matchers on keys of the json body.
+It allows you to define matchers on keys of the JSON body.
 
 If we take the following body as an example:
 
@@ -167,7 +167,7 @@ body:
     value: bar.*
 ```
 
-**Body Matcher** use [stretchr/objx](https://github.com/stretchr/objx) to query the keys of a json body.
+**Body Matcher** use [stretchr/objx](https://github.com/stretchr/objx) to query the keys of a JSON body.
 So, if you want to make an assertion on the `test` value in the body example above, you can define your matcher as follow:
 
 ```yaml
@@ -191,8 +191,8 @@ The whole list of available matchers is:
 | `ShouldContainSubstring` / `ShouldNotContainSubstring` | Contains substring     |
 | `ShouldStartWith` / `ShouldNotStartWith`               | Starts with substring  |
 | `ShouldEndWith` / `ShouldNotEndWith`                   | Ends with substring    |
-| `ShouldBeEmpty` / `ShouldNotBeEmpty`                   | Emptiness of a field   |
 | `ShouldMatch` / `ShouldNotMatch`                       | Regexp match           |
+| `ShouldBeEmpty` / `ShouldNotBeEmpty`                   | Emptiness of a field   |
 
 ---
 
