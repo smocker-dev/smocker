@@ -75,27 +75,27 @@ type MockRequest struct {
 func (mr MockRequest) Match(req Request) bool {
 	matchMethod := mr.Method.Match(req.Method)
 	if !matchMethod {
-		log.Trace("Didn't match method")
+		log.Trace("Method did not match")
 		return false
 	}
 	matchPath := mr.Path.Match(req.Path)
 	if !matchPath {
-		log.Trace("Didn't match path")
+		log.Trace("Path did not match")
 		return false
 	}
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
 	if !matchHeaders {
-		log.Trace("Didn't match headers")
+		log.Trace("Headers did not match")
 		return false
 	}
 	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
 	if !matchQueryParams {
-		log.Trace("Didn't match query params")
+		log.Trace("Query params did not match")
 		return false
 	}
 	matchBody := mr.Body == nil || mr.Body.Match(req.BodyString)
 	if !matchBody {
-		log.Trace("Didn't match body")
+		log.Trace("Body did not match")
 		return false
 	}
 	return true
