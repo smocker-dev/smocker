@@ -23,6 +23,7 @@ require (
 	github.com/namsral/flag v1.7.4-pre
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/assertions v1.0.1
+	github.com/stretchr/objx v0.2.0
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb

@@ -1,25 +1,32 @@
 import trimEnd from "lodash/trimEnd";
 import * as React from "react";
-import { Multimap, MultimapMatcher, StringMatcher } from "~modules/types";
+import {
+  BodyMatcher,
+  defaultMatcher,
+  Multimap,
+  MultimapMatcher,
+  StringMatcher,
+  StringMatcherSlice,
+} from "~modules/types";
 
-export const extractMatcher = (
-  s?: StringMatcher | string | MultimapMatcher | Multimap
-): string | undefined => {
-  if (!s) {
-    return undefined;
+export const isStringMatcher = (body?: BodyMatcher): boolean => {
+  if (!body) {
+    return false;
   }
-  const matcher = (s as StringMatcher).matcher;
-  if (matcher) {
-    return matcher;
+  if ((body as StringMatcher)["matcher"]) {
+    return true;
   }
-  return undefined;
+  return false;
 };
 
-export const toString = (s: StringMatcher | string): string => {
-  if ((s as StringMatcher).matcher) {
-    return (s as StringMatcher).value.trim();
+export const bodyToString = (body?: BodyMatcher): string => {
+  if (!body) {
+    return "";
   }
-  return (s as string).trim();
+  if ((body as StringMatcher).matcher) {
+    return (body as StringMatcher).value.trim();
+  }
+  return "";
 };
 
 export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
@@ -30,16 +37,13 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
-        const values =
-          typeof params[key] === "string"
-            ? ([params[key]] as string[])
-            : (params[key] as (StringMatcher | string)[]);
-        values.forEach((v) => {
+        params[key].forEach((v: any) => {
           const value = v["value"] || v;
           const encodedValue = encodeURIComponent(value);
-          const param = v["matcher"]
-            ? `${key}=>(${v["matcher"]} ${encodedValue})`
-            : `${key}=${encodedValue}`;
+          const param =
+            v["matcher"] && v["matcher"] !== defaultMatcher
+              ? `${key}=>(${v["matcher"]} "${encodedValue}")`
+              : `${key}=${encodedValue}`;
           acc.push(param);
         });
         return acc;
@@ -48,16 +52,16 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
   return res;
 };
 
-export const formatHeaderValue = (
-  headerValue?: string | (string | StringMatcher)[]
-) => {
+export const formatHeaderValue = (headerValue?: StringMatcherSlice) => {
   if (!headerValue) {
     return "";
   }
-  const res = (typeof headerValue === "string" ? [headerValue] : headerValue)
+  const res = headerValue
     .reduce((acc: string[], v) => {
-      const value = v["value"] || v;
-      const param = v["matcher"] ? `${v["matcher"]}: ${value}` : `${value}`;
+      const param =
+        v.matcher !== defaultMatcher
+          ? `${v.matcher}: "${v.value}"`
+          : `${v.value}`;
       acc.push(param);
       return acc;
     }, [])

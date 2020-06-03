@@ -5,6 +5,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import { Observable, of, throwError } from "rxjs";
 
 export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
+export const defaultMatcher = "ShouldEqual";
 
 export const ErrorCodec = t.type({
   message: t.any,
@@ -30,11 +31,17 @@ const StringMatcherCodec = t.type({
 });
 export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 
-const MultimapMatcherCodec = t.dictionary(
-  t.string,
-  t.union([t.array(t.union([t.string, StringMatcherCodec])), t.string])
-);
+const StringMatcherSliceCodec = t.array(StringMatcherCodec);
+export type StringMatcherSlice = t.TypeOf<typeof StringMatcherSliceCodec>;
+
+const StringMatcherMapCodec = t.dictionary(t.string, StringMatcherCodec);
+export type StringMatcherMap = t.TypeOf<typeof StringMatcherMapCodec>;
+
+const MultimapMatcherCodec = t.dictionary(t.string, StringMatcherSliceCodec);
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
+
+const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);
+export type BodyMatcher = t.TypeOf<typeof BodyMatcherCodec>;
 
 const EntryRequestCodec = t.type({
   path: t.string,
@@ -65,9 +72,9 @@ export const HistoryCodec = t.array(EntryCodec);
 export type History = t.TypeOf<typeof HistoryCodec>;
 
 const MockRequestCodec = t.type({
-  path: t.union([t.string, StringMatcherCodec]),
-  method: t.union([t.string, StringMatcherCodec]),
-  body: t.union([t.string, StringMatcherCodec, t.undefined]),
+  path: StringMatcherCodec,
+  method: StringMatcherCodec,
+  body: t.union([BodyMatcherCodec, t.undefined]),
   query_params: t.union([MultimapMatcherCodec, t.undefined]),
   headers: t.union([MultimapMatcherCodec, t.undefined]),
 });
@@ -75,7 +82,7 @@ export type MockRequest = t.TypeOf<typeof MockRequestCodec>;
 
 const MockResponseCodec = t.type({
   status: t.number,
-  body: t.union([t.undefined, t.any]),
+  body: t.union([t.undefined, t.unknown]),
   headers: t.union([MultimapCodec, t.undefined]),
 });
 export type MockResponse = t.TypeOf<typeof MockResponseCodec>;

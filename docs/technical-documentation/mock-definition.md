@@ -63,13 +63,17 @@ request:
   headers:
     Content-Type: application/json
 
-  # string matcher
   body:
+    # either string matcher
     matcher: ShouldEqualJSON
     value: >
       {
         "hello": "world"
       }
+    # or body matcher
+    foo.bar:
+      matcher: ShouldMatch
+      value: baz.*
 ```
 
 The above request will match the following request:
@@ -83,7 +87,7 @@ curl -XPUT \
 
 As described above a `request` is an object composed of _matchers_ to apply on different fields of an HTTP request, such as the method, the path, the headers, etc.
 
-Matchers are used to apply a predicate on a field. The most basic example of matcher is `ShouldEqual` which is used to compare a field to a text. Smocker defines two types of matchers: **string matchers** and **multi map matchers**.
+Matchers are used to apply a predicate on a field. The most basic example of matcher is `ShouldEqual` which is used to compare a field to a text. Smocker defines three types of matchers: **string matcher**, **multi map matcher** and **body matcher**.
 
 ---
 
@@ -118,21 +122,61 @@ query_params:
   key: [foo, bar, baz]
 ```
 
-They have the following format:
+They could have the following format:
 
 ```yaml
 query_params:
   key1: foo
   key2: [foo, bar]
   key3:
+    matcher: ShouldMatch
+    value: foo.*bar
+  key4:
     - matcher: ShouldMatch
       value: foo.*bar
-  key4:
+  key5:
     - foo
     - matcher: ShouldMatch
       value: bar.*
     - matcher: ShouldContainSubstring
       value:  baz
+```
+
+---
+
+**Body Matcher** is specific to the `body` field.
+It allows you to define matchers on keys of the json body.
+
+If we take the following body as an example:
+
+```json
+{
+  "foo": "barbaz",
+  "bar": {
+    "baz": ["test"]
+  }
+}
+```
+
+We can define a matcher for the `foo` key using:
+
+```yaml
+body:
+  foo:
+    matcher: ShouldMatch
+    value: bar.*
+```
+
+**Body Matcher** use [stretchr/objx](https://github.com/stretchr/objx) to query the keys of a json body.
+So, if you want to make an assertion on the `test` value in the body example above, you can define your matcher as follow:
+
+```yaml
+body:
+  bar.baz[0]:
+    matcher: ShouldEqual
+    value: test
+  #--- or ---
+  bar.baz[0]: test
 ```
 
 ---
@@ -147,6 +191,7 @@ The whole list of available matchers is:
 | `ShouldContainSubstring` / `ShouldNotContainSubstring` | Contains substring     |
 | `ShouldStartWith` / `ShouldNotStartWith`               | Starts with substring  |
 | `ShouldEndWith` / `ShouldNotEndWith`                   | Ends with substring    |
+| `ShouldBeEmpty` / `ShouldNotBeEmpty`                   | Emptiness of a field   |
 | `ShouldMatch` / `ShouldNotMatch`                       | Regexp match           |
 
 ---

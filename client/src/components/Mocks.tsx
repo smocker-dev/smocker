@@ -26,18 +26,21 @@ import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import {
   dateFormat,
+  defaultMatcher,
   Error,
   Mock,
   MockDynamicResponse,
   MockRequest,
   MockResponse,
   Mocks,
+  StringMatcher,
+  StringMatcherMap,
 } from "~modules/types";
 import {
-  extractMatcher,
+  bodyToString,
   formatHeaderValue,
   formatQueryParams,
-  toString,
+  isStringMatcher,
   usePoll,
 } from "~utils";
 import Code from "./Code";
@@ -84,7 +87,9 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
           </tbody>
         </table>
       )}
-      {response.body && <Code value={response.body.trim()} language="json" />}
+      {response.body && (
+        <Code value={(response.body as string).trim()} language="json" />
+      )}
     </div>
   );
 };
@@ -130,22 +135,23 @@ const MockProxy = ({ mock }: { mock: Mock }) => {
 };
 
 const MockRequest = ({ request }: { request: MockRequest }) => {
-  const methodMatcher = extractMatcher(request.method);
-  const method = toString(request.method);
-  const pathMatcher = extractMatcher(request.path);
-  const path = toString(request.path);
-  const bodyMatcher = extractMatcher(request.body);
+  const showMethodMatcher = request.method.matcher !== defaultMatcher;
+  const showPathMatcher = request.path.matcher !== defaultMatcher;
+  const isBodyStringMatcher = isStringMatcher(request.body);
+  const showBody = isBodyStringMatcher && bodyToString(request.body);
   return (
     <div className="request">
       <div className="details">
         <div className="group">
           <Tag color="blue">
-            {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
-            {method}
+            {showMethodMatcher
+              ? `Method: ${request.method.matcher} "${request.method.value}"`
+              : request.method.value}
           </Tag>
           <Typography.Text className="path" ellipsis>
-            {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
-            {path + formatQueryParams(request.query_params)}
+            {(showPathMatcher
+              ? `Path: ${request.path.matcher} "${request.path.value}"`
+              : request.path.value) + formatQueryParams(request.query_params)}
           </Typography.Text>
         </div>
       </div>
@@ -161,12 +167,29 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
           </tbody>
         </table>
       )}
-      {request.body && (
+      {request.body && isBodyStringMatcher && (
         <>
           <strong className="body-matcher">
-            {bodyMatcher && bodyMatcher + ": "}
+            {`Body ${request.body["matcher"]}`}
           </strong>
-          <Code value={toString(request.body)} language="json" />
+          {showBody && (
+            <Code value={bodyToString(request.body)} language="json" />
+          )}
+        </>
+      )}
+      {request.body && !isBodyStringMatcher && (
+        <>
+          <strong className="body-matcher">{"In Body"}</strong>
+          <ul>
+            {Object.entries<StringMatcher>(
+              request.body as StringMatcherMap
+            ).map(([key, value]) => (
+              <li key={key}>
+                <strong>{`${key}`}</strong>
+                {`: ${value.matcher} "${value.value}"`}
+              </li>
+            ))}
+          </ul>
         </>
       )}
     </div>
