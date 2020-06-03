@@ -230,7 +230,12 @@ const NewMock = ({
       }
     >
       <Form className="form">
-        <Code value={mock} language="yaml" onBeforeChange={changeMock} />
+        <Code
+          value={mock}
+          language="yaml"
+          onBeforeChange={changeMock}
+          collapsible={false}
+        />
       </Form>
     </Drawer>
   );

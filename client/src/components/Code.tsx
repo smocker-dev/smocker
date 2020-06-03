@@ -31,6 +31,7 @@ interface Props {
     | "go_template_json"
     | "json"
     | "lua";
+  collapsible?: boolean;
   onBeforeChange?: (value: string) => void;
 }
 
@@ -43,7 +44,12 @@ const codeMirrorOptions = {
   gutters: ["CodeMirror-foldgutter"],
 };
 
-const Code = ({ value, language, onBeforeChange }: Props) => {
+const Code = ({
+  value,
+  language,
+  onBeforeChange,
+  collapsible = true,
+}: Props) => {
   let mode: string = language;
   switch (mode) {
     case "lua":
@@ -100,7 +106,7 @@ const Code = ({ value, language, onBeforeChange }: Props) => {
     />
   );
 
-  if (value.length > largeBodyLength) {
+  if (collapsible && value.length > largeBodyLength) {
     return (
       <Collapse>
         <Collapse.Panel
