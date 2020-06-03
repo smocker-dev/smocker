@@ -32,11 +32,14 @@ import {
   MockRequest,
   MockResponse,
   Mocks,
+  StringMatcher,
+  StringMatcherMap,
 } from "~modules/types";
 import {
   extractMatcher,
   formatHeaderValue,
   formatQueryParams,
+  isStringMatcher,
   toString,
   usePoll,
 } from "~utils";
@@ -84,7 +87,9 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
           </tbody>
         </table>
       )}
-      {response.body && <Code value={response.body.trim()} language="json" />}
+      {response.body && (
+        <Code value={(response.body as string).trim()} language="json" />
+      )}
     </div>
   );
 };
@@ -134,17 +139,16 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   const method = toString(request.method);
   const pathMatcher = extractMatcher(request.path);
   const path = toString(request.path);
-  const bodyMatcher = extractMatcher(request.body);
   return (
     <div className="request">
       <div className="details">
         <div className="group">
           <Tag color="blue">
-            {methodMatcher && <strong>{methodMatcher + ": "}</strong>}
+            {methodMatcher && `Method: ${methodMatcher} `}
             {method}
           </Tag>
           <Typography.Text className="path" ellipsis>
-            {pathMatcher && <strong>{pathMatcher + ": "}</strong>}
+            {pathMatcher && `Path: ${pathMatcher} `}
             {path + formatQueryParams(request.query_params)}
           </Typography.Text>
         </div>
@@ -161,12 +165,31 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
           </tbody>
         </table>
       )}
-      {request.body && (
+      {request.body && isStringMatcher(request.body) && (
         <>
           <strong className="body-matcher">
-            {bodyMatcher && bodyMatcher + ": "}
+            {`Body ${request.body["matcher"] || "ShouldEqual"}`}
           </strong>
-          <Code value={toString(request.body)} language="json" />
+          {toString(request.body) && (
+            <Code value={toString(request.body)} language="json" />
+          )}
+        </>
+      )}
+      {request.body && !isStringMatcher(request.body) && (
+        <>
+          <strong className="body-matcher">{"In Body"}</strong>
+          <ul>
+            {Object.entries<StringMatcher>(
+              request.body as StringMatcherMap
+            ).map(([key, matcher]) => (
+              <li key={key}>
+                <strong>{`${key}`}</strong>
+                {matcher["matcher"] &&
+                  `: ${matcher["matcher"]} ${matcher["value"]}`}
+                {!matcher["matcher"] && `: ShouldEqual ${matcher}`}
+              </li>
+            ))}
+          </ul>
         </>
       )}
     </div>

@@ -1,23 +1,37 @@
 import trimEnd from "lodash/trimEnd";
 import * as React from "react";
-import { Multimap, MultimapMatcher, StringMatcher } from "~modules/types";
+import {
+  BodyMatcher,
+  Multimap,
+  MultimapMatcher,
+  StringMatcher,
+  StringMatcherSlice,
+} from "~modules/types";
 
-export const extractMatcher = (
-  s?: StringMatcher | string | MultimapMatcher | Multimap
-): string | undefined => {
+export const extractMatcher = (s?: StringMatcher): string | undefined => {
   if (!s) {
     return undefined;
   }
-  const matcher = (s as StringMatcher).matcher;
+  const matcher = s["matcher"];
   if (matcher) {
     return matcher;
   }
   return undefined;
 };
 
-export const toString = (s: StringMatcher | string): string => {
-  if ((s as StringMatcher).matcher) {
-    return (s as StringMatcher).value.trim();
+export const isStringMatcher = (body: BodyMatcher): boolean => {
+  if (typeof body === "string") {
+    return true;
+  }
+  if ((body as StringMatcher)["matcher"]) {
+    return true;
+  }
+  return false;
+};
+
+export const toString = (s: BodyMatcher): string => {
+  if ((s as StringMatcher)["matcher"]) {
+    return (s as StringMatcher)["value"].trim();
   }
   return (s as string).trim();
 };
@@ -30,10 +44,9 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
-        const values =
-          typeof params[key] === "string"
-            ? ([params[key]] as string[])
-            : (params[key] as (StringMatcher | string)[]);
+        const values = !(params[key] instanceof Array)
+          ? ([params[key]] as string[])
+          : (params[key] as StringMatcherSlice);
         values.forEach((v) => {
           const value = v["value"] || v;
           const encodedValue = encodeURIComponent(value);
@@ -49,12 +62,15 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
 };
 
 export const formatHeaderValue = (
-  headerValue?: string | (string | StringMatcher)[]
+  headerValue?: StringMatcher | StringMatcherSlice
 ) => {
   if (!headerValue) {
     return "";
   }
-  const res = (typeof headerValue === "string" ? [headerValue] : headerValue)
+  const res = (!(headerValue instanceof Array)
+    ? [headerValue]
+    : (headerValue as StringMatcher[])
+  )
     .reduce((acc: string[], v) => {
       const value = v["value"] || v;
       const param = v["matcher"] ? `${v["matcher"]}: ${value}` : `${value}`;

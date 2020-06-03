@@ -24,17 +24,29 @@ export type Sessions = t.TypeOf<typeof SessionsCodec>;
 const MultimapCodec = t.dictionary(t.string, t.array(t.string));
 export type Multimap = t.TypeOf<typeof MultimapCodec>;
 
-const StringMatcherCodec = t.type({
-  matcher: t.string,
-  value: t.string,
-});
+const StringMatcherCodec = t.union([
+  t.string,
+  t.type({
+    matcher: t.string,
+    value: t.string,
+  }),
+]);
 export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
+
+const StringMatcherSliceCodec = t.array(StringMatcherCodec);
+export type StringMatcherSlice = t.TypeOf<typeof StringMatcherSliceCodec>;
+
+const StringMatcherMapCodec = t.dictionary(t.string, StringMatcherCodec);
+export type StringMatcherMap = t.TypeOf<typeof StringMatcherMapCodec>;
 
 const MultimapMatcherCodec = t.dictionary(
   t.string,
-  t.union([t.array(t.union([t.string, StringMatcherCodec])), t.string])
+  t.union([StringMatcherCodec, StringMatcherSliceCodec])
 );
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
+
+const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);
+export type BodyMatcher = t.TypeOf<typeof BodyMatcherCodec>;
 
 const EntryRequestCodec = t.type({
   path: t.string,
@@ -65,9 +77,9 @@ export const HistoryCodec = t.array(EntryCodec);
 export type History = t.TypeOf<typeof HistoryCodec>;
 
 const MockRequestCodec = t.type({
-  path: t.union([t.string, StringMatcherCodec]),
-  method: t.union([t.string, StringMatcherCodec]),
-  body: t.union([t.string, StringMatcherCodec, t.undefined]),
+  path: StringMatcherCodec,
+  method: StringMatcherCodec,
+  body: t.union([BodyMatcherCodec, t.undefined]),
   query_params: t.union([MultimapMatcherCodec, t.undefined]),
   headers: t.union([MultimapMatcherCodec, t.undefined]),
 });
@@ -75,7 +87,7 @@ export type MockRequest = t.TypeOf<typeof MockRequestCodec>;
 
 const MockResponseCodec = t.type({
   status: t.number,
-  body: t.union([t.undefined, t.any]),
+  body: t.union([t.undefined, t.unknown]),
   headers: t.union([MultimapCodec, t.undefined]),
 });
 export type MockResponse = t.TypeOf<typeof MockResponseCodec>;
