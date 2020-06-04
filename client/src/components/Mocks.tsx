@@ -292,6 +292,10 @@ const Mocks = ({
   addMocks,
   setDisplayNewMock,
 }: Props) => {
+  React.useEffect(() => {
+    document.title = "Mocks";
+  });
+
   const minPageSize = 10;
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);

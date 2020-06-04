@@ -153,6 +153,10 @@ const History = ({
   fetch,
   setDisplayNewMock,
 }: Props) => {
+  React.useEffect(() => {
+    document.title = "History";
+  });
+
   const minPageSize = 10;
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
