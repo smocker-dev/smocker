@@ -13,7 +13,7 @@ export const isStringMatcher = (body?: BodyMatcher): boolean => {
   if (!body) {
     return false;
   }
-  if ((body as StringMatcher)["matcher"]) {
+  if ((body as StringMatcher).matcher) {
     return true;
   }
   return false;
@@ -29,7 +29,9 @@ export const bodyToString = (body?: BodyMatcher): string => {
   return "";
 };
 
-export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
+export const formatQueryParams = (
+  params?: MultimapMatcher | Multimap
+): string => {
   if (!params) {
     return "";
   }
@@ -37,7 +39,7 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
-        params[key].forEach((v: any) => {
+        params[key].forEach((v: StringMatcher | string) => {
           const value = v["value"] || v;
           const encodedValue = encodeURIComponent(value);
           const param =
@@ -52,7 +54,7 @@ export const formatQueryParams = (params?: MultimapMatcher | Multimap) => {
   return res;
 };
 
-export const formatHeaderValue = (headerValue?: StringMatcherSlice) => {
+export const formatHeaderValue = (headerValue?: StringMatcherSlice): string => {
   if (!headerValue) {
     return "";
   }
@@ -71,14 +73,14 @@ export const formatHeaderValue = (headerValue?: StringMatcherSlice) => {
 
 export const trimedPath = trimEnd(window.basePath, "/");
 
-export type PollFunc = (params: any) => any;
+export type PollFunc<X, Y> = (params: X) => Y;
 
-export function usePoll(
+export function usePoll<K, V>(
   delay: number,
-  pollFunc: PollFunc,
-  pollParams?: any
+  pollFunc: PollFunc<K, V>,
+  pollParams: K
 ): [boolean, () => void, (poll: boolean) => void] {
-  const savedPollFunc = React.useRef<PollFunc>();
+  const savedPollFunc = React.useRef<PollFunc<K, V>>();
   const [init, setInit] = React.useState(false);
   const [polling, setPolling] = React.useState(false);
 

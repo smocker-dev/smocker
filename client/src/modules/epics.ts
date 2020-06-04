@@ -1,12 +1,13 @@
 import { combineEpics, Epic } from "redux-observable";
 import { of } from "rxjs";
-import { ajax } from "rxjs/ajax";
+import { ajax, AjaxError, AjaxResponse } from "rxjs/ajax";
 import { catchError, exhaustMap, filter, map, mergeMap } from "rxjs/operators";
 import { isActionOf } from "typesafe-actions";
 import { trimedPath } from "~utils";
 import { Actions, actions } from "./actions";
 import {
   decode,
+  Error,
   HistoryCodec,
   MocksCodec,
   SessionCodec,
@@ -25,11 +26,16 @@ const {
   reset,
 } = actions;
 
-const extractError = (error: any) => ({
-  message:
-    (error.xhr && error.xhr.response && error.xhr.response.message) ||
-    error.message,
-});
+const extractError = (error: AjaxResponse | AjaxError | Error) => {
+  const ajaxError = error as AjaxResponse | AjaxError;
+  return {
+    message:
+      (ajaxError.xhr &&
+        ajaxError.xhr.response &&
+        ajaxError.xhr.response.message) ||
+      error["message"],
+  };
+};
 
 const fetchSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
@@ -129,7 +135,7 @@ const visualizeHistoryEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(visualizeHistory.request)),
     exhaustMap((action) => {
-      const query = action.payload ? `?session=${action.payload}` : "";
+      const query = `?session=${action.payload.sessionID}&src=${action.payload.src}&dest=${action.payload.dest}`;
       return ajax.get(trimedPath + "/history/visualize" + query).pipe(
         map(({ response }) => {
           return visualizeHistory.success(response.message);

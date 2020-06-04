@@ -9,6 +9,11 @@ import (
 	"github.com/Thiht/smocker/server/types"
 )
 
+const (
+	ClientHost  = "Client"
+	SmockerHost = "Smocker"
+)
+
 type Graph interface {
 	Generate(cfg types.GraphConfig, session *types.Session) string
 }
@@ -25,15 +30,57 @@ type endpoint struct {
 	Alias string
 }
 
-type endpoints []endpoint
+type endpoints struct {
+	generatedCount int64
+	byHost         map[string]endpoint
+	list           []string
+}
 
-func (e endpoints) GetAlias(name string) string {
-	for _, ep := range e {
-		if ep.Name == name {
-			return ep.Alias
-		}
+func (e *endpoints) GetAlias(host string) string {
+	return e.byHost[host].Alias
+}
+
+func (e *endpoints) GetList() []endpoint {
+	res := []endpoint{}
+	for _, host := range e.list {
+		res = append(res, e.byHost[host])
 	}
-	return ""
+	return res
+}
+
+func (e *endpoints) AddHost(host string) {
+	if _, ok := e.byHost[host]; ok {
+		return
+	}
+	e.generatedCount++
+	ep := endpoint{
+		Name:  host,
+		Alias: fmt.Sprintf("E%d", e.generatedCount),
+	}
+	e.byHost[host] = ep
+	e.list = append(e.list, host)
+}
+
+func (e *endpoints) GenerateFromHost(host string) {
+	if _, ok := e.byHost[host]; ok {
+		return
+	}
+	e.generatedCount++
+	ep := endpoint{
+		Name:  fmt.Sprintf("Endpoint %d", e.generatedCount),
+		Alias: fmt.Sprintf("E%d", e.generatedCount),
+	}
+	e.byHost[host] = ep
+	e.list = append(e.list, host)
+}
+
+func (e *endpoints) AddEndpoint(host string, ep endpoint) {
+	if _, ok := e.byHost[host]; ok {
+		e.byHost[host] = ep
+		return
+	}
+	e.byHost[host] = ep
+	e.list = append(e.list, host)
 }
 
 func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
@@ -41,16 +88,37 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 	for _, mock := range session.Mocks {
 		mocksByID[mock.State.ID] = mock
 	}
-	endpointsFromOrigin := map[string]string{}
+
 	endpoints := endpoints{
-		{Name: "Client", Alias: "C"},
-		{Name: "Smocker", Alias: "S"},
+		byHost: map[string]endpoint{},
+		list:   []string{},
 	}
+	endpoints.AddEndpoint(ClientHost, endpoint{Name: ClientHost, Alias: "C"})
+	endpoints.AddEndpoint(SmockerHost, endpoint{Name: SmockerHost, Alias: "S"})
+
+	cLientAlias := endpoints.GetAlias(ClientHost)
+	smockerAlias := endpoints.GetAlias(SmockerHost)
 
 	history := types.GraphHistory{}
 	for _, entry := range session.History {
-		from := endpoints.GetAlias("Client")
-		to := endpoints.GetAlias("Smocker")
+		from := cLientAlias
+		if src := entry.Request.Headers.Get(cfg.SrcHeader); src != "" {
+			alias := endpoints.GetAlias(src)
+			if alias == "" {
+				endpoints.AddHost(src)
+				alias = endpoints.GetAlias(src)
+			}
+			from = alias
+		}
+		to := smockerAlias
+		if dest := entry.Request.Headers.Get(cfg.DestHeader); dest != "" {
+			alias := endpoints.GetAlias(dest)
+			if alias == "" {
+				endpoints.AddHost(dest)
+				alias = endpoints.GetAlias(dest)
+			}
+			to = alias
+		}
 
 		params := entry.Request.QueryParams.Encode()
 		if decoded, err := url.QueryUnescape(params); err == nil {
@@ -61,19 +129,18 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 		}
 
 		requestMessage := ellipsis(entry.Request.Method + " " + entry.Request.Path + params)
-
 		history = append(history, types.GraphEntry{
 			Type:    "request",
 			Message: requestMessage,
 			From:    from,
-			To:      to,
+			To:      smockerAlias,
 			Date:    entry.Request.Date,
 		})
 
 		history = append(history, types.GraphEntry{
 			Type:    "response",
 			Message: fmt.Sprintf("%d", entry.Response.Status),
-			From:    to,
+			From:    smockerAlias,
 			To:      from,
 			Date:    entry.Response.Date,
 		})
@@ -85,35 +152,34 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 				if err == nil {
 					host = u.Host
 				}
-				if _, ok := endpointsFromOrigin[host]; !ok {
-					enpointNumber := len(endpointsFromOrigin) + 1
-					endpointsFromOrigin[host] = fmt.Sprintf("Endpoint %d", enpointNumber)
-					endpoints = append(endpoints, endpoint{
-						Name:  endpointsFromOrigin[host],
-						Alias: fmt.Sprintf("E%d", enpointNumber),
-					})
+				if to == smockerAlias {
+					if alias := endpoints.GetAlias(host); alias == "" {
+						endpoints.GenerateFromHost(host)
+					}
+					to = endpoints.GetAlias(host)
 				}
+
 				history = append(history, types.GraphEntry{
 					Type:    "request",
 					Message: requestMessage,
-					From:    endpoints.GetAlias("Smocker"),
-					To:      endpoints.GetAlias(endpointsFromOrigin[host]),
+					From:    smockerAlias,
+					To:      to,
 					Date:    entry.Request.Date.Add(1 * time.Nanosecond),
 				})
 
 				history = append(history, types.GraphEntry{
 					Type:    "response",
 					Message: fmt.Sprintf("%d", entry.Response.Status),
-					From:    endpoints.GetAlias(endpointsFromOrigin[host]),
-					To:      endpoints.GetAlias("Smocker"),
+					From:    to,
+					To:      smockerAlias,
 					Date:    entry.Response.Date.Add(-1 * time.Nanosecond),
 				})
 			} else {
 				history = append(history, types.GraphEntry{
 					Type:    "processing",
 					Message: "use response mock",
-					From:    to,
-					To:      to,
+					From:    smockerAlias,
+					To:      smockerAlias,
 					Date:    entry.Response.Date.Add(-1 * time.Nanosecond),
 				})
 			}
@@ -121,19 +187,28 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) string {
 
 	}
 	sort.Sort(history)
-	return renderGraph(history, endpoints)
+	return renderGraph(history, &endpoints)
 }
 
-func renderGraph(gh types.GraphHistory, eps endpoints) string {
+func renderGraph(gh types.GraphHistory, eps *endpoints) string {
 	res := fmt.Sprintln("sequenceDiagram")
 	res += fmt.Sprintln("")
-	for _, endpoint := range eps {
-		res += fmt.Sprintf("    participant %s as %s\n", endpoint.Alias, endpoint.Name)
+	for _, endpoint := range eps.GetList() {
+		used := false
+		for _, entry := range gh {
+			if entry.From == endpoint.Alias || entry.To == endpoint.Alias {
+				used = true
+				break
+			}
+		}
+		if used {
+			res += fmt.Sprintf("    participant %s as %s\n", endpoint.Alias, endpoint.Name)
+		}
 	}
 	res += fmt.Sprintln("")
 	for _, entry := range gh {
 		if entry.From == "C" {
-			res += fmt.Sprintln("    rect rgb(250, 250, 250)")
+			res += fmt.Sprintln("    rect rgb(245, 245, 245)")
 		}
 		arrow := "-->>"
 		if entry.Type == "request" {

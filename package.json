@@ -15,7 +15,6 @@
     "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
   },
   "devDependencies": {
-    "@ant-design/icons": "^4.0.0",
     "@babel/core": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
     "@hot-loader/react-dom": "^16.10.2",
@@ -25,13 +24,14 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.153",
     "@types/luxon": "^1.15.2",
-    "@types/node": "^14.0.5",
     "@types/mermaid": "^8.2.1",
+    "@types/node": "^14.0.5",
     "@types/react": "^16.9.9",
     "@types/react-dom": "^16.9.2",
     "@types/react-redux": "^7.1.5",
     "@types/react-router-dom": "^5.1.0",
     "@types/redux": "^3.6.0",
+    "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^3.0.1",
     "@typescript-eslint/parser": "^3.0.1",
     "@vuepress/plugin-google-analytics": "^1.5.0",

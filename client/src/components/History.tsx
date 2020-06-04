@@ -39,7 +39,7 @@ const Entry = React.memo(
     handleDisplayNewMock,
   }: {
     value: Entry;
-    handleDisplayNewMock: () => any;
+    handleDisplayNewMock: () => unknown;
   }) => (
     <div className="entry">
       <div className="request">
@@ -141,8 +141,8 @@ interface Props extends RouteComponentProps {
   canPoll: boolean;
   historyEntry: History;
   error: Error | null;
-  fetch: (sessionID: string) => any;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => any;
+  fetch: (sessionID: string) => unknown;
+  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
 const History = ({
@@ -168,7 +168,7 @@ const History = ({
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
-  const ref = React.createRef<any>();
+  const ref = React.createRef<HTMLDivElement>();
   React.useLayoutEffect(() => {
     if (ref.current) {
       ref.current.scrollIntoView({
@@ -187,7 +187,7 @@ const History = ({
     const entries = orderBy(
       historyEntry,
       `${entryField}.date`,
-      order as any
+      order as "asc" | "desc"
     ).slice(
       Math.max((page - 1) * pageSize, 0),
       Math.min(page * pageSize, historyEntry.length)

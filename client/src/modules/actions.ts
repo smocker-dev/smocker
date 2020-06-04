@@ -23,7 +23,7 @@ const uploadSessions = createAsyncAction(
   "@APP/SESSIONS/UPLOAD",
   "@APP/SESSIONS/UPLOAD/SUCCESS",
   "@APP/SESSIONS/UPLOAD/FAILURE"
-)<any[], Sessions, Error>();
+)<Sessions, Sessions, Error>();
 
 const selectSession = createAction("@APP/SESSIONS/SELECT")<string>();
 
@@ -41,7 +41,7 @@ const visualizeHistory = createAsyncAction(
   "@APP/HISTORY/VISUALIZE",
   "@APP/HISTORY/VISUALIZE/SUCCESS",
   "@APP/HISTORY/VISUALIZE/FAILURE"
-)<string, string, Error>();
+)<{ sessionID: string; src: string; dest: string }, string, Error>();
 
 const fetchMocks = createAsyncAction(
   "@APP/MOCKS/FETCH",

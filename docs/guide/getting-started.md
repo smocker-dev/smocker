@@ -93,6 +93,10 @@ Once you refresh the user interface, you should notice that this last call is pr
 
 ![Smocker's user interface - History with an valid mock response](/screenshots/screenshot-hello-world-200.png)
 
+You can also visualize call history as a **sequence diagram** by clicking on the `visualize` button on the top right of the page.
+
+![Smocker's user interface - History visualization](/screenshots/screenshot-history-visualize.png)
+
 This covers the basic usage of Smocker, but it was just the beginning! Smocker covers many more topics:
 
 - advanced filters,

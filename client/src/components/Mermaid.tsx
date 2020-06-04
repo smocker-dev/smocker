@@ -2,7 +2,13 @@ import { Alert } from "antd";
 import mermaidAPI from "mermaid";
 import * as React from "react";
 
-export const Mermaid = ({ name, chart }: any) => {
+export const Mermaid = ({
+  name,
+  chart,
+}: {
+  name: string;
+  chart: string;
+}): JSX.Element => {
   const [diagram, setDiagram] = React.useState("");
   const [error, setError] = React.useState("");
 
@@ -24,10 +30,7 @@ export const Mermaid = ({ name, chart }: any) => {
 
   return (
     <div className="mermaid">
-      <div
-        style={{ width: "100%" }}
-        dangerouslySetInnerHTML={{ __html: diagram }}
-      />
+      <div dangerouslySetInnerHTML={{ __html: diagram }} />
       {error && (
         <Alert
           message="Unable to render"

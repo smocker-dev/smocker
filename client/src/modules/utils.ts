@@ -1,8 +1,8 @@
 import omit from "lodash/omit";
 import pickBy from "lodash/pickBy";
-import { Entry } from "./types";
+import { Entry, EntryRequest } from "./types";
 
-export function entryToCurl(historyEntry: Entry) {
+export const entryToCurl = (historyEntry: Entry): string => {
   const escape = (unsafe: string) => unsafe.replace(/'/g, "\\'");
 
   const command = ["curl"];
@@ -51,7 +51,7 @@ export function entryToCurl(historyEntry: Entry) {
   }
 
   return command.join(" ");
-}
+};
 
 function simplifyMultimap(multimap: { [x: string]: string[] }) {
   return Object.entries(multimap).reduce((newMultimap, [key, values]) => {
@@ -67,8 +67,8 @@ function simplifyMultimap(multimap: { [x: string]: string[] }) {
   }, {});
 }
 
-export function cleanupRequest(historyEntry: Entry) {
-  let request: any = { ...historyEntry.request };
+export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
+  let request: EntryRequest = { ...historyEntry.request };
   if (historyEntry.request.headers) {
     request.headers = simplifyMultimap(historyEntry.request.headers);
     // remove useless headers
@@ -85,7 +85,7 @@ export function cleanupRequest(historyEntry: Entry) {
   if (historyEntry.request.query_params) {
     request.query_params = simplifyMultimap(historyEntry.request.query_params);
   }
-  request = omit(request, "date");
-  request = pickBy(request); // remove nulls
+  request = omit(request, "date") as EntryRequest;
+  request = pickBy(request) as EntryRequest; // remove nulls
   return request;
-}
+};

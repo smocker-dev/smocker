@@ -222,6 +222,54 @@ For each call, the history entry will contains the **request**, the **response**
 ]
 ```
 
+## Visualize History
+
+Retrieves the history of calls made to Smocker for a session (by default the last one) and return them as a `mermaid` diagram.
+
+- **Endpoint**: `GET /history/visualize`
+- **Query Parameters**:
+
+| Name      | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `session` | _Optional_, the ID of the session to which the mock(s) belong. (**default**: last session ID) |
+| `src`     | _Optional_, a HTTP header used to determine source of calls. (**default**: empty)             |
+| `dest`    | _Optional_, a HTTP header used to determine destination of calls. (**default**: empty)        |
+
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `404 Not Found`, if no session match the ID passed in parameter.
+
+- **Sample Response**:
+
+```yaml
+message: |
+  sequenceDiagram
+
+      participant C as Client
+      participant S as Smocker
+
+      rect rgb(245, 245, 245)
+        C->>+S: GET /hello/world
+        S-->>-C: 666
+      end
+      rect rgb(245, 245, 245)
+        C->>+S: POST /hello/world
+        S-->>S: use response mock
+        S-->>-C: 500
+      end
+      rect rgb(245, 245, 245)
+        C->>+S: GET /hello/world
+        S-->>S: use response mock
+        S-->>-C: 200
+      end
+```
+
 ## Get Sessions
 
 Retrieves the sessions stored into Smocker.

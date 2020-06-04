@@ -130,7 +130,7 @@ export type Mocks = t.TypeOf<typeof MocksCodec>;
 
 export function decode<C extends t.Mixed>(
   codec: C
-): (json: any) => Observable<t.TypeOf<C>> {
+): (json: unknown) => Observable<t.TypeOf<C>> {
   return (json) => {
     return pipe(
       codec.decode(json),

@@ -122,6 +122,12 @@ async function main() {
     selector: ".entry:nth-child(2)",
     padding: 5,
   });
+
+  await page.click("button.visualize-button");
+  await page.waitForSelector(".mermaid", { visible: true });
+  await page.waitFor(300);
+  await screenshotPage(page, "screenshot-history-visualize.png");
+
   await browser.close();
 }
 
