@@ -53,7 +53,13 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
 		a.mocksServices.Reset()
 	}
-	if sessionName := c.QueryParam("newSession"); sessionName != "" {
+
+	sessionName := c.QueryParam("session")
+	if sessionName == "" {
+		// Deprecated, keep it for retrocompatibility
+		sessionName = c.QueryParam("newSession")
+	}
+	if sessionName != "" {
 		a.mocksServices.NewSession(sessionName)
 	}
 
