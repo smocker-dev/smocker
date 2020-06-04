@@ -110,7 +110,11 @@ const SideBar = ({
   };
   const items = sessions.map((session: Session, index: number) => (
     <Menu.Item key={session.id}>
-      <Row justify="space-between" align="middle">
+      <Row
+        justify="space-between"
+        align="middle"
+        title={session.name || session.id}
+      >
         <Typography.Text ellipsis className="menu-item">
           {session.name || session.id}
         </Typography.Text>

@@ -20,9 +20,10 @@ Clear the mocks and the history of calls.
 - **Endpoint**: `POST /mocks`
 - **Query Parameters**:
 
-| Name    | Values          | Description                                                                     |
-| ------- | --------------- | ------------------------------------------------------------------------------- |
-| `reset` | `true`, `false` | _Optional_ (defaults to `false`), used to reset on Smocker before adding mocks. |
+| Name      | Values          | Description                                                                     |
+| --------- | --------------- | ------------------------------------------------------------------------------- |
+| `reset`   | `true`, `false` | _Optional_ (defaults to `false`), used to reset on Smocker before adding mocks. |
+| `session` |                 | _Optional_, the name of the new session to start.                               |
 
 - **Headers**:
 
