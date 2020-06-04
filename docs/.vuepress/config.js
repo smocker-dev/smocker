@@ -1,5 +1,10 @@
 const path = require("path");
 
+// Optionally add google-analytics plugin if the environment variable is present
+const analytics = process.env.GA_ID
+  ? [["@vuepress/google-analytics", { ga: process.env.GA_ID }]]
+  : [];
+
 module.exports = {
   title: "Smocker",
   description: "Smocker is a simple and efficient HTTP mock server.",
@@ -9,8 +14,8 @@ module.exports = {
       {
         rel: "apple-touch-icon",
         sizes: "180x180",
-        href: "/logo/favicon/apple-touch-icon.png"
-      }
+        href: "/logo/favicon/apple-touch-icon.png",
+      },
     ],
     [
       "link",
@@ -18,8 +23,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "32x32",
-        href: "/logo/favicon/favicon-32x32.png"
-      }
+        href: "/logo/favicon/favicon-32x32.png",
+      },
     ],
     [
       "link",
@@ -27,8 +32,8 @@ module.exports = {
         rel: "icon",
         type: "image/png",
         sizes: "16x16",
-        href: "/logo/favicon/favicon-16x16.png"
-      }
+        href: "/logo/favicon/favicon-16x16.png",
+      },
     ],
     ["link", { rel: "manifest", href: "/logo/favicon/site.webmanifest" }],
     [
@@ -36,8 +41,8 @@ module.exports = {
       {
         rel: "mask-icon",
         href: "/logo/favicon/safari-pinned-tab.svg",
-        color: "#b51629"
-      }
+        color: "#b51629",
+      },
     ],
     ["link", { rel: "shortcut icon", href: "/logo/favicon/favicon.ico" }],
     ["meta", { name: "apple-mobile-web-app-title", content: "Smocker" }],
@@ -47,8 +52,8 @@ module.exports = {
       "meta",
       {
         name: "msapplication-config",
-        content: "/logo/favicon/browserconfig.xml"
-      }
+        content: "/logo/favicon/browserconfig.xml",
+      },
     ],
     // See: https://css-tricks.com/essential-meta-tags-social-media/#article-header-id-2
     ["meta", { name: "theme-color", content: "#ffffff" }],
@@ -57,15 +62,15 @@ module.exports = {
       "meta",
       {
         property: "og:description",
-        content: "Smocker is a simple and efficient HTTP mock server."
-      }
+        content: "Smocker is a simple and efficient HTTP mock server.",
+      },
     ],
     [
       "meta",
-      { property: "og:image", content: "https://smocker.dev/logo/cover.png" }
+      { property: "og:image", content: "https://smocker.dev/logo/cover.png" },
     ],
     ["meta", { property: "og:url", content: "https://smocker.dev/" }],
-    ["meta", { name: "twitter:card", content: "summary_large_image" }]
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
   ],
   chainWebpack: (config, _) => {
     config.resolve.alias.set("@root", path.resolve(__dirname, ".."));
@@ -83,8 +88,8 @@ module.exports = {
           "/guide/installation",
           "/guide/getting-started",
           "/guide/real-life",
-          "/guide/tooling"
-        ]
+          "/guide/tooling",
+        ],
       },
       {
         title: "Technical Documentation",
@@ -93,12 +98,13 @@ module.exports = {
         children: [
           "/technical-documentation/api",
           "/technical-documentation/mock-definition",
-          "/technical-documentation/errors"
-        ]
-      }
-    ]
+          "/technical-documentation/errors",
+        ],
+      },
+    ],
   },
   plugins: [
+    ...analytics,
     "fulltext-search",
     "vuepress-plugin-mermaidjs",
     [
@@ -106,11 +112,11 @@ module.exports = {
       {
         copySelector: [
           'div[class*="language-"] pre',
-          'div[class*="aside-code"] aside'
+          'div[class*="aside-code"] aside',
         ],
         copyMessage: "Code copied to your clipboard.",
-        duration: 1000
-      }
+        duration: 1000,
+      },
     ],
     [
       "vuepress-plugin-zooming",
@@ -119,9 +125,9 @@ module.exports = {
         delay: 1000,
         options: {
           bgColor: "black",
-          zIndex: 10000
-        }
-      }
-    ]
-  ]
+          zIndex: 10000,
+        },
+      },
+    ],
+  ],
 };
