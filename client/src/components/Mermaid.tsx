@@ -6,17 +6,20 @@ import "./Mermaid.scss";
 export const Mermaid = ({
   name,
   chart,
+  onChange,
 }: {
   name: string;
   chart: string;
+  onChange?: (svg: string) => unknown;
 }): JSX.Element => {
   const [diagram, setDiagram] = React.useState("");
   const [error, setError] = React.useState("");
 
   React.useEffect(() => {
-    const cb = (svg?: string) => {
-      setDiagram(svg || "");
+    const cb = (svg = "") => {
+      setDiagram(svg);
       setError("");
+      onChange && onChange(svg);
     };
     try {
       mermaidAPI.parse(chart);

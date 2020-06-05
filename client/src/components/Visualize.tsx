@@ -1,4 +1,8 @@
-import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -67,13 +71,16 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   const [src, setSrc] = React.useState("");
   const [dest, setDest] = React.useState("");
   const [editGraph, setEditGraph] = React.useState(false);
+  const [svg, setSVG] = React.useState("");
   const debouncedDiagram = useDebounce(diagram, 1000);
 
   React.useEffect(() => {
     setDiagram(computeGraph(graph));
   }, [graph]);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    setSrc("");
+    setDest("");
     visualize(sessionID, src, dest);
   }, [sessionID]);
 
@@ -88,6 +95,17 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   const handleBack = () => {
     history.push("/pages/history");
   };
+  const handleChangeSVG = (svg: string) => {
+    setSVG(svg);
+  };
+
+  const onSaveSVG = () => {
+    const image = "data:image/svg+xml," + escape(svg);
+    const link = document.createElement("a");
+    link.download = "sequence.svg";
+    link.href = image;
+    return link.click();
+  };
 
   const emptyDiagram = !debouncedDiagram.replace("sequenceDiagram", "").trim();
   return (
@@ -98,6 +116,9 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
           <div className="action buttons">
             <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
               Back to History
+            </Button>
+            <Button icon={<SaveOutlined />} onClick={onSaveSVG}>
+              Save SVG
             </Button>
             <Button
               type="primary"
@@ -124,10 +145,10 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
                   <Input value={src} onChange={handleChangeSrc} />
                 </Form.Item>
                 <Form.Item label="Destination Header" name="dest">
-                  <Input value={src} onChange={handleChangeDest} />
+                  <Input value={dest} onChange={handleChangeDest} />
                 </Form.Item>
                 <Button type="primary" onClick={handleGenerate}>
-                  Generate
+                  Regenerate
                 </Button>
               </Row>
             </Form>
@@ -136,7 +157,11 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
         <Row className="container">
           {!emptyDiagram && (
             <Card className={"card"}>
-              <Mermaid name="diagram" chart={debouncedDiagram} />
+              <Mermaid
+                name="diagram"
+                chart={debouncedDiagram}
+                onChange={handleChangeSVG}
+              />
             </Card>
           )}
           {emptyDiagram && (
