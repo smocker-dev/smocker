@@ -222,11 +222,20 @@ For each call, the history entry will contains the **request**, the **response**
 ]
 ```
 
-## Visualize History
+## Get History Summary
 
-Retrieves the history of calls made to Smocker for a session (by default the last one) and return them as a `mermaid` diagram.
+Retrieves a summary of the history of calls made to Smocker for a session (by default the last one). \
+For each call, it will contains:
 
-- **Endpoint**: `GET /history/visualize`
+```yaml
+- type: request, response or processing
+- message: the request method + path + query params or the response status
+- from: the caller
+- to: the receiver
+- date: date of the call
+```
+
+- **Endpoint**: `GET /history/summary`
 - **Query Parameters**:
 
 | Name      | Description                                                                                   |
@@ -247,27 +256,65 @@ Retrieves the history of calls made to Smocker for a session (by default the las
 
 - **Sample Response**:
 
-```yaml
-message: |
-  sequenceDiagram
-
-      participant C as Client
-      participant S as Smocker
-
-      rect rgb(245, 245, 245)
-        C->>+S: GET /hello/world
-        S-->>-C: 666
-      end
-      rect rgb(245, 245, 245)
-        C->>+S: POST /hello/world
-        S-->>S: use response mock
-        S-->>-C: 500
-      end
-      rect rgb(245, 245, 245)
-        C->>+S: GET /hello/world
-        S-->>S: use response mock
-        S-->>-C: 200
-      end
+```json
+[
+  {
+    "type": "request",
+    "message": "GET /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:04.3300161+02:00"
+  },
+  {
+    "type": "response",
+    "message": "666",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:04.3304084+02:00"
+  },
+  {
+    "type": "request",
+    "message": "POST /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.6026761+02:00"
+  },
+  {
+    "type": "processing",
+    "message": "use response mock",
+    "from": "Smocker",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.603110099+02:00"
+  },
+  {
+    "type": "response",
+    "message": "500",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:09.6031101+02:00"
+  },
+  {
+    "type": "request",
+    "message": "GET /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.6079179+02:00"
+  },
+  {
+    "type": "processing",
+    "message": "use response mock",
+    "from": "Smocker",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.608433499+02:00"
+  },
+  {
+    "type": "response",
+    "message": "200",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:09.6084335+02:00"
+  }
+]
 ```
 
 ## Get Sessions

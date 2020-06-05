@@ -8,11 +8,11 @@ type GraphConfig struct {
 }
 
 type GraphEntry struct {
-	Type    string
-	Message string
-	From    string
-	To      string
-	Date    time.Time
+	Type    string    `json:"type"`
+	Message string    `json:"message"`
+	From    string    `json:"from"`
+	To      string    `json:"to"`
+	Date    time.Time `json:"date"`
 }
 
 type GraphHistory []GraphEntry

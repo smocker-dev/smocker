@@ -1,5 +1,12 @@
 import { ActionType, createAction, createAsyncAction } from "typesafe-actions";
-import { Error, History, Mocks, Session, Sessions } from "./types";
+import {
+  Error,
+  GraphHistory,
+  History,
+  Mocks,
+  Session,
+  Sessions,
+} from "./types";
 
 const fetchSessions = createAsyncAction(
   "@APP/SESSIONS/FETCH",
@@ -37,11 +44,11 @@ const fetchHistory = createAsyncAction(
   "@APP/HISTORY/FETCH/FAILURE"
 )<string, History, Error>();
 
-const visualizeHistory = createAsyncAction(
-  "@APP/HISTORY/VISUALIZE",
-  "@APP/HISTORY/VISUALIZE/SUCCESS",
-  "@APP/HISTORY/VISUALIZE/FAILURE"
-)<{ sessionID: string; src: string; dest: string }, string, Error>();
+const summarizeHistory = createAsyncAction(
+  "@APP/HISTORY/SUMMARIZE",
+  "@APP/HISTORY/SUMMARIZE/SUCCESS",
+  "@APP/HISTORY/SUMMARIZE/FAILURE"
+)<{ sessionID: string; src: string; dest: string }, GraphHistory, Error>();
 
 const fetchMocks = createAsyncAction(
   "@APP/MOCKS/FETCH",
@@ -73,7 +80,7 @@ export const actions = {
   openMockEditor,
   uploadSessions,
   fetchHistory,
-  visualizeHistory,
+  summarizeHistory,
   fetchMocks,
   addMocks,
   reset,

@@ -128,6 +128,18 @@ export type Mock = t.TypeOf<typeof MockCodec>;
 export const MocksCodec = t.array(MockCodec);
 export type Mocks = t.TypeOf<typeof MocksCodec>;
 
+const GraphEntryCodec = t.type({
+  type: t.string,
+  message: t.string,
+  from: t.string,
+  to: t.string,
+  date: t.string,
+});
+export type GraphEntry = t.TypeOf<typeof GraphEntryCodec>;
+
+export const GraphHistoryCodec = t.array(GraphEntryCodec);
+export type GraphHistory = t.TypeOf<typeof GraphHistoryCodec>;
+
 export function decode<C extends t.Mixed>(
   codec: C
 ): (json: unknown) => Observable<t.TypeOf<C>> {

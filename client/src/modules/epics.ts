@@ -3,11 +3,12 @@ import { of } from "rxjs";
 import { ajax, AjaxError, AjaxResponse } from "rxjs/ajax";
 import { catchError, exhaustMap, filter, map, mergeMap } from "rxjs/operators";
 import { isActionOf } from "typesafe-actions";
-import { trimedPath } from "~utils";
+import { trimedPath } from "~modules/utils";
 import { Actions, actions } from "./actions";
 import {
   decode,
   Error,
+  GraphHistoryCodec,
   HistoryCodec,
   MocksCodec,
   SessionCodec,
@@ -20,7 +21,7 @@ const {
   updateSession,
   uploadSessions,
   fetchHistory,
-  visualizeHistory,
+  summarizeHistory,
   fetchMocks,
   addMocks,
   reset,
@@ -131,17 +132,19 @@ const fetchHistoryEpic: Epic<Actions> = (action$) =>
     })
   );
 
-const visualizeHistoryEpic: Epic<Actions> = (action$) =>
+const summarizeHistoryEpic: Epic<Actions> = (action$) =>
   action$.pipe(
-    filter(isActionOf(visualizeHistory.request)),
+    filter(isActionOf(summarizeHistory.request)),
     exhaustMap((action) => {
       const query = `?session=${action.payload.sessionID}&src=${action.payload.src}&dest=${action.payload.dest}`;
-      return ajax.get(trimedPath + "/history/visualize" + query).pipe(
-        map(({ response }) => {
-          return visualizeHistory.success(response.message);
+      return ajax.get(trimedPath + "/history/summary" + query).pipe(
+        mergeMap(({ response }) => {
+          return decode(GraphHistoryCodec)(response).pipe(
+            map((resp) => summarizeHistory.success(resp))
+          );
         }),
         catchError((error) => {
-          return of(visualizeHistory.failure(extractError(error)));
+          return of(summarizeHistory.failure(extractError(error)));
         })
       );
     })
@@ -204,7 +207,7 @@ export default combineEpics(
   updateSessionEpic,
   uploadSessionsEpic,
   fetchHistoryEpic,
-  visualizeHistoryEpic,
+  summarizeHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,
   resetEpic

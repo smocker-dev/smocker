@@ -81,10 +81,14 @@
     "redux": "^4.0.4",
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
-    "typesafe-actions": "^5.1.0"
+    "typesafe-actions": "^5.1.0",
+    "use-lodash-debounce": "^1.1.0"
   },
   "peerDependencies": {
     "puppeteer": "^3.3.0"
+  },
+  "resolutions": {
+    "watchpack": "1.6.1"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

@@ -42,7 +42,7 @@ import {
   formatQueryParams,
   isStringMatcher,
   usePoll,
-} from "~utils";
+} from "~modules/utils";
 import Code from "./Code";
 import "./Mocks.scss";
 

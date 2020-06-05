@@ -126,7 +126,7 @@ type verifyResult struct {
 	} `json:"history"`
 }
 
-func (a *Admin) Verify(c echo.Context) error {
+func (a *Admin) VerifySession(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	var session *types.Session
 	if sessionID != "" {
@@ -285,7 +285,7 @@ func (a *Admin) Reset(c echo.Context) error {
 	})
 }
 
-func (a *Admin) VisualizeHistory(c echo.Context) error {
+func (a *Admin) SummarizeHistory(c echo.Context) error {
 	sessionID := ""
 	if sessionID = c.QueryParam("session"); sessionID == "" {
 		sessionID = a.mocksServices.GetLastSession().ID
@@ -302,9 +302,7 @@ func (a *Admin) VisualizeHistory(c echo.Context) error {
 	if err := c.Bind(&cfg); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return respondAccordingAccept(c, echo.Map{
-		"message": a.graphsServices.Generate(cfg, session),
-	})
+	return respondAccordingAccept(c, a.graphsServices.Generate(cfg, session))
 }
 
 func respondAccordingAccept(c echo.Context, body interface{}) error {

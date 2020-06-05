@@ -17,7 +17,7 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { Session, Sessions } from "~modules/types";
-import { usePoll } from "~utils";
+import { usePoll } from "~modules/utils";
 import "./Sidebar.scss";
 
 const NewButton = ({ onValidate }: { onValidate: () => unknown }) => {
@@ -104,6 +104,9 @@ const SideBar = ({
   uploadSessions,
 }: Props) => {
   const [, , setPolling] = usePoll(10000, fetch, undefined);
+  if (!selected && sessions.length > 0) {
+    selectSession(sessions[sessions.length - 1].id);
+  }
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
   const onNewSession = () => newSession();

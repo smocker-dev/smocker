@@ -14,8 +14,10 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import { Dispatch } from "redux";
+import { useDebounce } from "use-lodash-debounce";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
+import { GraphHistory } from "~modules/types";
 import Code from "./Code";
 import { Mermaid } from "./Mermaid";
 import "./Visualize.scss";
@@ -56,7 +58,7 @@ const EditGraph = ({
 
 interface Props extends RouteComponentProps {
   sessionID: string;
-  graph: string;
+  graph: GraphHistory;
   visualize: (sessionID: string, src: string, dest: string) => unknown;
 }
 
@@ -65,9 +67,10 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   const [src, setSrc] = React.useState("");
   const [dest, setDest] = React.useState("");
   const [editGraph, setEditGraph] = React.useState(false);
+  const debouncedDiagram = useDebounce(diagram, 1000);
 
   React.useEffect(() => {
-    setDiagram(graph);
+    setDiagram(computeGraph(graph));
   }, [graph]);
 
   React.useEffect(() => {
@@ -86,7 +89,7 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
     history.push("/pages/history");
   };
 
-  const emptyDiagram = !diagram.replace("sequenceDiagram", "").trim();
+  const emptyDiagram = !debouncedDiagram.replace("sequenceDiagram", "").trim();
   return (
     <div className="visualize">
       <PageHeader
@@ -133,7 +136,7 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
         <Row className="container">
           {!emptyDiagram && (
             <Card className={"card"}>
-              <Mermaid name="diagram" chart={diagram} />
+              <Mermaid name="diagram" chart={debouncedDiagram} />
             </Card>
           )}
           {emptyDiagram && (
@@ -164,7 +167,43 @@ export default withRouter(
     },
     (dispatch: Dispatch<Actions>) => ({
       visualize: (sessionID: string, src: string, dest: string) =>
-        dispatch(actions.visualizeHistory.request({ sessionID, src, dest })),
+        dispatch(actions.summarizeHistory.request({ sessionID, src, dest })),
     })
   )(Visualize)
 );
+
+const computeGraph = (graph: GraphHistory): string => {
+  const endpoints: Record<string, string> = {};
+  graph.forEach((entry) => {
+    if (!endpoints[entry.from]) {
+      endpoints[entry.from] = `P${Object.keys(endpoints).length}`;
+    }
+    if (!endpoints[entry.to]) {
+      endpoints[entry.to] = `P${Object.keys(endpoints).length}`;
+    }
+  });
+
+  const indent = "    ";
+  let res = "sequenceDiagram\n\n";
+  Object.entries(endpoints).forEach(([endpoint, alias]) => {
+    res += indent + `participant ${alias} as ${endpoint}\n`;
+  });
+  res += "\n";
+  graph.forEach((entry) => {
+    let arrow = "-->>";
+    if (entry.type === "request") {
+      arrow = "->>+";
+    } else if (entry.type === "response") {
+      arrow = "-->>-";
+    }
+    if (entry.from === "Client") {
+      res += "\n";
+    }
+    res +=
+      indent +
+      `${endpoints[entry.from]}${arrow}${endpoints[entry.to]}: ${
+        entry.message
+      }\n`;
+  });
+  return res;
+};

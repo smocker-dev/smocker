@@ -1,6 +1,7 @@
 import { Alert } from "antd";
 import mermaidAPI from "mermaid";
 import * as React from "react";
+import "./Mermaid.scss";
 
 export const Mermaid = ({
   name,

@@ -26,8 +26,12 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
-import { cleanupRequest, entryToCurl } from "~modules/utils";
-import { formatQueryParams, usePoll } from "~utils";
+import {
+  cleanupRequest,
+  entryToCurl,
+  formatQueryParams,
+  usePoll,
+} from "~modules/utils";
 import Code from "./Code";
 import "./History.scss";
 
