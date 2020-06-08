@@ -27,13 +27,14 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 var templateRenderer *TemplateRenderer
 
 func Serve(config config.Config) {
+
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
 	e.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
-	mockServices := NewMockServer(config.MockServerListenPort)
+	mockServices := NewMockServer(config)
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 
