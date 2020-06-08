@@ -152,11 +152,18 @@ func (s *mocks) NewSession(name string) *types.Session {
 		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
 	}
 
+	var history types.History
+	if s.historyRetention > 0 {
+		history = make(types.History, 0, s.historyRetention)
+	} else {
+		history = types.History{}
+	}
+
 	session := &types.Session{
 		ID:      uuid.New().String(),
 		Name:    name,
 		Date:    time.Now(),
-		History: types.History{},
+		History: history,
 		Mocks:   types.Mocks{},
 	}
 	s.sessions = append(s.sessions, session)

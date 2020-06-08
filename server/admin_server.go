@@ -27,7 +27,6 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 var templateRenderer *TemplateRenderer
 
 func Serve(config config.Config) {
-
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
