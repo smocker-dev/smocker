@@ -4,7 +4,7 @@ import App from "~components/App";
 
 render(<App />, document.getElementById("root"));
 
-const m = module as any;
+const m = module;
 if (m.hot) {
   m.hot.accept();
 }

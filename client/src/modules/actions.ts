@@ -1,5 +1,12 @@
 import { ActionType, createAction, createAsyncAction } from "typesafe-actions";
-import { Error, History, Mocks, Session, Sessions } from "./types";
+import {
+  Error,
+  GraphHistory,
+  History,
+  Mocks,
+  Session,
+  Sessions,
+} from "./types";
 
 const fetchSessions = createAsyncAction(
   "@APP/SESSIONS/FETCH",
@@ -23,7 +30,7 @@ const uploadSessions = createAsyncAction(
   "@APP/SESSIONS/UPLOAD",
   "@APP/SESSIONS/UPLOAD/SUCCESS",
   "@APP/SESSIONS/UPLOAD/FAILURE"
-)<any[], Sessions, Error>();
+)<Sessions, Sessions, Error>();
 
 const selectSession = createAction("@APP/SESSIONS/SELECT")<string>();
 
@@ -36,6 +43,12 @@ const fetchHistory = createAsyncAction(
   "@APP/HISTORY/FETCH/SUCCESS",
   "@APP/HISTORY/FETCH/FAILURE"
 )<string, History, Error>();
+
+const summarizeHistory = createAsyncAction(
+  "@APP/HISTORY/SUMMARIZE",
+  "@APP/HISTORY/SUMMARIZE/SUCCESS",
+  "@APP/HISTORY/SUMMARIZE/FAILURE"
+)<{ sessionID: string; src: string; dest: string }, GraphHistory, Error>();
 
 const fetchMocks = createAsyncAction(
   "@APP/MOCKS/FETCH",
@@ -67,6 +80,7 @@ export const actions = {
   openMockEditor,
   uploadSessions,
   fetchHistory,
+  summarizeHistory,
   fetchMocks,
   addMocks,
   reset,

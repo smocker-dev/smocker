@@ -17,12 +17,14 @@ import (
 const MIMEApplicationXYaml = "application/x-yaml"
 
 type Admin struct {
-	mocksServices services.Mocks
+	mocksServices  services.Mocks
+	graphsServices services.Graph
 }
 
-func NewAdmin(ms services.Mocks) *Admin {
+func NewAdmin(ms services.Mocks, graph services.Graph) *Admin {
 	return &Admin{
-		mocksServices: ms,
+		mocksServices:  ms,
+		graphsServices: graph,
 	}
 }
 
@@ -124,7 +126,7 @@ type verifyResult struct {
 	} `json:"history"`
 }
 
-func (a *Admin) Verify(c echo.Context) error {
+func (a *Admin) VerifySession(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	var session *types.Session
 	if sessionID != "" {
@@ -281,6 +283,26 @@ func (a *Admin) Reset(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Reset successful",
 	})
+}
+
+func (a *Admin) SummarizeHistory(c echo.Context) error {
+	sessionID := ""
+	if sessionID = c.QueryParam("session"); sessionID == "" {
+		sessionID = a.mocksServices.GetLastSession().ID
+	}
+	session, err := a.mocksServices.GetSessionByID(sessionID)
+	if err == services.SessionNotFound {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	} else if err != nil {
+		log.WithError(err).Error("Failed to retrieve session")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	var cfg types.GraphConfig
+	if err := c.Bind(&cfg); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return respondAccordingAccept(c, a.graphsServices.Generate(cfg, session))
 }
 
 func respondAccordingAccept(c echo.Context, body interface{}) error {

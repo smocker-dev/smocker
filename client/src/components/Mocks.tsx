@@ -42,7 +42,7 @@ import {
   formatQueryParams,
   isStringMatcher,
   usePoll,
-} from "~utils";
+} from "~modules/utils";
 import Code from "./Code";
 import "./Mocks.scss";
 
@@ -63,7 +63,7 @@ const renderTimes = (count: number, expected?: number) => {
   return <strong>{`Times: ${count}/${expected}`}</strong>;
 };
 
-const emptyResponse: any = {};
+const emptyResponse: unknown = {};
 
 const MockResponse = ({ mock }: { mock: Mock }) => {
   const { response: resp, context, state } = mock;
@@ -226,8 +226,8 @@ const NewMock = ({
 }: {
   display: boolean;
   defaultValue: string;
-  onSave: (mocks: string) => void;
-  onClose: () => void;
+  onSave: (mocks: string) => unknown;
+  onClose: () => unknown;
 }) => {
   const [mock, changeMock] = React.useState(defaultValue);
   const handleSubmit = () => {
@@ -275,9 +275,9 @@ interface Props extends RouteComponentProps<OwnProps> {
   mocks: Mocks;
   mockEditor: [boolean, string];
   error: Error | null;
-  fetch: (sessionID: string) => any;
-  addMocks: (sessionID: string, mocks: string) => any;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => any;
+  fetch: (sessionID: string) => unknown;
+  addMocks: (sessionID: string, mocks: string) => unknown;
+  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
 const Mocks = ({
@@ -300,7 +300,7 @@ const Mocks = ({
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
-  const ref = React.createRef<any>();
+  const ref = React.createRef<HTMLDivElement>();
   const displayNewMock = mockEditor[0];
   React.useLayoutEffect(() => {
     if (ref.current) {

@@ -17,6 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "paths": {
       "~*": ["./*"]
     }

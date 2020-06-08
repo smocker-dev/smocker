@@ -10,7 +10,7 @@ import "./Navbar.scss";
 
 interface Props extends RouteComponentProps {
   loading: boolean;
-  reset: () => void;
+  reset: () => unknown;
 }
 
 const Navbar = ({ loading, reset, location }: Props) => {

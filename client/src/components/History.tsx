@@ -1,4 +1,5 @@
 import {
+  PartitionOutlined,
   PauseCircleFilled,
   PlayCircleFilled,
   PlusCircleOutlined,
@@ -19,14 +20,18 @@ import orderBy from "lodash/orderBy";
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 import useLocalStorage from "react-use-localstorage";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
-import { cleanupRequest, entryToCurl } from "~modules/utils";
-import { formatQueryParams, usePoll } from "~utils";
+import {
+  cleanupRequest,
+  entryToCurl,
+  formatQueryParams,
+  usePoll,
+} from "~modules/utils";
 import Code from "./Code";
 import "./History.scss";
 
@@ -38,7 +43,7 @@ const Entry = React.memo(
     handleDisplayNewMock,
   }: {
     value: Entry;
-    handleDisplayNewMock: () => any;
+    handleDisplayNewMock: () => unknown;
   }) => (
     <div className="entry">
       <div className="request">
@@ -134,22 +139,23 @@ const Entry = React.memo(
 );
 Entry.displayName = "Entry";
 
-interface Props {
+interface Props extends RouteComponentProps {
   sessionID: string;
   loading: boolean;
   canPoll: boolean;
-  history: History;
+  historyEntry: History;
   error: Error | null;
-  fetch: (sessionID: string) => any;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => any;
+  fetch: (sessionID: string) => unknown;
+  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
 const History = ({
   sessionID,
-  history,
+  historyEntry,
   loading,
   canPoll,
   error,
+  history,
   fetch,
   setDisplayNewMock,
 }: Props) => {
@@ -166,7 +172,7 @@ const History = ({
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
-  const ref = React.createRef<any>();
+  const ref = React.createRef<HTMLDivElement>();
   React.useLayoutEffect(() => {
     if (ref.current) {
       ref.current.scrollIntoView({
@@ -175,16 +181,20 @@ const History = ({
       });
     }
   }, [page, pageSize]);
-  const isEmpty = history.length === 0;
+  const isEmpty = historyEntry.length === 0;
   let body = null;
   if (error) {
     body = <Alert message={error.message} type="error" />;
   } else if (isEmpty) {
     body = <Empty description="The history is empty." />;
   } else {
-    const entries = orderBy(history, `${entryField}.date`, order as any).slice(
+    const entries = orderBy(
+      historyEntry,
+      `${entryField}.date`,
+      order as "asc" | "desc"
+    ).slice(
       Math.max((page - 1) * pageSize, 0),
-      Math.min(page * pageSize, history.length)
+      Math.min(page * pageSize, historyEntry.length)
     );
     const handleDisplayNewMock = (entry: Entry) => () =>
       setDisplayNewMock(
@@ -200,18 +210,18 @@ const History = ({
       <Row justify="space-between" align="middle" className="container">
         <div>
           <Pagination
-            hideOnSinglePage={history.length <= minPageSize}
+            hideOnSinglePage={historyEntry.length <= minPageSize}
             showSizeChanger
             pageSize={pageSize}
             current={page}
             onChange={onChangePage}
             onShowSizeChange={onChangePagSize}
-            total={history.length}
+            total={historyEntry.length}
           />
         </div>
         <Spin
           spinning={loading}
-          className={history.length <= minPageSize ? "absolute" : ""}
+          className={historyEntry.length <= minPageSize ? "absolute" : ""}
         />
       </Row>
     );
@@ -225,27 +235,38 @@ const History = ({
             handleDisplayNewMock={handleDisplayNewMock(entry)}
           />
         ))}
-        {history.length > minPageSize && pagination}
+        {historyEntry.length > minPageSize && pagination}
       </>
     );
   }
   const onSort = () =>
     setEntryField(entryField === "request" ? "response" : "request");
   const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
+  const onVisualize = () => history.push("/pages/visualize");
   return (
     <div className="history" ref={ref}>
       <PageHeader
         title="History"
         extra={
           canPoll && (
-            <Button
-              loading={loading}
-              onClick={togglePolling}
-              danger={polling}
-              icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
-            >
-              Autorefresh
-            </Button>
+            <div className="action buttons">
+              <Button
+                type="primary"
+                icon={<PartitionOutlined />}
+                className="visualize-button"
+                onClick={onVisualize}
+              >
+                Visualize
+              </Button>
+              <Button
+                loading={loading}
+                onClick={togglePolling}
+                danger={polling}
+                icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
+              >
+                Autorefresh
+              </Button>
+            </div>
           )
         }
       >
@@ -263,7 +284,7 @@ const History = ({
           </Button>
           are displayed first.
         </p>
-        <Spin delay={300} spinning={loading && history.length === 0}>
+        <Spin delay={300} spinning={loading && historyEntry.length === 0}>
           {body}
         </Spin>
       </PageHeader>
@@ -271,24 +292,26 @@ const History = ({
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, history } = state;
-    const canPoll =
-      !sessions.selected ||
-      sessions.selected === sessions.list[sessions.list.length - 1].id;
-    return {
-      sessionID: sessions.selected,
-      loading: history.loading,
-      history: history.list,
-      error: history.error,
-      canPoll,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: (sessionID: string) =>
-      dispatch(actions.fetchHistory.request(sessionID)),
-    setDisplayNewMock: (display: boolean, defaultValue: string) =>
-      dispatch(actions.openMockEditor([display, defaultValue])),
-  })
-)(History);
+export default withRouter(
+  connect(
+    (state: AppState) => {
+      const { sessions, history } = state;
+      const canPoll =
+        !sessions.selected ||
+        sessions.selected === sessions.list[sessions.list.length - 1].id;
+      return {
+        sessionID: sessions.selected,
+        loading: history.loading,
+        historyEntry: history.list,
+        error: history.error,
+        canPoll,
+      };
+    },
+    (dispatch: Dispatch<Actions>) => ({
+      fetch: (sessionID: string) =>
+        dispatch(actions.fetchHistory.request(sessionID)),
+      setDisplayNewMock: (display: boolean, defaultValue: string) =>
+        dispatch(actions.openMockEditor([display, defaultValue])),
+    })
+  )(History)
+);

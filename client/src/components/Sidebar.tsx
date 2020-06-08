@@ -17,10 +17,10 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { Session, Sessions } from "~modules/types";
-import { usePoll } from "~utils";
+import { usePoll } from "~modules/utils";
 import "./Sidebar.scss";
 
-const NewButton = ({ onValidate }: any) => {
+const NewButton = ({ onValidate }: { onValidate: () => unknown }) => {
   const onClick = (event: React.MouseEvent) => {
     event.preventDefault();
     onValidate();
@@ -40,7 +40,13 @@ const NewButton = ({ onValidate }: any) => {
   );
 };
 
-const EditableItem = ({ value, onValidate }: any) => {
+const EditableItem = ({
+  value,
+  onValidate,
+}: {
+  value?: string;
+  onValidate: (name: string) => unknown;
+}) => {
   const [visible, setVisible] = React.useState(false);
   const [name, setName] = React.useState(value || "");
   const onSubmit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -80,11 +86,11 @@ interface Props {
   sessions: Sessions;
   loading: boolean;
   selected: string;
-  fetch: () => void;
-  selectSession: (sessionID: string) => void;
-  newSession: () => void;
-  updateSession: (session: Session) => void;
-  uploadSessions: (sessions: any[]) => void;
+  fetch: () => unknown;
+  selectSession: (sessionID: string) => unknown;
+  newSession: () => unknown;
+  updateSession: (session: Session) => unknown;
+  uploadSessions: (sessions: Session[]) => unknown;
 }
 
 const SideBar = ({
@@ -97,7 +103,7 @@ const SideBar = ({
   newSession,
   uploadSessions,
 }: Props) => {
-  const [, , setPolling] = usePoll(10000, fetch);
+  const [, , setPolling] = usePoll(10000, fetch, undefined);
   if (!selected && sessions.length > 0) {
     selectSession(sessions[sessions.length - 1].id);
   }
@@ -126,12 +132,16 @@ const SideBar = ({
     </Menu.Item>
   ));
 
-  const onFileUpload = (event: any) => {
-    const file = event.target.files[0];
+  const onFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) {
+      return;
+    }
+    const file = files[0];
     const reader = new FileReader();
-    reader.onload = (ev: any) => {
+    reader.onload = (ev: ProgressEvent<FileReader>) => {
       try {
-        const sessionToUpload = JSON.parse(ev.target.result);
+        const sessionToUpload = JSON.parse(ev.target?.result as string);
         uploadSessions(sessionToUpload);
       } catch (e) {
         console.error(e);
@@ -140,7 +150,7 @@ const SideBar = ({
     reader.readAsText(file);
   };
 
-  const title: any = (
+  const title: JSX.Element = (
     <Spin spinning={loading}>
       <Tooltip
         title="Upload a session file"

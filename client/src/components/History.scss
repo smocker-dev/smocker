@@ -17,6 +17,12 @@
     }
   }
 
+  .action.buttons {
+    button {
+      margin-left: 0.5em;
+    }
+  }
+
   .entry {
     border-radius: 3px;
     background-color: white;
@@ -102,8 +108,6 @@
 
       &.path {
         font-family: monospace;
-        white-space: pre-wrap;
-        word-break: break-all;
       }
     }
 

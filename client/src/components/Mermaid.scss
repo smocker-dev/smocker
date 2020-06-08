@@ -1,0 +1,8 @@
+.mermaid {
+  & > div:nth-child(1) {
+    display: flex;
+    & > svg {
+      margin: auto;
+    }
+  }
+}

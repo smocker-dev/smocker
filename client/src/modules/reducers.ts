@@ -1,7 +1,7 @@
 import { combineReducers } from "redux";
 import { getType, StateType } from "typesafe-actions";
 import { Actions, actions } from "./actions";
-import { Error, History, Mocks, Sessions } from "./types";
+import { Error, GraphHistory, History, Mocks, Sessions } from "./types";
 
 const loadingSessions = (state = false, action: Actions) => {
   const {
@@ -183,10 +183,26 @@ const entryError = (state: Error | null = null, action: Actions) => {
   }
 };
 
+const historyGraph = (state: GraphHistory = [], action: Actions) => {
+  const { summarizeHistory, reset } = actions;
+  switch (action.type) {
+    case getType(summarizeHistory.success): {
+      return action.payload;
+    }
+    case getType(summarizeHistory.failure):
+    case getType(reset.success): {
+      return [];
+    }
+    default:
+      return state;
+  }
+};
+
 const history = combineReducers({
   loading: loadingHistory,
   list: entryList,
   error: entryError,
+  graph: historyGraph,
 });
 
 const loadingMocks = (state = false, action: Actions) => {

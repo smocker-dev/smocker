@@ -222,6 +222,101 @@ For each call, the history entry will contains the **request**, the **response**
 ]
 ```
 
+## Get History Summary
+
+Retrieves a summary of the history of calls made to Smocker for a session (by default the last one). \
+For each call, it will contains:
+
+```yaml
+- type: request, response or processing
+- message: the request method + path + query params or the response status
+- from: the caller
+- to: the receiver
+- date: date of the call
+```
+
+- **Endpoint**: `GET /history/summary`
+- **Query Parameters**:
+
+| Name      | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `session` | _Optional_, the ID of the session to which the mock(s) belong. (**default**: last session ID) |
+| `src`     | _Optional_, a HTTP header used to determine source of calls. (**default**: empty)             |
+| `dest`    | _Optional_, a HTTP header used to determine destination of calls. (**default**: empty)        |
+
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `404 Not Found`, if no session match the ID passed in parameter.
+
+- **Sample Response**:
+
+```json
+[
+  {
+    "type": "request",
+    "message": "GET /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:04.3300161+02:00"
+  },
+  {
+    "type": "response",
+    "message": "666",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:04.3304084+02:00"
+  },
+  {
+    "type": "request",
+    "message": "POST /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.6026761+02:00"
+  },
+  {
+    "type": "processing",
+    "message": "use response mock",
+    "from": "Smocker",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.603110099+02:00"
+  },
+  {
+    "type": "response",
+    "message": "500",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:09.6031101+02:00"
+  },
+  {
+    "type": "request",
+    "message": "GET /hello/world",
+    "from": "Client",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.6079179+02:00"
+  },
+  {
+    "type": "processing",
+    "message": "use response mock",
+    "from": "Smocker",
+    "to": "Smocker",
+    "date": "2020-06-05T03:25:09.608433499+02:00"
+  },
+  {
+    "type": "response",
+    "message": "200",
+    "from": "Smocker",
+    "to": "Client",
+    "date": "2020-06-05T03:25:09.6084335+02:00"
+  }
+]
+```
+
 ## Get Sessions
 
 Retrieves the sessions stored into Smocker.

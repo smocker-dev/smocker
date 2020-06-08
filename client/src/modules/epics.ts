@@ -1,12 +1,14 @@
 import { combineEpics, Epic } from "redux-observable";
 import { of } from "rxjs";
-import { ajax } from "rxjs/ajax";
+import { ajax, AjaxError, AjaxResponse } from "rxjs/ajax";
 import { catchError, exhaustMap, filter, map, mergeMap } from "rxjs/operators";
 import { isActionOf } from "typesafe-actions";
-import { trimedPath } from "~utils";
+import { trimedPath } from "~modules/utils";
 import { Actions, actions } from "./actions";
 import {
   decode,
+  Error,
+  GraphHistoryCodec,
   HistoryCodec,
   MocksCodec,
   SessionCodec,
@@ -19,16 +21,22 @@ const {
   updateSession,
   uploadSessions,
   fetchHistory,
+  summarizeHistory,
   fetchMocks,
   addMocks,
   reset,
 } = actions;
 
-const extractError = (error: any) => ({
-  message:
-    (error.xhr && error.xhr.response && error.xhr.response.message) ||
-    error.message,
-});
+const extractError = (error: AjaxResponse | AjaxError | Error) => {
+  const ajaxError = error as AjaxResponse | AjaxError;
+  return {
+    message:
+      (ajaxError.xhr &&
+        ajaxError.xhr.response &&
+        ajaxError.xhr.response.message) ||
+      error["message"],
+  };
+};
 
 const fetchSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
@@ -124,6 +132,24 @@ const fetchHistoryEpic: Epic<Actions> = (action$) =>
     })
   );
 
+const summarizeHistoryEpic: Epic<Actions> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(summarizeHistory.request)),
+    exhaustMap((action) => {
+      const query = `?session=${action.payload.sessionID}&src=${action.payload.src}&dest=${action.payload.dest}`;
+      return ajax.get(trimedPath + "/history/summary" + query).pipe(
+        mergeMap(({ response }) => {
+          return decode(GraphHistoryCodec)(response).pipe(
+            map((resp) => summarizeHistory.success(resp))
+          );
+        }),
+        catchError((error) => {
+          return of(summarizeHistory.failure(extractError(error)));
+        })
+      );
+    })
+  );
+
 const fetchMocksEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf([fetchMocks.request, addMocks.success])),
@@ -181,6 +207,7 @@ export default combineEpics(
   updateSessionEpic,
   uploadSessionsEpic,
   fetchHistoryEpic,
+  summarizeHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,
   resetEpic

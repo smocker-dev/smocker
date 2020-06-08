@@ -24,12 +24,14 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.153",
     "@types/luxon": "^1.15.2",
+    "@types/mermaid": "^8.2.1",
     "@types/node": "^14.0.5",
     "@types/react": "^16.9.9",
     "@types/react-dom": "^16.9.2",
     "@types/react-redux": "^7.1.5",
     "@types/react-router-dom": "^5.1.0",
     "@types/redux": "^3.6.0",
+    "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^3.0.1",
     "@typescript-eslint/parser": "^3.0.1",
     "@vuepress/plugin-google-analytics": "^1.5.0",
@@ -63,11 +65,13 @@
     "antd": "^4.2.5",
     "classnames": "^2.2.6",
     "codemirror": "^5.49.0",
+    "core-js": "^3.6.4",
     "fp-ts": "^2.1.1",
     "io-ts": "^2.0.1",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "luxon": "^1.19.3",
+    "mermaid": "^8.4.8",
     "react": "^16.10.2",
     "react-codemirror2": "^7.2.0",
     "react-dom": "^16.10.2",
@@ -77,10 +81,14 @@
     "redux": "^4.0.4",
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
-    "typesafe-actions": "^5.1.0"
+    "typesafe-actions": "^5.1.0",
+    "use-lodash-debounce": "^1.1.0"
   },
   "peerDependencies": {
     "puppeteer": "^3.3.0"
+  },
+  "resolutions": {
+    "watchpack": "1.6.1"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom"

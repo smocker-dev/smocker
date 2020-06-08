@@ -30,9 +30,10 @@ interface Props {
     | "yaml"
     | "go_template_json"
     | "json"
-    | "lua";
+    | "lua"
+    | "txt";
   collapsible?: boolean;
-  onBeforeChange?: (value: string) => void;
+  onBeforeChange?: (value: string) => unknown;
 }
 
 const codeMirrorOptions = {
@@ -49,7 +50,7 @@ const Code = ({
   language,
   onBeforeChange,
   collapsible = true,
-}: Props) => {
+}: Props): JSX.Element => {
   let mode: string = language;
   switch (mode) {
     case "lua":
@@ -81,7 +82,7 @@ const Code = ({
     );
   }
 
-  const onBeforeChangeWrapper = (_: any, __: any, newValue: string) => {
+  const onBeforeChangeWrapper = (_: unknown, __: unknown, newValue: string) => {
     if (onBeforeChange) {
       onBeforeChange(newValue);
     }
