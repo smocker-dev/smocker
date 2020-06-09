@@ -209,10 +209,12 @@ const history = combineReducers({
 });
 
 const loadingMocks = (state = false, action: Actions) => {
-  const { fetchMocks, addMocks, reset } = actions;
+  const { fetchMocks, addMocks, lockMocks, unlockMocks, reset } = actions;
   switch (action.type) {
     case getType(fetchMocks.request):
     case getType(addMocks.request):
+    case getType(lockMocks.request):
+    case getType(unlockMocks.request):
     case getType(reset.request): {
       return true;
     }
@@ -220,6 +222,10 @@ const loadingMocks = (state = false, action: Actions) => {
     case getType(fetchMocks.failure):
     case getType(addMocks.success):
     case getType(addMocks.failure):
+    case getType(lockMocks.success):
+    case getType(lockMocks.failure):
+    case getType(unlockMocks.success):
+    case getType(unlockMocks.failure):
     case getType(reset.success):
     case getType(reset.failure): {
       return false;
@@ -230,11 +236,13 @@ const loadingMocks = (state = false, action: Actions) => {
 };
 
 const mockList = (state: Mocks = [], action: Actions) => {
-  const { fetchMocks, reset } = actions;
+  const { fetchMocks, lockMocks, unlockMocks, reset } = actions;
   switch (action.type) {
     case getType(reset.success): {
       return [];
     }
+    case getType(lockMocks.success):
+    case getType(unlockMocks.success):
     case getType(fetchMocks.success): {
       return action.payload;
     }
@@ -257,15 +265,19 @@ const mockEditor = (
 };
 
 const mocksError = (state: Error | null = null, action: Actions) => {
-  const { fetchMocks, addMocks, reset } = actions;
+  const { fetchMocks, addMocks, lockMocks, unlockMocks, reset } = actions;
   switch (action.type) {
     case getType(fetchMocks.failure):
     case getType(addMocks.failure):
+    case getType(lockMocks.failure):
+    case getType(unlockMocks.failure):
     case getType(reset.failure): {
       return action.payload;
     }
     case getType(fetchMocks.success):
     case getType(addMocks.success):
+    case getType(lockMocks.success):
+    case getType(unlockMocks.success):
     case getType(reset.success): {
       return null;
     }

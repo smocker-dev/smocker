@@ -24,6 +24,8 @@ const {
   summarizeHistory,
   fetchMocks,
   addMocks,
+  lockMocks,
+  unlockMocks,
   reset,
 } = actions;
 
@@ -169,6 +171,48 @@ const addMocksEpic: Epic<Actions> = (action$) =>
     )
   );
 
+const lockMocksEpic: Epic<Actions> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(lockMocks.request)),
+    exhaustMap((action) => {
+      return ajax
+        .post(trimedPath + "/mocks/lock", action.payload, {
+          "Content-Type": "application/json",
+        })
+        .pipe(
+          mergeMap(({ response }) => {
+            return decode(MocksCodec)(response).pipe(
+              map((resp) => lockMocks.success(resp))
+            );
+          }),
+          catchError((error) => {
+            return of(lockMocks.failure(extractError(error)));
+          })
+        );
+    })
+  );
+
+const unlockMocksEpic: Epic<Actions> = (action$) =>
+  action$.pipe(
+    filter(isActionOf(unlockMocks.request)),
+    exhaustMap((action) => {
+      return ajax
+        .post(trimedPath + "/mocks/unlock", action.payload, {
+          "Content-Type": "application/json",
+        })
+        .pipe(
+          mergeMap(({ response }) => {
+            return decode(MocksCodec)(response).pipe(
+              map((resp) => unlockMocks.success(resp))
+            );
+          }),
+          catchError((error) => {
+            return of(unlockMocks.failure(extractError(error)));
+          })
+        );
+    })
+  );
+
 const resetEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(reset.request)),
@@ -189,5 +233,7 @@ export default combineEpics(
   summarizeHistoryEpic,
   fetchMocksEpic,
   addMocksEpic,
+  lockMocksEpic,
+  unlockMocksEpic,
   resetEpic
 );
