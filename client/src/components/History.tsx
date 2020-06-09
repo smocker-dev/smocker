@@ -44,98 +44,102 @@ const Entry = React.memo(
   }: {
     value: Entry;
     handleDisplayNewMock: () => unknown;
-  }) => (
-    <div className="entry">
-      <div className="request">
-        <div className="details">
-          <Tag color="blue">{value.request.method}</Tag>
-          <span className="path">
-            {value.request.path + formatQueryParams(value.request.query_params)}
-          </span>
-          <span className="date">
-            {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
-          </span>
-        </div>
-        {value.request.headers && (
-          <table>
-            <tbody>
-              {Object.entries(value.request.headers).map(([key, values]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{values.join(", ")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        {value.request.body && (
-          <Code
-            value={
-              JSON.stringify(value.request.body, null, "  ") ||
-              value.request.body
-            }
-            language="json"
-          />
-        )}
-        <div className="actions">
-          <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
-            Copy as curl
-          </Typography.Paragraph>
-        </div>
-      </div>
-      <div className="response">
-        <div className="details">
-          <Tag color={value.response.status > 600 ? "red" : "blue"}>
-            {value.response.status}
-          </Tag>
-          {value.response.status > 600 && (
-            <Typography.Text type="danger" ellipsis>
-              {value.response.body.message}
+  }) => {
+    const path =
+      value.request.path + formatQueryParams(value.request.query_params);
+    return (
+      <div className="entry">
+        <div className="request">
+          <div className="details">
+            <Tag color="blue">{value.request.method}</Tag>
+            <Typography.Text ellipsis className="path" title={path}>
+              {path}
             </Typography.Text>
+            <span className="date">
+              {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
+            </span>
+          </div>
+          {value.request.headers && (
+            <table>
+              <tbody>
+                {Object.entries(value.request.headers).map(([key, values]) => (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{values.join(", ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
-          <Typography.Text ellipsis>
-            {value.mock_id && (
-              <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
-            )}
-          </Typography.Text>
-          <span className="date">
-            {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
-          </span>
+          {value.request.body && (
+            <Code
+              value={
+                JSON.stringify(value.request.body, null, "  ") ||
+                value.request.body
+              }
+              language="json"
+            />
+          )}
+          <div className="actions">
+            <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
+              Copy as curl
+            </Typography.Paragraph>
+          </div>
         </div>
-        {value.response.status > 600 && (
-          <Typography.Paragraph>
-            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
-              <Button block type="dashed">
-                <PlusCircleOutlined />
-                Create mock from request
-              </Button>
-            </Link>
-          </Typography.Paragraph>
-        )}
-        {value.response.headers && (
-          <table>
-            <tbody>
-              {Object.entries(value.response.headers).map(([key, values]) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{values.join(", ")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        {value.response.body && (
-          <Code
-            value={
-              JSON.stringify(value.response.body, null, "  ") ||
-              value.response.body
-            }
-            language="json"
-          />
-        )}
+        <div className="response">
+          <div className="details">
+            <Tag color={value.response.status > 600 ? "red" : "blue"}>
+              {value.response.status}
+            </Tag>
+            {value.response.status > 600 && (
+              <Typography.Text type="danger" ellipsis>
+                {value.response.body.message}
+              </Typography.Text>
+            )}
+            <Typography.Text ellipsis>
+              {value.mock_id && (
+                <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
+              )}
+            </Typography.Text>
+            <span className="date">
+              {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
+            </span>
+          </div>
+          {value.response.status > 600 && (
+            <Typography.Paragraph>
+              <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
+                <Button block type="dashed">
+                  <PlusCircleOutlined />
+                  Create mock from request
+                </Button>
+              </Link>
+            </Typography.Paragraph>
+          )}
+          {value.response.headers && (
+            <table>
+              <tbody>
+                {Object.entries(value.response.headers).map(([key, values]) => (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{values.join(", ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {value.response.body && (
+            <Code
+              value={
+                JSON.stringify(value.response.body, null, "  ") ||
+                value.response.body
+              }
+              language="json"
+            />
+          )}
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 Entry.displayName = "Entry";
 

@@ -138,6 +138,10 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   const showPathMatcher = request.path.matcher !== defaultMatcher;
   const isBodyStringMatcher = isStringMatcher(request.body);
   const showBody = isBodyStringMatcher && bodyToString(request.body);
+  const path =
+    (showPathMatcher
+      ? `Path: ${request.path.matcher} "${request.path.value}"`
+      : request.path.value) + formatQueryParams(request.query_params);
   return (
     <div className="request">
       <div className="details">
@@ -147,10 +151,8 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
               ? `Method: ${request.method.matcher} "${request.method.value}"`
               : request.method.value}
           </Tag>
-          <Typography.Text className="path" ellipsis>
-            {(showPathMatcher
-              ? `Path: ${request.path.matcher} "${request.path.value}"`
-              : request.path.value) + formatQueryParams(request.query_params)}
+          <Typography.Text className="path" ellipsis title={path}>
+            {path}
           </Typography.Text>
         </div>
       </div>
