@@ -40,7 +40,7 @@ const extractError = (error: AjaxResponse | AjaxError | Error) => {
 
 const fetchSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
-    filter(isActionOf(fetchSessions.request)),
+    filter(isActionOf([fetchSessions.request, reset.success])),
     exhaustMap(() =>
       ajax.get(trimedPath + "/sessions/summary").pipe(
         mergeMap(({ response }) => {

@@ -19,8 +19,7 @@ import {
 import { DateTime, Settings } from "luxon";
 import * as React from "react";
 import { connect } from "react-redux";
-import { RouteComponentProps, withRouter } from "react-router";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
@@ -264,11 +263,11 @@ const NewMock = ({
   );
 };
 
-interface OwnProps {
+interface RouteProps {
   mock_id?: string;
 }
 
-interface Props extends RouteComponentProps<OwnProps> {
+interface Props {
   sessionID: string;
   loading: boolean;
   canPoll: boolean;
@@ -282,7 +281,6 @@ interface Props extends RouteComponentProps<OwnProps> {
 
 const Mocks = ({
   sessionID,
-  match,
   loading,
   canPoll,
   mocks,
@@ -292,11 +290,12 @@ const Mocks = ({
   addMocks,
   setDisplayNewMock,
 }: Props) => {
+  const minPageSize = 10;
+
   React.useEffect(() => {
     document.title = "Mocks";
   });
-
-  const minPageSize = 10;
+  const { mock_id } = useParams<RouteProps>();
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
@@ -319,7 +318,6 @@ const Mocks = ({
     body = <Empty description="No mocks found." />;
   } else {
     filteredMocks = mocks.filter((mock) => {
-      const mock_id = match.params.mock_id;
       return !mock_id || mock.state.id === mock_id;
     });
     const paginatedMocks = filteredMocks.slice(
@@ -370,9 +368,9 @@ const Mocks = ({
   return (
     <div className="mocks" ref={ref}>
       <PageHeader
-        title={match.params.mock_id ? "Mock" : "Mocks"}
+        title={mock_id ? "Mock" : "Mocks"}
         extra={
-          !match.params.mock_id &&
+          !mock_id &&
           canPoll && (
             <div className="action buttons">
               <Button
@@ -396,10 +394,10 @@ const Mocks = ({
           )
         }
       >
-        {match.params.mock_id ? (
+        {mock_id ? (
           <p>
             This is the definition of the mock with ID{" "}
-            <strong>{match.params.mock_id}</strong>.
+            <strong>{mock_id}</strong>.
           </p>
         ) : (
           <p>This is the list of declared mocks ordered by priority.</p>
@@ -420,29 +418,27 @@ const Mocks = ({
   );
 };
 
-export default withRouter(
-  connect(
-    (state: AppState) => {
-      const { sessions, mocks } = state;
-      const canPoll =
-        !sessions.selected ||
-        sessions.selected === sessions.list[sessions.list.length - 1].id;
-      return {
-        sessionID: sessions.selected,
-        loading: mocks.loading,
-        mocks: mocks.list,
-        mockEditor: mocks.editor,
-        error: mocks.error,
-        canPoll,
-      };
-    },
-    (dispatch: Dispatch<Actions>) => ({
-      fetch: (sessionID: string) =>
-        dispatch(actions.fetchMocks.request(sessionID)),
-      addMocks: (sessionID: string, mocks: string) =>
-        dispatch(actions.addMocks.request({ sessionID, mocks })),
-      setDisplayNewMock: (display: boolean, defaultValue: string) =>
-        dispatch(actions.openMockEditor([display, defaultValue])),
-    })
-  )(Mocks)
-);
+export default connect(
+  (state: AppState) => {
+    const { sessions, mocks } = state;
+    const canPoll =
+      !sessions.selected ||
+      sessions.selected === sessions.list[sessions.list.length - 1].id;
+    return {
+      sessionID: sessions.selected,
+      loading: mocks.loading,
+      mocks: mocks.list,
+      mockEditor: mocks.editor,
+      error: mocks.error,
+      canPoll,
+    };
+  },
+  (dispatch: Dispatch<Actions>) => ({
+    fetch: (sessionID: string) =>
+      dispatch(actions.fetchMocks.request(sessionID)),
+    addMocks: (sessionID: string, mocks: string) =>
+      dispatch(actions.addMocks.request({ sessionID, mocks })),
+    setDisplayNewMock: (display: boolean, defaultValue: string) =>
+      dispatch(actions.openMockEditor([display, defaultValue])),
+  })
+)(Mocks);

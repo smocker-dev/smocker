@@ -1,4 +1,9 @@
-import { EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Form,
@@ -17,28 +22,8 @@ import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { Session, Sessions } from "~modules/types";
-import { usePoll } from "~modules/utils";
+import { usePoll, useQueryParams } from "~modules/utils";
 import "./Sidebar.scss";
-
-const NewButton = ({ onValidate }: { onValidate: () => unknown }) => {
-  const onClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    onValidate();
-  };
-  return (
-    <Row align="middle" justify="center">
-      <Button
-        ghost
-        type="primary"
-        icon={<PlusOutlined />}
-        className="session-button"
-        onClick={onClick}
-      >
-        New Session
-      </Button>
-    </Row>
-  );
-};
 
 const EditableItem = ({
   value,
@@ -91,6 +76,7 @@ interface Props {
   newSession: () => unknown;
   updateSession: (session: Session) => unknown;
   uploadSessions: (sessions: Session[]) => unknown;
+  resetSessions: () => unknown;
 }
 
 const SideBar = ({
@@ -102,15 +88,43 @@ const SideBar = ({
   updateSession,
   newSession,
   uploadSessions,
+  resetSessions,
 }: Props) => {
+  const [queryParams, setQueryParams] = useQueryParams();
   const [, , setPolling] = usePoll(10000, fetch, undefined);
-  if (!selected && sessions.length > 0) {
-    selectSession(sessions[sessions.length - 1].id);
-  }
+
+  const querySessionID = queryParams.get("sessionID");
+
+  const handleSelectSession = (sessionID: string) => {
+    setQueryParams({ sessionID });
+    selectSession(sessionID);
+  };
+
+  React.useEffect(() => {
+    if (!loading && !selected && sessions.length > 0) {
+      if (
+        !querySessionID ||
+        sessions.filter((session) => session.id === querySessionID).length === 0
+      ) {
+        handleSelectSession(sessions[sessions.length - 1].id);
+      } else {
+        querySessionID && handleSelectSession(querySessionID);
+      }
+    }
+    if (!loading && selected && !querySessionID) {
+      setQueryParams({ sessionID: selected });
+    }
+  }, [loading, selected, sessions, querySessionID]);
+
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
-  const onNewSession = () => newSession();
-  const onClick = ({ key }: { key: string }) => selectSession(key);
+  const onSelect = ({ key }: { key: string }) => {
+    if (key !== "new" && key !== "reset") {
+      handleSelectSession(key);
+    } else {
+      setQueryParams({ sessionID: "" });
+    }
+  };
   const onChangeSessionName = (index: number) => (name: string) => {
     updateSession({ ...sessions[index], name });
   };
@@ -179,14 +193,36 @@ const SideBar = ({
     >
       <Menu
         className="menu"
-        onClick={onClick}
+        onClick={onSelect}
         mode="inline"
         selectedKeys={selectedItem}
       >
         <Menu.ItemGroup title={title} className="group">
           {items}
-          <NewButton onValidate={onNewSession} />
+          <Menu.Item key="new">
+            <Button
+              ghost
+              type="primary"
+              icon={<PlusOutlined />}
+              className="session-button"
+              onClick={newSession}
+            >
+              New Session
+            </Button>
+          </Menu.Item>
         </Menu.ItemGroup>
+        <Menu.Item key="reset">
+          <Button
+            ghost
+            danger
+            loading={loading}
+            icon={<DeleteOutlined />}
+            className="reset-button"
+            onClick={resetSessions}
+          >
+            Reset Sessions
+          </Button>
+        </Menu.Item>
       </Menu>
     </Layout.Sider>
   );
@@ -207,5 +243,6 @@ export default connect(
       dispatch(actions.updateSession.request(session)),
     uploadSessions: (sessions: Sessions) =>
       dispatch(actions.uploadSessions.request(sessions)),
+    resetSessions: () => dispatch(actions.reset.request()),
   })
 )(SideBar);

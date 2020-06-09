@@ -28,7 +28,7 @@
     }
 
     .group {
-      height: 100%;
+      height: calc(100% - 3.5em);
       .ant-menu-item-group-title {
         padding-top: 1em;
         .ant-spin .ant-spin-dot {
@@ -38,7 +38,7 @@
         }
       }
       .ant-menu-item-group-list {
-        height: calc(100% - 3.25em);
+        height: calc(100% - 3.5em);
         overflow-x: hidden;
         overflow-y: auto;
         padding-right: 1px;
@@ -46,10 +46,14 @@
           max-width: 80%;
         }
         .session-button {
-          width: 90%;
+          width: 100%;
           border-style: dashed;
         }
       }
+    }
+    .reset-button {
+      width: 100%;
+      border-style: dashed;
     }
   }
 }
