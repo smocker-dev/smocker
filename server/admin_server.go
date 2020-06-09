@@ -33,7 +33,7 @@ func Serve(config config.Config) {
 
 	e.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
-	mockServices := NewMockServer(config.MockServerListenPort)
+	mockServices := NewMockServer(config)
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 

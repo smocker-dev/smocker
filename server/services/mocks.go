@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/types"
 	"github.com/google/uuid"
 )
@@ -34,13 +35,15 @@ type Mocks interface {
 }
 
 type mocks struct {
-	sessions types.Sessions
-	mu       sync.Mutex
+	sessions         types.Sessions
+	historyRetention int
+	mu               sync.Mutex
 }
 
-func NewMocks() Mocks {
+func NewMocks(cfg config.Config) Mocks {
 	s := &mocks{
-		sessions: types.Sessions{},
+		sessions:         types.Sessions{},
+		historyRetention: cfg.HistoryMaxRetention,
 	}
 	return s
 }
@@ -98,6 +101,10 @@ func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.En
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if s.historyRetention > 0 && len(session.History)+1 > s.historyRetention {
+		session.History = session.History[1:]
+	}
+
 	session.History = append(session.History, entry)
 	return entry, nil
 }
@@ -145,11 +152,18 @@ func (s *mocks) NewSession(name string) *types.Session {
 		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
 	}
 
+	var history types.History
+	if s.historyRetention > 0 {
+		history = make(types.History, 0, s.historyRetention)
+	} else {
+		history = types.History{}
+	}
+
 	session := &types.Session{
 		ID:      uuid.New().String(),
 		Name:    name,
 		Date:    time.Now(),
-		History: types.History{},
+		History: history,
 		Mocks:   types.Mocks{},
 	}
 	s.sessions = append(s.sessions, session)
