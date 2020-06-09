@@ -61,7 +61,7 @@ async function main() {
   // Screenshot empty + add
   await axios.post(smockerAdminHost + "/reset");
   await page.goto(smockerAdminHost + "/pages/history");
-  await page.waitForSelector("li.ant-menu-item:nth-child(1)", {
+  await page.waitForSelector("li.ant-menu-item:nth-child(1) > div:nth-child(1)", {
     visible: true,
   });
   await page.waitFor(300);
