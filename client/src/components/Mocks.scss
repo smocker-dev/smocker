@@ -163,6 +163,8 @@
       }
 
       .request .details .group {
+        overflow: hidden;
+        text-overflow: ellipsis;
         .method {
           border-radius: 3px;
           color: $color-white-light;

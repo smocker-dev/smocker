@@ -136,14 +136,17 @@ const sessions = combineReducers({
 });
 
 const loadingHistory = (state = false, action: Actions) => {
-  const { fetchHistory, reset } = actions;
+  const { fetchHistory, summarizeHistory, reset } = actions;
   switch (action.type) {
     case getType(fetchHistory.request):
+    case getType(summarizeHistory.request):
     case getType(reset.request): {
       return true;
     }
     case getType(fetchHistory.success):
     case getType(fetchHistory.failure):
+    case getType(summarizeHistory.success):
+    case getType(summarizeHistory.failure):
     case getType(reset.success):
     case getType(reset.failure): {
       return false;

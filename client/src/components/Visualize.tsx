@@ -13,15 +13,17 @@ import {
   Input,
   PageHeader,
   Row,
+  Spin,
 } from "antd";
 import * as React from "react";
 import { connect } from "react-redux";
-import { RouteComponentProps, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Dispatch } from "redux";
 import { useDebounce } from "use-lodash-debounce";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { GraphHistory } from "~modules/types";
+import { cleanQueryParams, useQueryParams } from "~modules/utils";
 import Code from "./Code";
 import { Mermaid } from "./Mermaid";
 import "./Visualize.scss";
@@ -60,16 +62,22 @@ const EditGraph = ({
   );
 };
 
-interface Props extends RouteComponentProps {
+interface Props {
   sessionID: string;
   graph: GraphHistory;
+  loading: boolean;
   visualize: (sessionID: string, src: string, dest: string) => unknown;
 }
 
-const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
+const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
+  React.useEffect(() => {
+    document.title = "Visualize";
+  });
+  const [queryParams, setQueryParams] = useQueryParams();
+
   const [diagram, setDiagram] = React.useState("");
-  const [src, setSrc] = React.useState("");
-  const [dest, setDest] = React.useState("");
+  const [src, setSrc] = React.useState(queryParams.get("src") || "");
+  const [dest, setDest] = React.useState(queryParams.get("dest") || "");
   const [editGraph, setEditGraph] = React.useState(false);
   const [svg, setSVG] = React.useState("");
   const debouncedDiagram = useDebounce(diagram, 1000);
@@ -79,22 +87,21 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   }, [graph]);
 
   React.useLayoutEffect(() => {
-    setSrc("");
-    setDest("");
     visualize(sessionID, src, dest);
   }, [sessionID]);
 
-  const handleChangeSrc = (event: React.ChangeEvent<HTMLInputElement>) =>
+  const handleChangeSrc = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQueryParams({ src: event.target.value }, true);
     setSrc(event.target.value);
-  const handleChangeDest = (event: React.ChangeEvent<HTMLInputElement>) =>
+  };
+  const handleChangeDest = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQueryParams({ dest: event.target.value }, true);
     setDest(event.target.value);
+  };
   const handleGenerate = () => visualize(sessionID, src, dest);
   const handleEditGraph = () => setEditGraph(true);
   const handleChangeGraph = (diag: string) => setDiagram(diag);
   const handleCloseEditGraph = () => setEditGraph(false);
-  const handleBack = () => {
-    history.push("/pages/history");
-  };
   const handleChangeSVG = (svg: string) => {
     setSVG(svg);
   };
@@ -114,9 +121,14 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
         title={"Diagram of calls"}
         extra={
           <div className="action buttons">
-            <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
-              Back to History
-            </Button>
+            <Link
+              to={(location) => ({
+                ...cleanQueryParams(location),
+                pathname: "/pages/history",
+              })}
+            >
+              <Button icon={<ArrowLeftOutlined />}>Back to History</Button>
+            </Link>
             <Button icon={<SaveOutlined />} onClick={onSaveSVG}>
               Save SVG
             </Button>
@@ -139,7 +151,7 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
             key="1"
             className="collapse-panel"
           >
-            <Form layout="horizontal">
+            <Form layout="horizontal" initialValues={{ src, dest }}>
               <Row>
                 <Form.Item label="Source Header" name="src">
                   <Input value={src} onChange={handleChangeSrc} />
@@ -154,20 +166,22 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
             </Form>
           </Collapse.Panel>
         </Collapse>
-        <Row className="container">
-          {!emptyDiagram && (
-            <Card className={"card"}>
-              <Mermaid
-                name="diagram"
-                chart={debouncedDiagram}
-                onChange={handleChangeSVG}
-              />
-            </Card>
-          )}
-          {emptyDiagram && (
-            <Empty description="The history of calls is empty." />
-          )}
-        </Row>
+        <Spin spinning={loading || diagram !== debouncedDiagram}>
+          <Row className="container">
+            {!emptyDiagram && (
+              <Card className={"card"}>
+                <Mermaid
+                  name="diagram"
+                  chart={debouncedDiagram}
+                  onChange={handleChangeSVG}
+                />
+              </Card>
+            )}
+            {emptyDiagram && (
+              <Empty description="The history of calls is empty." />
+            )}
+          </Row>
+        </Spin>
       </PageHeader>
       {editGraph && (
         <EditGraph
@@ -181,21 +195,20 @@ const Visualize = ({ sessionID, graph, visualize, history }: Props) => {
   );
 };
 
-export default withRouter(
-  connect(
-    (state: AppState) => {
-      const { sessions, history } = state;
-      return {
-        sessionID: sessions.selected,
-        graph: history.graph,
-      };
-    },
-    (dispatch: Dispatch<Actions>) => ({
-      visualize: (sessionID: string, src: string, dest: string) =>
-        dispatch(actions.summarizeHistory.request({ sessionID, src, dest })),
-    })
-  )(Visualize)
-);
+export default connect(
+  (state: AppState) => {
+    const { sessions, history } = state;
+    return {
+      sessionID: sessions.selected,
+      graph: history.graph,
+      loading: history.loading,
+    };
+  },
+  (dispatch: Dispatch<Actions>) => ({
+    visualize: (sessionID: string, src: string, dest: string) =>
+      dispatch(actions.summarizeHistory.request({ sessionID, src, dest })),
+  })
+)(Visualize);
 
 const computeGraph = (graph: GraphHistory): string => {
   const endpoints: Record<string, string> = {};

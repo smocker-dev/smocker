@@ -1,19 +1,12 @@
-import { Button, Layout, Menu, Row } from "antd";
+import { Layout, Menu, Row } from "antd";
 import * as React from "react";
-import { connect } from "react-redux";
-import { Link, RouteComponentProps, withRouter } from "react-router-dom";
-import { Dispatch } from "redux";
+import { Link, useLocation } from "react-router-dom";
 import Logo from "~assets/logo.png";
-import { Actions, actions } from "~modules/actions";
-import { AppState } from "~modules/reducers";
+import { cleanQueryParams } from "~modules/utils";
 import "./Navbar.scss";
 
-interface Props extends RouteComponentProps {
-  loading: boolean;
-  reset: () => unknown;
-}
-
-const Navbar = ({ loading, reset, location }: Props) => {
+const Navbar = (): JSX.Element => {
+  const location = useLocation();
   return (
     <Layout.Header className="navbar">
       <Row justify="start" align="middle">
@@ -29,10 +22,24 @@ const Navbar = ({ loading, reset, location }: Props) => {
           mode="horizontal"
         >
           <Menu.Item key="/pages/history">
-            <Link to="/pages/history">History</Link>
+            <Link
+              to={(location) => ({
+                ...cleanQueryParams(location),
+                pathname: "/pages/history",
+              })}
+            >
+              History
+            </Link>
           </Menu.Item>
           <Menu.Item key="/pages/mocks">
-            <Link to="/pages/mocks">Mocks</Link>
+            <Link
+              to={(location) => ({
+                ...cleanQueryParams(location),
+                pathname: "/pages/mocks",
+              })}
+            >
+              Mocks
+            </Link>
           </Menu.Item>
           <Menu.Item>
             <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
@@ -40,21 +47,9 @@ const Navbar = ({ loading, reset, location }: Props) => {
             </a>
           </Menu.Item>
         </Menu>
-        <Button danger ghost loading={loading} onClick={reset}>
-          Reset
-        </Button>
       </Row>
     </Layout.Header>
   );
 };
 
-export default withRouter(
-  connect(
-    (state: AppState) => ({
-      loading: state.history.loading || state.mocks.loading,
-    }),
-    (dispatch: Dispatch<Actions>) => ({
-      reset: () => dispatch(actions.reset.request()),
-    })
-  )(Navbar)
-);
+export default Navbar;

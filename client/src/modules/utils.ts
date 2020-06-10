@@ -2,6 +2,7 @@ import omit from "lodash/omit";
 import pickBy from "lodash/pickBy";
 import trimEnd from "lodash/trimEnd";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import {
   BodyMatcher,
   defaultMatcher,
@@ -209,3 +210,36 @@ export function usePoll<K, V>(
 
   return [polling, togglePollingCb, setPollingCb];
 }
+
+export const useQueryParams = (): [
+  URLSearchParams,
+  (params: Record<string, string>, replace?: boolean) => void
+] => {
+  const history = useHistory();
+  const queryParams = new URLSearchParams(history.location.search);
+  const setQueryParams = React.useCallback(
+    (params: Record<string, string>, replace = false) => {
+      const newQueryParams = new URLSearchParams(history.location.search);
+      Object.entries(params).forEach(([key, value]) => {
+        newQueryParams.set(key, value);
+      });
+      if (replace) {
+        history.replace({ search: newQueryParams.toString() });
+      } else {
+        history.push({ search: newQueryParams.toString() });
+      }
+    },
+    []
+  );
+
+  return [queryParams, setQueryParams];
+};
+
+export const cleanQueryParams = <T extends { search: string }>(
+  location: T
+): T => {
+  const queryParams = new URLSearchParams(location.search);
+  const newQueryParams = new URLSearchParams();
+  newQueryParams.set("sessionID", queryParams.get("sessionID") || "");
+  return { ...location, search: newQueryParams.toString() };
+};
