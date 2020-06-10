@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/Thiht/smocker/server/services"
 	"github.com/Thiht/smocker/server/types"
@@ -105,21 +104,6 @@ func (a *Admin) UnlockMocks(c echo.Context) error {
 	return c.JSON(http.StatusOK, mocks)
 }
 
-type verifyResult struct {
-	Mocks struct {
-		Verified bool        `json:"verified"`
-		AllUsed  bool        `json:"all_used"`
-		Message  string      `json:"message"`
-		Failures types.Mocks `json:"failures,omitempty"`
-		Unused   types.Mocks `json:"unused,omitempty"`
-	} `json:"mocks"`
-	History struct {
-		Verified bool          `json:"verified"`
-		Message  string        `json:"message"`
-		Failures types.History `json:"failures,omitempty"`
-	} `json:"history"`
-}
-
 func (a *Admin) VerifySession(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	var session *types.Session
@@ -154,7 +138,7 @@ func (a *Admin) VerifySession(c echo.Context) error {
 	mocksAllUsed := len(unusedMocks) == 0
 	historyIsClean := len(failedHistory) == 0
 
-	response := verifyResult{}
+	response := types.VerifyResult{}
 	response.Mocks.Verified = mocksVerified
 	response.Mocks.AllUsed = mocksAllUsed
 	response.History.Verified = historyIsClean
@@ -200,14 +184,6 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	return respondAccordingAccept(c, history)
 }
 
-type sessionSummary struct {
-	ID      string        `json:"id"`
-	Name    string        `json:"name"`
-	Date    time.Time     `json:"date"`
-	History types.History `json:"-"`
-	Mocks   types.Mocks   `json:"-"`
-}
-
 func (a *Admin) GetSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
 	return respondAccordingAccept(c, sessions)
@@ -215,9 +191,9 @@ func (a *Admin) GetSessions(c echo.Context) error {
 
 func (a *Admin) SummarizeSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
-	sessionSummaries := []sessionSummary{}
+	sessionSummaries := []types.SessionSummary{}
 	for _, session := range sessions {
-		sessionSummaries = append(sessionSummaries, sessionSummary(*session))
+		sessionSummaries = append(sessionSummaries, types.SessionSummary(*session))
 	}
 	return respondAccordingAccept(c, sessionSummaries)
 }
@@ -225,7 +201,7 @@ func (a *Admin) SummarizeSessions(c echo.Context) error {
 func (a *Admin) NewSession(c echo.Context) error {
 	name := c.QueryParam("name")
 	session := a.mocksServices.NewSession(name)
-	return respondAccordingAccept(c, sessionSummary(*session))
+	return respondAccordingAccept(c, types.SessionSummary(*session))
 }
 
 type updateSessionBody struct {
@@ -248,7 +224,7 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return respondAccordingAccept(c, sessionSummary{
+	return respondAccordingAccept(c, types.SessionSummary{
 		ID:   session.ID,
 		Name: session.Name,
 		Date: session.Date,
@@ -261,9 +237,9 @@ func (a *Admin) ImportSession(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	a.mocksServices.SetSessions(sessions)
-	sessionSummaries := []sessionSummary{}
+	sessionSummaries := []types.SessionSummary{}
 	for _, session := range sessions {
-		sessionSummaries = append(sessionSummaries, sessionSummary{
+		sessionSummaries = append(sessionSummaries, types.SessionSummary{
 			ID:   session.ID,
 			Name: session.Name,
 			Date: session.Date,

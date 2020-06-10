@@ -30,6 +30,7 @@ func parseConfig() (c config.Config) {
 	flag.IntVar(&c.MockServerListenPort, "mock-server-listen-port", 8080, "")
 	flag.StringVar(&c.StaticFiles, "static-files", ".", "The location of the static files to serve (index.html, etc.)")
 	flag.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "The maximum number of calls to keep in the history by sessions (0 = infinity)")
+	flag.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
 	flag.Parse()
 	return
 }

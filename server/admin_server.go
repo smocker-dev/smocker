@@ -35,6 +35,9 @@ func Serve(config config.Config) {
 	adminServerEngine.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
 	mockServerEngine, mockServices := NewMockServer(config)
+	if err := mockServices.LoadSessions(); err != nil {
+		log.Error("unable to load sessions: ", err)
+	}
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 

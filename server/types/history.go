@@ -35,7 +35,7 @@ type Request struct {
 	Path        string      `json:"path"`
 	Method      string      `json:"method"`
 	Origin      string      `json:"origin"`
-	BodyString  string      `json:"-" yaml:"-"`
+	BodyString  string      `json:"body_string" yaml:"body_string"`
 	Body        interface{} `json:"body,omitempty" yaml:"body,omitempty"`
 	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
