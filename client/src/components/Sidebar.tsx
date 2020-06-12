@@ -12,7 +12,6 @@ import {
   Menu,
   Popover,
   Row,
-  Spin,
   Tooltip,
   Typography,
 } from "antd";
@@ -59,7 +58,7 @@ const EditableItem = ({
           </Form.Item>
         </Form>
       }
-      title="Edit session's name"
+      title="Rename session"
       trigger="click"
     >
       <EditOutlined />
@@ -165,9 +164,9 @@ const SideBar = ({
   };
 
   const title: JSX.Element = (
-    <Spin spinning={loading}>
+    <>
       <Tooltip
-        title="Upload a session file"
+        title="Load a session from a file"
         placement="right"
         mouseEnterDelay={0.5}
       >
@@ -179,7 +178,7 @@ const SideBar = ({
         </label>
       </Tooltip>
       <span>Sessions</span>
-    </Spin>
+    </>
   );
   return (
     <Layout.Sider
@@ -213,7 +212,6 @@ const SideBar = ({
         </Menu.ItemGroup>
         <Menu.Item key="reset">
           <Button
-            ghost
             danger
             loading={loading}
             icon={<DeleteOutlined />}
