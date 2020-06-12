@@ -215,7 +215,7 @@ const History = ({
         ])
       );
     const onChangePage = (p: number) => setPage(p);
-    const onChangePagSize = (p: number, ps: number) => {
+    const onChangePageSize = (p: number, ps: number) => {
       setPage(p);
       setPageSize(ps);
     };
@@ -228,7 +228,7 @@ const History = ({
             pageSize={pageSize}
             current={page}
             onChange={onChangePage}
-            onShowSizeChange={onChangePagSize}
+            onShowSizeChange={onChangePageSize}
             total={historyEntry.length}
           />
         </div>
