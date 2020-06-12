@@ -245,6 +245,9 @@ export const cleanQueryParams = <T extends { search: string }>(
 ): T => {
   const queryParams = new URLSearchParams(location.search);
   const newQueryParams = new URLSearchParams();
-  newQueryParams.set("sessionID", queryParams.get("sessionID") || "");
+  const sessionQueryParam = queryParams.get("session");
+  if (sessionQueryParam) {
+    newQueryParams.set("session", sessionQueryParam);
+  }
   return { ...location, search: newQueryParams.toString() };
 };

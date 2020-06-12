@@ -92,7 +92,7 @@ const SideBar = ({
   const [queryParams, setQueryParams] = useQueryParams();
   const [, , setPolling] = usePoll(10000, fetch, undefined);
 
-  const querySessionID = queryParams.get("sessionID");
+  const querySessionID = queryParams.get("session");
 
   const handleSelectSession = (sessionID: string) => {
     setQueryParams({ sessionID });
@@ -111,7 +111,7 @@ const SideBar = ({
       }
     }
     if (!loading && selected && !querySessionID) {
-      setQueryParams({ sessionID: selected });
+      setQueryParams({ session: selected });
     }
   }, [loading, selected, sessions, querySessionID]);
 
@@ -121,7 +121,7 @@ const SideBar = ({
     if (key !== "new" && key !== "reset") {
       handleSelectSession(key);
     } else {
-      setQueryParams({ sessionID: "" });
+      setQueryParams({ session: "" });
     }
   };
   const onChangeSessionName = (index: number) => (name: string) => {

@@ -76,8 +76,10 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   const [queryParams, setQueryParams] = useQueryParams();
 
   const [diagram, setDiagram] = React.useState("");
-  const [src, setSrc] = React.useState(queryParams.get("src") || "");
-  const [dest, setDest] = React.useState(queryParams.get("dest") || "");
+  const [src, setSrc] = React.useState(queryParams.get("source-header") || "");
+  const [dest, setDest] = React.useState(
+    queryParams.get("destination-header") || ""
+  );
   const [editGraph, setEditGraph] = React.useState(false);
   const [svg, setSVG] = React.useState("");
   const debouncedDiagram = useDebounce(diagram, 1000);
@@ -91,11 +93,11 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   }, [sessionID]);
 
   const handleChangeSrc = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQueryParams({ src: event.target.value }, true);
+    setQueryParams({ "source-header": event.target.value }, true);
     setSrc(event.target.value);
   };
   const handleChangeDest = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQueryParams({ dest: event.target.value }, true);
+    setQueryParams({ "destination-header": event.target.value }, true);
     setDest(event.target.value);
   };
   const handleGenerate = () => visualize(sessionID, src, dest);
