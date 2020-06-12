@@ -163,7 +163,7 @@ const History = ({
   setDisplayNewMock,
 }: Props) => {
   React.useEffect(() => {
-    document.title = "History";
+    document.title = "History | Smocker";
   });
 
   const minPageSize = 10;

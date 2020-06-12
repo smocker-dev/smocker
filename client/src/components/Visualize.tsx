@@ -71,7 +71,7 @@ interface Props {
 
 const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   React.useEffect(() => {
-    document.title = "Visualize";
+    document.title = "Visualize | Smocker";
   });
   const [queryParams, setQueryParams] = useQueryParams();
 

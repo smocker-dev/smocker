@@ -295,7 +295,7 @@ const Mocks = ({
   const minPageSize = 10;
 
   React.useEffect(() => {
-    document.title = "Mocks";
+    document.title = "Mocks | Smocker";
   });
   const { mock_id } = useParams<RouteProps>();
   const [page, setPage] = React.useState(1);

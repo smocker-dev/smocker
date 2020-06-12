@@ -213,7 +213,6 @@ const SideBar = ({
         <Menu.Item key="reset">
           <Button
             danger
-            loading={loading}
             icon={<DeleteOutlined />}
             className="reset-button"
             onClick={resetSessions}
