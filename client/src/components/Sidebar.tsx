@@ -95,7 +95,7 @@ const SideBar = ({
   const querySessionID = queryParams.get("session");
 
   const handleSelectSession = (sessionID: string) => {
-    setQueryParams({ sessionID });
+    setQueryParams({ session: sessionID });
     selectSession(sessionID);
   };
 
