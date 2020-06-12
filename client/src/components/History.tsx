@@ -202,7 +202,17 @@ const History = ({
     const handleDisplayNewMock = (entry: Entry) => () =>
       setDisplayNewMock(
         true,
-        yaml.safeDump([{ request: cleanupRequest(entry) }])
+        yaml.safeDump([
+          {
+            request: cleanupRequest(entry),
+            response: {
+              // Sane default response
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+              body: "",
+            },
+          },
+        ])
       );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => {
