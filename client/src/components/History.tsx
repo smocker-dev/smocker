@@ -163,7 +163,7 @@ const History = ({
   setDisplayNewMock,
 }: Props) => {
   React.useEffect(() => {
-    document.title = "History";
+    document.title = "History | Smocker";
   });
 
   const minPageSize = 10;
@@ -202,10 +202,20 @@ const History = ({
     const handleDisplayNewMock = (entry: Entry) => () =>
       setDisplayNewMock(
         true,
-        yaml.safeDump([{ request: cleanupRequest(entry) }])
+        yaml.safeDump([
+          {
+            request: cleanupRequest(entry),
+            response: {
+              // Sane default response
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+              body: "",
+            },
+          },
+        ])
       );
     const onChangePage = (p: number) => setPage(p);
-    const onChangePagSize = (p: number, ps: number) => {
+    const onChangePageSize = (p: number, ps: number) => {
       setPage(p);
       setPageSize(ps);
     };
@@ -218,7 +228,7 @@ const History = ({
             pageSize={pageSize}
             current={page}
             onChange={onChangePage}
-            onShowSizeChange={onChangePagSize}
+            onShowSizeChange={onChangePageSize}
             total={historyEntry.length}
           />
         </div>

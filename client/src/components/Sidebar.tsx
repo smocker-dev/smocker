@@ -12,7 +12,6 @@ import {
   Menu,
   Popover,
   Row,
-  Spin,
   Tooltip,
   Typography,
 } from "antd";
@@ -59,7 +58,7 @@ const EditableItem = ({
           </Form.Item>
         </Form>
       }
-      title="Edit session's name"
+      title="Rename session"
       trigger="click"
     >
       <EditOutlined />
@@ -93,10 +92,10 @@ const SideBar = ({
   const [queryParams, setQueryParams] = useQueryParams();
   const [, , setPolling] = usePoll(10000, fetch, undefined);
 
-  const querySessionID = queryParams.get("sessionID");
+  const querySessionID = queryParams.get("session");
 
   const handleSelectSession = (sessionID: string) => {
-    setQueryParams({ sessionID });
+    setQueryParams({ session: sessionID });
     selectSession(sessionID);
   };
 
@@ -112,7 +111,7 @@ const SideBar = ({
       }
     }
     if (!loading && selected && !querySessionID) {
-      setQueryParams({ sessionID: selected });
+      setQueryParams({ session: selected });
     }
   }, [loading, selected, sessions, querySessionID]);
 
@@ -122,7 +121,7 @@ const SideBar = ({
     if (key !== "new" && key !== "reset") {
       handleSelectSession(key);
     } else {
-      setQueryParams({ sessionID: "" });
+      setQueryParams({ session: "" });
     }
   };
   const onChangeSessionName = (index: number) => (name: string) => {
@@ -165,9 +164,9 @@ const SideBar = ({
   };
 
   const title: JSX.Element = (
-    <Spin spinning={loading}>
+    <>
       <Tooltip
-        title="Upload a session file"
+        title="Load a session from a file"
         placement="right"
         mouseEnterDelay={0.5}
       >
@@ -179,7 +178,7 @@ const SideBar = ({
         </label>
       </Tooltip>
       <span>Sessions</span>
-    </Spin>
+    </>
   );
   return (
     <Layout.Sider
@@ -213,9 +212,7 @@ const SideBar = ({
         </Menu.ItemGroup>
         <Menu.Item key="reset">
           <Button
-            ghost
             danger
-            loading={loading}
             icon={<DeleteOutlined />}
             className="reset-button"
             onClick={resetSessions}

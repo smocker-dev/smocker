@@ -90,6 +90,10 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
       "Accept-Language",
       "Connection",
       "Dnt",
+      "If-None-Match",
+      "Sec-Fetch-Dest",
+      "Sec-Fetch-Mode",
+      "Sec-Fetch-Site",
       "Upgrade-Insecure-Requests",
       "User-Agent",
     ]);
@@ -98,6 +102,7 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
     request.query_params = simplifyMultimap(historyEntry.request.query_params);
   }
   request = omit(request, "date") as EntryRequest;
+  request = omit(request, "origin") as EntryRequest;
   request = pickBy(request) as EntryRequest; // remove nulls
   return request;
 };
@@ -240,6 +245,9 @@ export const cleanQueryParams = <T extends { search: string }>(
 ): T => {
   const queryParams = new URLSearchParams(location.search);
   const newQueryParams = new URLSearchParams();
-  newQueryParams.set("sessionID", queryParams.get("sessionID") || "");
+  const sessionQueryParam = queryParams.get("session");
+  if (sessionQueryParam) {
+    newQueryParams.set("session", sessionQueryParam);
+  }
   return { ...location, search: newQueryParams.toString() };
 };
