@@ -171,12 +171,9 @@ const fetchMocksEpic: Epic<Actions> = (action$) =>
 const addMocksEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(addMocks.request)),
-    exhaustMap((action) => {
-      const query = action.payload.sessionID
-        ? `?session=${action.payload.sessionID}`
-        : "";
-      return ajax
-        .post(trimedPath + "/mocks" + query, action.payload.mocks, {
+    exhaustMap((action) =>
+      ajax
+        .post(trimedPath + "/mocks", action.payload.mocks, {
           "Content-Type": "application/x-yaml",
         })
         .pipe(
@@ -184,8 +181,8 @@ const addMocksEpic: Epic<Actions> = (action$) =>
           catchError((error) => {
             return of(addMocks.failure(extractError(error)));
           })
-        );
-    })
+        )
+    )
   );
 
 const resetEpic: Epic<Actions> = (action$) =>

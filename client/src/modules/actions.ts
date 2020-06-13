@@ -57,9 +57,9 @@ const fetchMocks = createAsyncAction(
 )<string, Mocks, Error>();
 
 export interface NewMocks {
-  sessionID: string;
   mocks: string;
 }
+
 const addMocks = createAsyncAction(
   "@APP/MOCKS/ADD",
   "@APP/MOCKS/ADD/SUCCESS",

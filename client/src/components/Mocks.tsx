@@ -277,7 +277,7 @@ interface Props {
   mockEditor: [boolean, string];
   error: Error | null;
   fetch: (sessionID: string) => unknown;
-  addMocks: (sessionID: string, mocks: string) => unknown;
+  addMocks: (mocks: string) => unknown;
   setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
@@ -363,9 +363,9 @@ const Mocks = ({
 
   const handleAddNewMock = () => setDisplayNewMock(true, "");
   const handleCancelNewMock = () => setDisplayNewMock(false, "");
-  const handleSaveNewMock = (id: string) => (newMocks: string) => {
+  const handleSaveNewMock = (newMocks: string) => {
     setDisplayNewMock(false, "");
-    addMocks(id, newMocks);
+    addMocks(newMocks);
   };
   return (
     <div className="mocks" ref={ref}>
@@ -412,7 +412,7 @@ const Mocks = ({
         <NewMock
           display={displayNewMock}
           defaultValue={mockEditor[1]}
-          onSave={handleSaveNewMock(sessionID)}
+          onSave={handleSaveNewMock}
           onClose={handleCancelNewMock}
         />
       )}
@@ -438,8 +438,7 @@ export default connect(
   (dispatch: Dispatch<Actions>) => ({
     fetch: (sessionID: string) =>
       dispatch(actions.fetchMocks.request(sessionID)),
-    addMocks: (sessionID: string, mocks: string) =>
-      dispatch(actions.addMocks.request({ sessionID, mocks })),
+    addMocks: (mocks: string) => dispatch(actions.addMocks.request({ mocks })),
     setDisplayNewMock: (display: boolean, defaultValue: string) =>
       dispatch(actions.openMockEditor([display, defaultValue])),
   })
