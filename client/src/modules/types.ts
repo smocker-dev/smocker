@@ -4,7 +4,7 @@ import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { Observable, of, throwError } from "rxjs";
 
-export const dateFormat = "EEE, dd MMM yyyy HH:mm:ss.SSS";
+export const dateFormat = "ddd, D MMM YYYY HH:mm:ss.SSS";
 export const defaultMatcher = "ShouldEqual";
 
 export const ErrorCodec = t.type({

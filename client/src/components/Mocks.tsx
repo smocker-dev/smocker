@@ -16,7 +16,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { DateTime, Settings } from "luxon";
+import dayjs from "dayjs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link, useParams } from "react-router-dom";
@@ -44,8 +44,6 @@ import {
 } from "~modules/utils";
 import Code from "./Code";
 import "./Mocks.scss";
-
-Settings.defaultLocale = "en-US";
 
 const renderTimes = (count: number, expected?: number) => {
   if (!expected) {
@@ -206,7 +204,7 @@ const Mock = ({ mock }: { mock: Mock }) => {
           <Link to={`/pages/mocks/${mock.state.id}`}>{mock.state.id}</Link>
         </div>
         <span className="date">
-          {DateTime.fromISO(mock.state.creation_date).toFormat(dateFormat)}
+          {dayjs(mock.state.creation_date).format(dateFormat)}
         </span>
       </div>
       <div className="content">

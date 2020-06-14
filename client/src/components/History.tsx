@@ -17,7 +17,7 @@ import {
 } from "antd";
 import yaml from "js-yaml";
 import orderBy from "lodash/orderBy";
-import { DateTime, Settings } from "luxon";
+import dayjs from "dayjs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -34,8 +34,6 @@ import {
 } from "~modules/utils";
 import Code from "./Code";
 import "./History.scss";
-
-Settings.defaultLocale = "en-US";
 
 const Entry = React.memo(
   ({
@@ -56,7 +54,7 @@ const Entry = React.memo(
               {path}
             </Typography.Text>
             <span className="date">
-              {DateTime.fromISO(value.request.date).toFormat(dateFormat)}
+              {dayjs(value.request.date).format(dateFormat)}
             </span>
           </div>
           {value.request.headers && (
@@ -102,7 +100,7 @@ const Entry = React.memo(
               )}
             </Typography.Text>
             <span className="date">
-              {DateTime.fromISO(value.response.date).toFormat(dateFormat)}
+              {dayjs(value.response.date).format(dateFormat)}
             </span>
           </div>
           {value.response.status > 600 && (
