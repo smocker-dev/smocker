@@ -20,6 +20,7 @@ import Mocks from "./Mocks";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Visualize from "./Visualize";
+import { GithubFilled, ReadOutlined } from "@ant-design/icons";
 
 const epicMiddleware = createEpicMiddleware<Actions>();
 
@@ -48,7 +49,24 @@ const App = () => (
               </Switch>
             </Layout.Content>
             <Layout.Footer style={{ textAlign: "center" }}>
-              MIT Licensed
+              Smocker version {window.version} &mdash; MIT Licensed
+              <br />
+              <a
+                href="https://github.com/Thiht/smocker"
+                title="Smocker on GitHub"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <GithubFilled />
+              </a>{" "}
+              <a
+                href="https://smocker.dev"
+                title="Smocker Documentation"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ReadOutlined />
+              </a>
             </Layout.Footer>
           </Layout>
         </Layout>
