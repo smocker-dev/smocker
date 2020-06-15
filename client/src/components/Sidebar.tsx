@@ -134,7 +134,7 @@ const SideBar = ({
         align="middle"
         title={session.name || session.id}
       >
-        <Typography.Text ellipsis className="menu-item">
+        <Typography.Text ellipsis className="session-name">
           {session.name || session.id}
         </Typography.Text>
         <EditableItem
@@ -198,7 +198,7 @@ const SideBar = ({
       >
         <Menu.ItemGroup title={title} className="group">
           {items}
-          <Menu.Item key="new">
+          <Menu.Item key="new" className="menu-button">
             <Button
               ghost
               type="primary"
@@ -210,7 +210,7 @@ const SideBar = ({
             </Button>
           </Menu.Item>
         </Menu.ItemGroup>
-        <Menu.Item key="reset">
+        <Menu.Item key="reset" className="menu-button">
           <Button
             danger
             icon={<DeleteOutlined />}
