@@ -9,7 +9,7 @@ import (
 
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/types"
-	"github.com/google/uuid"
+	"github.com/teris-io/shortid"
 )
 
 var (
@@ -160,7 +160,7 @@ func (s *mocks) NewSession(name string) *types.Session {
 	}
 
 	session := &types.Session{
-		ID:      uuid.New().String(),
+		ID:      shortid.MustGenerate(),
 		Name:    name,
 		Date:    time.Now(),
 		History: history,
