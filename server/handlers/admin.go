@@ -8,9 +8,9 @@ import (
 
 	"github.com/Thiht/smocker/server/services"
 	"github.com/Thiht/smocker/server/types"
-	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
+	"github.com/teris-io/shortid"
 	"gopkg.in/yaml.v3"
 )
 
@@ -94,7 +94,7 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	for _, mock := range mocks {
 		mock.State = &types.MockState{
 			CreationDate: time.Now(),
-			ID:           uuid.New().String(),
+			ID:           shortid.MustGenerate(),
 		}
 
 		if mock.Context == nil {

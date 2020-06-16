@@ -7,6 +7,7 @@ import (
 	"github.com/Thiht/smocker/server/config"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
+	"github.com/teris-io/shortid"
 )
 
 var (
@@ -48,8 +49,15 @@ func setupLogger(logLevel string) {
 	log.SetLevel(level)
 }
 
+func setupShortID() {
+	const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
+	sid := shortid.MustNew(0, alphabet, 1)
+	shortid.SetDefault(sid)
+}
+
 func main() {
 	c := parseConfig()
 	setupLogger(c.LogLevel)
+	setupShortID()
 	server.Serve(c)
 }
