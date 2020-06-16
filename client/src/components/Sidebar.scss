@@ -42,7 +42,7 @@
         overflow-x: hidden;
         overflow-y: auto;
         padding-right: 1px;
-        .menu-item {
+        .session-name {
           max-width: 80%;
         }
         .session-button {
@@ -50,6 +50,9 @@
           border-style: dashed;
         }
       }
+    }
+    .menu-button {
+      padding: 0 24px;
     }
     .reset-button {
       width: 100%;
