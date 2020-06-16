@@ -50,7 +50,7 @@ func setupLogger(logLevel string) {
 }
 
 func setupShortID() {
-	const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@"
+	const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
 	sid := shortid.MustNew(0, alphabet, 1)
 	shortid.SetDefault(sid)
 }
