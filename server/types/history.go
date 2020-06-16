@@ -15,14 +15,8 @@ import (
 
 type History []*Entry
 
-type Sessions []*Session
-
-type Session struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Date    time.Time `json:"date"`
-	History History   `json:"history"`
-	Mocks   Mocks     `json:"mocks"`
+func (h History) Clone() History {
+	return append(make(History, 0, len(h)), h...)
 }
 
 type Entry struct {

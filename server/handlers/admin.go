@@ -174,7 +174,7 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	filter := c.QueryParam("filter")
 	history, err := a.mocksServices.GetHistoryByPath(sessionID, filter)
 	if err != nil {
-		if err == services.SessionNotFound {
+		if err == types.SessionNotFound {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 
@@ -191,11 +191,7 @@ func (a *Admin) GetSessions(c echo.Context) error {
 
 func (a *Admin) SummarizeSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
-	sessionSummaries := []types.SessionSummary{}
-	for _, session := range sessions {
-		sessionSummaries = append(sessionSummaries, types.SessionSummary(*session))
-	}
-	return respondAccordingAccept(c, sessionSummaries)
+	return respondAccordingAccept(c, sessions.Summarize())
 }
 
 func (a *Admin) NewSession(c echo.Context) error {
@@ -217,7 +213,7 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 
 	session, err := a.mocksServices.UpdateSession(body.ID, body.Name)
 	if err != nil {
-		if err == services.SessionNotFound {
+		if err == types.SessionNotFound {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 
@@ -261,7 +257,7 @@ func (a *Admin) SummarizeHistory(c echo.Context) error {
 		sessionID = a.mocksServices.GetLastSession().ID
 	}
 	session, err := a.mocksServices.GetSessionByID(sessionID)
-	if err == services.SessionNotFound {
+	if err == types.SessionNotFound {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
 		log.WithError(err).Error("Failed to retrieve session")
