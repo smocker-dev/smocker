@@ -234,4 +234,13 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 302
           - result.headers.location ShouldEqual https://smocker.dev/
- 
+      - type: http
+        method: GET
+        url: http://localhost:8080/redirect-to?url=https%3A%2F%2Fhttpbin.org%2Fget&status_code=302
+        headers:
+          X-Follow-Redirect: "true"
+          User-Agent: "foobar"
+        no_follow_redirect: true
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.url ShouldEqual http://httpbin.org/get

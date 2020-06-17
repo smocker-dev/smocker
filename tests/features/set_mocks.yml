@@ -160,7 +160,8 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.__len__ ShouldEqual 4
+          - result.bodyjson.bodyjson3.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
           - result.bodyjson.bodyjson2.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
-          - result.bodyjson.bodyjson1.proxy.host ShouldEqual https://jsonplaceholder.typicode.com
+          - result.bodyjson.bodyjson1.proxy.host ShouldEqual https://httpbin.org
           - result.bodyjson.bodyjson0.proxy.host ShouldEqual https://httpbin.org
