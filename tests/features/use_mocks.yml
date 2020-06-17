@@ -227,3 +227,11 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 20
+      - type: http
+        method: GET
+        url: http://localhost:8080/redirect-to?url=https%3A%2F%2Fsmocker.dev%2F&status_code=302
+        no_follow_redirect: true
+        assertions:
+          - result.statuscode ShouldEqual 302
+          - result.headers.location ShouldEqual https://smocker.dev/
+ 

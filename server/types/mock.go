@@ -130,7 +130,11 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 	}
 	proxyReq.URL.RawQuery = query.Encode()
 	log.Debugf("Redirecting to %s", proxyReq.URL.String())
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
 		return nil, err
