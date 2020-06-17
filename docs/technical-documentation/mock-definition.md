@@ -311,4 +311,8 @@ It has the following format:
 ```yaml
 proxy:
   host: # destination host
+  follow_redirect: # optional boolean
 ```
+
+By default, redirect responses from the destination host are returned as any other response. Setting `follow_redirect` to `true`
+makes Smocker follow any redirect response before responding.

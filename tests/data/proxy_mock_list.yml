@@ -8,3 +8,14 @@
       userId: "1"
   proxy:
     host: https://jsonplaceholder.typicode.com
+- request:
+    path: /redirect-to
+  proxy:
+    host: https://httpbin.org
+- request:
+    path: /redirect-to
+    headers:
+      X-Follow-Redirect: true
+  proxy:
+    host: https://httpbin.org
+    follow_redirect: true

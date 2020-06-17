@@ -114,8 +114,13 @@ type DynamicMockResponse struct {
 }
 
 type MockProxy struct {
-	Host  string        `json:"host" yaml:"host"`
-	Delay time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+	Host           string        `json:"host" yaml:"host"`
+	Delay          time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
+	FollowRedirect bool          `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
+}
+
+func noFollow(req *http.Request, via []*http.Request) error {
+	return http.ErrUseLastResponse
 }
 
 func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
@@ -131,6 +136,9 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 	proxyReq.URL.RawQuery = query.Encode()
 	log.Debugf("Redirecting to %s", proxyReq.URL.String())
 	client := &http.Client{}
+	if !mp.FollowRedirect {
+		client.CheckRedirect = noFollow
+	}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
 		return nil, err

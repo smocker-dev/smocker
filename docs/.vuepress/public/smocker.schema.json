@@ -140,7 +140,8 @@
       "type": "object",
       "properties": {
         "host": { "type": "string" },
-        "delay": { "type": "string" }
+        "delay": { "type": "string" },
+        "follow_redirect": { "type": "boolean" }
       }
     },
     "string_matcher": {
