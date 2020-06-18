@@ -8,6 +8,7 @@ import {
   defaultMatcher,
   Entry,
   EntryRequest,
+  EntryResponse,
   Multimap,
   MultimapMatcher,
   StringMatcher,
@@ -79,24 +80,26 @@ function simplifyMultimap(multimap: { [x: string]: string[] }) {
   }, {});
 }
 
+const headersToClean = [
+  "Accept",
+  "Accept-Encoding",
+  "Accept-Language",
+  "Connection",
+  "Dnt",
+  "If-None-Match",
+  "Sec-Fetch-Dest",
+  "Sec-Fetch-Mode",
+  "Sec-Fetch-Site",
+  "Upgrade-Insecure-Requests",
+  "User-Agent",
+];
+
 export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   let request: EntryRequest = { ...historyEntry.request };
   if (historyEntry.request.headers) {
     request.headers = simplifyMultimap(historyEntry.request.headers);
     // remove useless headers
-    request.headers = omit(request.headers, [
-      "Accept",
-      "Accept-Encoding",
-      "Accept-Language",
-      "Connection",
-      "Dnt",
-      "If-None-Match",
-      "Sec-Fetch-Dest",
-      "Sec-Fetch-Mode",
-      "Sec-Fetch-Site",
-      "Upgrade-Insecure-Requests",
-      "User-Agent",
-    ]);
+    request.headers = omit(request.headers, headersToClean);
   }
   if (historyEntry.request.query_params) {
     request.query_params = simplifyMultimap(historyEntry.request.query_params);
@@ -105,6 +108,18 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   request = omit(request, "origin") as EntryRequest;
   request = pickBy(request) as EntryRequest; // remove nulls
   return request;
+};
+
+export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
+  let response: EntryResponse = { ...historyEntry.response };
+  if (historyEntry.response.headers) {
+    response.headers = simplifyMultimap(historyEntry.response.headers);
+    // remove useless headers
+    response.headers = omit(response.headers, headersToClean);
+  }
+  response = omit(response, "date") as EntryResponse;
+  response = pickBy(response) as EntryResponse; // remove nulls
+  return response;
 };
 
 export const isStringMatcher = (body?: BodyMatcher): boolean => {
