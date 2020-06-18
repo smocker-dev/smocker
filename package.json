@@ -84,7 +84,7 @@
     "use-lodash-debounce": "^1.1.0"
   },
   "peerDependencies": {
-    "puppeteer": "^3.3.0"
+    "puppeteer": "^4.0.0"
   },
   "resolutions": {
     "watchpack": "1.6.1"
