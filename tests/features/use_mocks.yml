@@ -243,4 +243,4 @@ testcases:
         no_follow_redirect: true
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.url ShouldEqual http://httpbin.org/get
+          - result.bodyjson.url ShouldEqual https://httpbin.org/get

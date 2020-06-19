@@ -6,7 +6,7 @@
     "start:tsc": "tsc -p . --noEmit --watch",
     "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write 'client/**/*.{ts,tsx,html,scss,json}'",
+    "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}",
     "test": "jest",
     "test:watch": "jest --watch",
     "docs:dev": "vuepress dev docs",
@@ -84,7 +84,7 @@
     "use-lodash-debounce": "^1.1.0"
   },
   "peerDependencies": {
-    "puppeteer": "^3.3.0"
+    "puppeteer": "^4.0.0"
   },
   "resolutions": {
     "watchpack": "1.6.1"
@@ -99,5 +99,9 @@
   },
   "lint-staged": {
     "*.{ts,tsx,html,scss,json}": "prettier --write"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": false
   }
 }

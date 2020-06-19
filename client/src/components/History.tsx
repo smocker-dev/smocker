@@ -15,9 +15,9 @@ import {
   Tag,
   Typography,
 } from "antd";
+import dayjs from "dayjs";
 import yaml from "js-yaml";
 import orderBy from "lodash/orderBy";
-import dayjs from "dayjs";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -28,6 +28,7 @@ import { AppState } from "~modules/reducers";
 import { dateFormat, Entry, Error, History } from "~modules/types";
 import {
   cleanupRequest,
+  cleanupResponse,
   entryToCurl,
   formatQueryParams,
   usePoll,
@@ -103,16 +104,16 @@ const Entry = React.memo(
               {dayjs(value.response.date).format(dateFormat)}
             </span>
           </div>
-          {value.response.status > 600 && (
-            <Typography.Paragraph>
-              <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
-                <Button block type="dashed">
-                  <PlusCircleOutlined />
-                  Create mock from request
-                </Button>
-              </Link>
-            </Typography.Paragraph>
-          )}
+          <Typography.Paragraph>
+            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
+              <Button block type="dashed">
+                <PlusCircleOutlined />
+                {value.response.status > 600
+                  ? "Create a new mock from request"
+                  : "Create a new mock from entry"}
+              </Button>
+            </Link>
+          </Typography.Paragraph>
           {value.response.headers && (
             <table>
               <tbody>
@@ -197,21 +198,19 @@ const History = ({
       Math.max((page - 1) * pageSize, 0),
       Math.min(page * pageSize, historyEntry.length)
     );
-    const handleDisplayNewMock = (entry: Entry) => () =>
-      setDisplayNewMock(
-        true,
-        yaml.safeDump([
-          {
-            request: cleanupRequest(entry),
-            response: {
+    const handleDisplayNewMock = (entry: Entry) => () => {
+      const request = cleanupRequest(entry);
+      const response =
+        entry.response.status < 600
+          ? cleanupResponse(entry)
+          : {
               // Sane default response
               status: 200,
               headers: { "Content-Type": "application/json" },
               body: "",
-            },
-          },
-        ])
-      );
+            };
+      return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
+    };
     const onChangePage = (p: number) => setPage(p);
     const onChangePageSize = (p: number, ps: number) => {
       setPage(p);
@@ -260,7 +259,10 @@ const History = ({
         extra={
           <div className="action buttons">
             <Link
-              to={(location) => ({ ...location, pathname: "/pages/visualize" })}
+              to={(location) => ({
+                ...location,
+                pathname: "/pages/visualize",
+              })}
             >
               <Button
                 type="primary"
