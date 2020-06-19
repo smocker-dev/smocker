@@ -141,7 +141,8 @@
       "properties": {
         "host": { "type": "string" },
         "delay": { "type": "string" },
-        "follow_redirect": { "type": "boolean" }
+        "follow_redirect": { "type": "boolean" },
+        "keep_host": { "type": "boolean" }
       }
     },
     "string_matcher": {

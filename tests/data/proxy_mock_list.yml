@@ -15,7 +15,18 @@
 - request:
     path: /redirect-to
     headers:
-      X-Follow-Redirect: true
+      X-Follow-Redirect: "true"
   proxy:
     host: https://httpbin.org
     follow_redirect: true
+- request:
+    path: /get
+  proxy:
+    host: https://httpbin.org
+- request:
+    path: /get
+    headers:
+      X-Keep-Host: "true"
+  proxy:
+    host: https://httpbin.org
+    keep_host: true

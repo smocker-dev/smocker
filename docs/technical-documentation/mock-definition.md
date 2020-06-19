@@ -312,7 +312,11 @@ It has the following format:
 proxy:
   host: # destination host
   follow_redirect: # optional boolean
+  keep_host: # optional boolean
 ```
 
 By default, redirect responses from the destination host are returned as any other response. Setting `follow_redirect` to `true`
 makes Smocker follow any redirect response before responding.
+
+Host header is overriden using destination host value by default. With `keep_host` set to `true`, request sent to the 
+destination host have same `Host` HTTP header as incoming request.
