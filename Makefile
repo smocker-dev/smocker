@@ -15,6 +15,8 @@ ifeq ($(RELEASE), 1)
 endif
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
+PID_FILE:=/tmp/$(APPNAME).test.pid
+
 DOCKER_ACCOUNT:=thiht
 DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 
@@ -43,9 +45,13 @@ VENOM=$(GOPATH)/bin/venom
 $(VENOM):
 	go install github.com/ovh/venom/cli/venom
 
+GOCOVMERGE=$(GOPATH)/bin/gocovmerge
+$(GOCOVMERGE):
+	go install github.com/wadey/gocovmerge
+
 .PHONY: start
 start: $(REFLEX)
-	reflex --start-service \
+	$(REFLEX) --start-service \
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
@@ -57,7 +63,7 @@ build:
 
 .PHONY: lint
 lint: $(GOLANGCILINT)
-	golangci-lint run
+	$(GOLANGCILINT) run
 
 .PHONY: format
 format:
@@ -65,15 +71,31 @@ format:
 
 .PHONY: test
 test:
-	go test -v ./...
+	mkdir -p coverage
+	go test -v -race -coverprofile=coverage/test-cover.out ./server/...
 
 .PHONY: test-integration
-test-integration: $(VENOM)
-	venom run tests/features/$(SUITE)
+test-integration: $(VENOM) check-default-ports
+	mkdir -p coverage
+	go test -race -coverpkg="./..." -c . -o $(APPNAME).test
+	./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
+	sleep 5
+	$(VENOM) run tests/features/$(SUITE)
+	kill `cat $(PID_FILE)` 2> /dev/null || true
+
+coverage/test-cover.out:
+	$(MAKE) test
+
+coverage/test-integration-cover.out:
+	$(MAKE) test-integration
+
+.PHONY: coverage
+coverage: $(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out
+	$(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out > coverage/cover.out
 
 .PHONY: clean
 clean:
-	rm -rf ./build
+	rm -rf ./build ./coverage
 
 .PHONY: build-docker
 build-docker:
@@ -81,8 +103,13 @@ build-docker:
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: start-docker
-start-docker:
+start-docker: check-default-ports
 	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+.PHONY: check-default-ports
+check-default-ports:
+	@lsof -i:8080 > /dev/null && (echo "Port 8080 already in use"; exit 1) || true
+	@lsof -i:8081 > /dev/null && (echo "Port 8081 already in use"; exit 1) || true
 
 # The following targets are only available for CI usage
 

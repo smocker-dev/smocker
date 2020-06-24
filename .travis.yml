@@ -14,13 +14,17 @@ before_script:
 
 script:
   - make test
+  - make test-integration
   - yarn test
+  - make coverage
   - make lint
   - yarn lint
   - make VERSION=$TRAVIS_BRANCH RELEASE=1 release
   - make VERSION=$TRAVIS_BRANCH build-docker
   - make VERSION=$TRAVIS_BRANCH start-docker
-  - make test-integration
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -f coverage/cover.out
 
 before_deploy:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD

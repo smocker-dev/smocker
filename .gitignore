@@ -1,7 +1,10 @@
 .cache/
 .vscode/
 build/
+coverage/
 client/dist/
 docs/.vuepress/dist/
 node_modules/
+smocker
+smocker.test
 yarn-error.log
