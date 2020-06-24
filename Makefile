@@ -83,6 +83,10 @@ test-integration: $(VENOM) check-default-ports
 	$(VENOM) run tests/features/$(SUITE)
 	kill `cat $(PID_FILE)` 2> /dev/null || true
 
+.PHONY: start-integration
+start-integration: $(VENOM)
+	$(VENOM) run tests/features/$(SUITE)
+
 coverage/test-cover.out:
 	$(MAKE) test
 
