@@ -2,7 +2,7 @@ language: go
 os: linux
 
 go:
-  - 1.13.x
+  - 1.14.x
 
 services:
   - docker
@@ -11,6 +11,7 @@ before_script:
   - nvm install
   - nvm use
   - yarn install --frozen-lockfile
+  - go mod download
 
 script:
   - make test
