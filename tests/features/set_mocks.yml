@@ -1,7 +1,7 @@
 name: Set mocks into smocker
 version: "2"
 testcases:
-  - name: Add basic mock
+  - name: AddBasicMock
     steps:
       - type: http
         method: POST
@@ -23,6 +23,16 @@ testcases:
           - result.bodyjson.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.request.method.matcher ShouldEqual ShouldMatch
           - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
+        vars:
+          mock_id:
+            from: result.bodyjson.bodyjson0.state.id
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks?id={{.AddBasicMock.mock_id}}
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.state.id ShouldEqual {{.AddBasicMock.mock_id}}
 
   - name: Add basic mock list
     steps:
