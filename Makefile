@@ -55,7 +55,7 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build --persistence-directory ./build/sessions
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build --persistence-directory ./sessions
 
 .PHONY: build
 build:
@@ -78,7 +78,7 @@ test:
 test-integration: $(VENOM) check-default-ports
 	mkdir -p coverage
 	go test -race -coverpkg="./..." -c . -o $(APPNAME).test
-	./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
+	SMOCKER_PERSISTENCE_DIRECTORY=./sessions ./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
 	sleep 5
 	$(VENOM) run tests/features/$(SUITE)
 	kill `cat $(PID_FILE)` 2> /dev/null || true

@@ -8,3 +8,4 @@ node_modules/
 smocker
 smocker.test
 yarn-error.log
+sessions/
