@@ -9,6 +9,7 @@ import (
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/handlers"
 	"github.com/Thiht/smocker/server/services"
+	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
@@ -27,42 +28,45 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 var templateRenderer *TemplateRenderer
 
 func Serve(config config.Config) {
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
+	adminServerEngine := echo.New()
+	adminServerEngine.HideBanner = true
+	adminServerEngine.HidePort = true
 
-	e.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
+	adminServerEngine.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
-	mockServices := NewMockServer(config)
+	mockServerEngine, mockServices := NewMockServer(config)
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 
 	// Admin Routes
-	e.GET("/mocks", handler.GetMocks)
-	e.POST("/mocks", handler.AddMocks)
-	e.GET("/history", handler.GetHistory)
-	e.GET("/history/summary", handler.SummarizeHistory)
-	e.GET("/sessions", handler.GetSessions)
-	e.POST("/sessions", handler.NewSession)
-	e.PUT("/sessions", handler.UpdateSession)
-	e.POST("/sessions/verify", handler.VerifySession)
-	e.GET("/sessions/summary", handler.SummarizeSessions)
-	e.POST("/sessions/import", handler.ImportSession)
-	e.POST("/reset", handler.Reset)
+	adminServerEngine.GET("/mocks", handler.GetMocks)
+	adminServerEngine.POST("/mocks", handler.AddMocks)
+	adminServerEngine.GET("/history", handler.GetHistory)
+	adminServerEngine.GET("/history/summary", handler.SummarizeHistory)
+	adminServerEngine.GET("/sessions", handler.GetSessions)
+	adminServerEngine.POST("/sessions", handler.NewSession)
+	adminServerEngine.PUT("/sessions", handler.UpdateSession)
+	adminServerEngine.POST("/sessions/verify", handler.VerifySession)
+	adminServerEngine.GET("/sessions/summary", handler.SummarizeSessions)
+	adminServerEngine.POST("/sessions/import", handler.ImportSession)
+	adminServerEngine.POST("/reset", handler.Reset)
 
 	// Health Check Route
-	e.GET("/version", func(c echo.Context) error {
+	adminServerEngine.GET("/version", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, config.Build)
 	})
 
 	// UI Routes
-	e.Static("/assets", config.StaticFiles)
-	e.GET("/*", renderIndex(e, config))
+	adminServerEngine.Static("/assets", config.StaticFiles)
+	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
-	log.WithField("port", config.ConfigListenPort).Info("Starting config server")
-	if err := e.Start(":" + strconv.Itoa(config.ConfigListenPort)); err != nil {
-		log.WithError(err).Fatal("Config server execution failed")
+	log.WithField("port", config.ConfigListenPort).Info("Starting admin server")
+	log.WithField("port", config.MockServerListenPort).Info("Starting mock server")
+	adminServerEngine.Server.Addr = ":" + strconv.Itoa(config.ConfigListenPort)
+	if err := gracehttp.Serve(adminServerEngine.Server, mockServerEngine); err != nil {
+		log.Fatal(err)
 	}
+	log.Info("Shutting down gracefully")
 }
 
 func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {

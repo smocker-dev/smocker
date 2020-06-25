@@ -144,7 +144,7 @@ The backend is written in Go. You can use the following commands to manage the d
 - `make lint`: run static analysis on the code
 - `make format`: automatically format the backend code
 - `make test`: execute unit tests
-- `make test-integration`: execute integration tests (require the backend to be started on the default ports)
+- `make test-integration`: execute integration tests
 
 ### Frontend
 

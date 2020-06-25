@@ -1,31 +1,26 @@
 package server
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/handlers"
 	"github.com/Thiht/smocker/server/services"
 	"github.com/labstack/echo"
-	log "github.com/sirupsen/logrus"
 )
 
-func NewMockServer(cfg config.Config) services.Mocks {
-	server := echo.New()
-	mockServer := services.NewMocks(cfg)
+func NewMockServer(cfg config.Config) (*http.Server, services.Mocks) {
+	mockServerEngine := echo.New()
+	mockServices := services.NewMocks(cfg)
 
-	server.HideBanner = true
-	server.HidePort = true
-	server.Use(recoverMiddleware(), loggerMiddleware(), HistoryMiddleware(mockServer))
+	mockServerEngine.HideBanner = true
+	mockServerEngine.HidePort = true
+	mockServerEngine.Use(recoverMiddleware(), loggerMiddleware(), HistoryMiddleware(mockServices))
 
-	handler := handlers.NewMocks(mockServer)
-	server.Any("/*", handler.GenericHandler)
+	handler := handlers.NewMocks(mockServices)
+	mockServerEngine.Any("/*", handler.GenericHandler)
 
-	log.WithField("port", cfg.MockServerListenPort).Info("Starting mock server")
-	go func() {
-		if err := server.Start(":" + strconv.Itoa(cfg.MockServerListenPort)); err != nil {
-			log.WithError(err).Error("Mock Server execution failed")
-		}
-	}()
-	return mockServer
+	mockServerEngine.Server.Addr = ":" + strconv.Itoa(cfg.MockServerListenPort)
+	return mockServerEngine.Server, mockServices
 }
