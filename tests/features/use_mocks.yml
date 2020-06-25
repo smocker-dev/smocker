@@ -244,3 +244,17 @@ testcases:
       #   assertions:
       #     - result.statuscode ShouldEqual 200
       #     - result.bodyjson.url ShouldEqual https://httpbin.org/get
+      - type: http
+        method: GET
+        url: http://localhost:8080/get
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.headers.host ShouldEqual httpbin.org
+      - type: http
+        method: GET
+        url: http://localhost:8080/get
+        headers:
+          X-Keep-Host: "true"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.headers.host ShouldEqual localhost

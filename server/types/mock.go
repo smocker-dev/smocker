@@ -117,6 +117,7 @@ type MockProxy struct {
 	Host           string        `json:"host" yaml:"host"`
 	Delay          time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
 	FollowRedirect bool          `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
+	KeepHost       bool          `json:"keep_host,omitempty" yaml:"keep_host,omitempty"`
 }
 
 func noFollow(req *http.Request, via []*http.Request) error {
@@ -129,6 +130,9 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		return nil, err
 	}
 	proxyReq.Header = req.Headers
+	if mp.KeepHost {
+		proxyReq.Host = req.Headers.Get("Host")
+	}
 	query := url.Values{}
 	for key, values := range req.QueryParams {
 		query[key] = values
