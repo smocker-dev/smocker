@@ -3,15 +3,12 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Thiht/smocker/server/services"
 	"github.com/Thiht/smocker/server/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
-	"github.com/teris-io/shortid"
-	"gopkg.in/yaml.v3"
 )
 
 const MIMEApplicationXYaml = "application/x-yaml"
@@ -67,22 +64,8 @@ func (a *Admin) AddMocks(c echo.Context) error {
 
 	sessionID := a.mocksServices.GetLastSession().ID
 	var mocks []*types.Mock
-	if err := c.Bind(&mocks); err != nil {
-		if err != echo.ErrUnsupportedMediaType {
-			log.WithError(err).Error("Failed to parse payload")
-			return err
-		}
-
-		// echo doesn't support YAML yet
-		req := c.Request()
-		contentType := req.Header.Get(echo.HeaderContentType)
-		if contentType == "" || strings.Contains(strings.ToLower(contentType), MIMEApplicationXYaml) {
-			if err := yaml.NewDecoder(req.Body).Decode(&mocks); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-			}
-		} else {
-			return echo.NewHTTPError(http.StatusUnsupportedMediaType, err.Error())
-		}
+	if err := bindAccordingAccept(c, &mocks); err != nil {
+		return err
 	}
 
 	for _, mock := range mocks {
@@ -92,15 +75,6 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	}
 
 	for _, mock := range mocks {
-		mock.State = &types.MockState{
-			CreationDate: time.Now(),
-			ID:           shortid.MustGenerate(),
-		}
-
-		if mock.Context == nil {
-			mock.Context = &types.MockContext{}
-		}
-
 		if _, err := a.mocksServices.AddMock(sessionID, mock); err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
@@ -109,6 +83,26 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Mocks registered successfully",
 	})
+}
+
+func (a *Admin) LockMocks(c echo.Context) error {
+	var ids []string
+	if err := bindAccordingAccept(c, &ids); err != nil {
+		return err
+	}
+
+	mocks := a.mocksServices.LockMocks(ids)
+	return c.JSON(http.StatusOK, mocks)
+}
+
+func (a *Admin) UnlockMocks(c echo.Context) error {
+	var ids []string
+	if err := bindAccordingAccept(c, &ids); err != nil {
+		return err
+	}
+
+	mocks := a.mocksServices.UnlockMocks(ids)
+	return c.JSON(http.StatusOK, mocks)
 }
 
 type verifyResult struct {
@@ -303,21 +297,4 @@ func (a *Admin) SummarizeHistory(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return respondAccordingAccept(c, a.graphsServices.Generate(cfg, session))
-}
-
-func respondAccordingAccept(c echo.Context, body interface{}) error {
-	accept := c.Request().Header.Get(echo.HeaderAccept)
-	if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
-		c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
-		c.Response().WriteHeader(http.StatusOK)
-
-		out, err := yaml.Marshal(body)
-		if err != nil {
-			return err
-		}
-
-		_, err = c.Response().Write(out)
-		return err
-	}
-	return c.JSONPretty(http.StatusOK, body, "    ")
 }

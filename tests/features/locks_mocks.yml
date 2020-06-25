@@ -1,0 +1,74 @@
+name: Lock/Unlock mocks into smocker
+version: "2"
+testcases:
+  - name: init
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks
+        headers:
+          Content-Type: "application/x-yaml"
+        bodyFile: ../data/basic_mock.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.request.method.matcher ShouldEqual ShouldMatch
+          - result.bodyjson.bodyjson0.request.method.value ShouldEqual .*
+        vars:
+          mock_id:
+            from: result.bodyjson.bodyjson0.state.id
+
+  - name: Lock Mock
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks/lock
+        headers:
+          Content-Type: "application/json"
+        body: >
+          ["{{.init.mock_id}}"]
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.bodyjson0.state.locked ShouldBeTrue
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.state.id ShouldEqual {{.init.mock_id}}
+          - result.bodyjson.bodyjson0.state.locked ShouldBeTrue
+
+  - name: Unlock Mock
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/mocks/unlock
+        headers:
+          Content-Type: "application/json"
+        body: >
+          ["{{.init.mock_id}}"]
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.bodyjson0.state.locked ShouldBeFalse
+      - type: http
+        method: POST
+        url: http://localhost:8081/reset
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 0

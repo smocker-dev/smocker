@@ -21,6 +21,8 @@ type Mocks interface {
 	AddMock(sessionID string, mock *types.Mock) (*types.Mock, error)
 	GetMocks(sessionID string) (types.Mocks, error)
 	GetMockByID(sessionID, id string) (*types.Mock, error)
+	LockMocks(ids []string) types.Mocks
+	UnlockMocks(ids []string) types.Mocks
 	AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error)
 	GetHistory(sessionID string) (types.History, error)
 	GetHistoryByPath(sessionID, filterPath string) (types.History, error)
@@ -56,7 +58,7 @@ func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, err
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
+	newMock.Init()
 	session.Mocks = append(types.Mocks{newMock}, session.Mocks...)
 	return newMock, nil
 }
@@ -73,6 +75,38 @@ func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
 	s.mu.Unlock()
 
 	return mocks, nil
+}
+
+func (s *mocks) LockMocks(ids []string) types.Mocks {
+	session := s.GetLastSession()
+	s.mu.Lock()
+	for _, id := range ids {
+		for _, mock := range session.Mocks {
+			if mock.State.ID == id {
+				mock.State.Locked = true
+			}
+		}
+	}
+	mocks := make(types.Mocks, len(session.Mocks))
+	copy(mocks, session.Mocks)
+	s.mu.Unlock()
+	return mocks
+}
+
+func (s *mocks) UnlockMocks(ids []string) types.Mocks {
+	session := s.GetLastSession()
+	s.mu.Lock()
+	for _, id := range ids {
+		for _, mock := range session.Mocks {
+			if mock.State.ID == id {
+				mock.State.Locked = false
+			}
+		}
+	}
+	mocks := make(types.Mocks, len(session.Mocks))
+	copy(mocks, session.Mocks)
+	s.mu.Unlock()
+	return mocks
 }
 
 func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
@@ -145,8 +179,6 @@ func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, e
 }
 
 func (s *mocks) NewSession(name string) *types.Session {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if strings.TrimSpace(name) == "" {
 		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
@@ -159,12 +191,27 @@ func (s *mocks) NewSession(name string) *types.Session {
 		history = types.History{}
 	}
 
+	mocks := types.Mocks{}
+	if len(s.sessions) > 0 {
+		session := s.GetLastSession()
+		s.mu.Lock()
+		for _, mock := range session.Mocks {
+			if mock.State.Locked {
+				mocks = append(mocks, mock.CloneAndReset())
+			}
+		}
+		s.mu.Unlock()
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	session := &types.Session{
 		ID:      shortid.MustGenerate(),
 		Name:    name,
 		Date:    time.Now(),
 		History: history,
-		Mocks:   types.Mocks{},
+		Mocks:   mocks,
 	}
 	s.sessions = append(s.sessions, session)
 	return session
@@ -239,7 +286,22 @@ func (s *mocks) SetSessions(sessions types.Sessions) {
 }
 
 func (s *mocks) Reset() {
+	session := s.GetLastSession()
+
 	s.mu.Lock()
-	defer s.mu.Unlock()
+	mocks := types.Mocks{}
+	for _, mock := range session.Mocks {
+		if mock.State.Locked {
+			mocks = append(mocks, mock.CloneAndReset())
+		}
+	}
 	s.sessions = types.Sessions{}
+	s.mu.Unlock()
+
+	if len(mocks) > 0 {
+		session = s.GetLastSession()
+		s.mu.Lock()
+		session.Mocks = mocks
+		s.mu.Unlock()
+	}
 }

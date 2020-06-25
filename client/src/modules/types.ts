@@ -112,6 +112,7 @@ const MockStateCodec = t.type({
   times_count: t.number,
   creation_date: t.string,
   id: t.string,
+  locked: t.boolean,
 });
 export type MockState = t.TypeOf<typeof MockStateCodec>;
 

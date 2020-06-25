@@ -66,6 +66,18 @@ const addMocks = createAsyncAction(
   "@APP/MOCKS/ADD/FAILURE"
 )<NewMocks, void, Error>();
 
+const lockMocks = createAsyncAction(
+  "@APP/MOCKS/LOCK",
+  "@APP/MOCKS/LOCK/SUCCESS",
+  "@APP/MOCKS/LOCK/FAILURE"
+)<string[], Mocks, Error>();
+
+const unlockMocks = createAsyncAction(
+  "@APP/MOCKS/UNLOCK",
+  "@APP/MOCKS/UNLOCK/SUCCESS",
+  "@APP/MOCKS/UNLOCK/FAILURE"
+)<string[], Mocks, Error>();
+
 const reset = createAsyncAction(
   "@APP/RESET",
   "@APP/RESET/SUCCESS",
@@ -83,6 +95,8 @@ export const actions = {
   summarizeHistory,
   fetchMocks,
   addMocks,
+  lockMocks,
+  unlockMocks,
   reset,
 };
 

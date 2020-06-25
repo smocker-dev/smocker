@@ -1,7 +1,9 @@
 import {
+  LockFilled,
   PauseCircleFilled,
   PlayCircleFilled,
   PlusOutlined,
+  UnlockFilled,
 } from "@ant-design/icons";
 import {
   Alert,
@@ -195,11 +197,45 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   );
 };
 
-const Mock = ({ mock }: { mock: Mock }) => {
+const Mock = ({
+  mock,
+  canPoll,
+  loading,
+  lockMock,
+  unlockMock,
+}: {
+  mock: Mock;
+  canPoll: boolean;
+  loading: boolean;
+  lockMock: (mockID: string) => unknown;
+  unlockMock: (mockID: string) => unknown;
+}) => {
+  const onLockMock = () => lockMock(mock.state.id);
+  const onUnlockMock = () => unlockMock(mock.state.id);
   return (
     <div className="mock">
       <div className="meta">
         <div>
+          {mock.state.locked ? (
+            <Button
+              danger
+              type="link"
+              icon={<LockFilled />}
+              loading={loading}
+              title="Locked, click to unlock"
+              disabled={!canPoll}
+              onClick={onUnlockMock}
+            />
+          ) : (
+            <Button
+              type="link"
+              icon={<UnlockFilled />}
+              loading={loading}
+              title="Unlocked, click to lock"
+              disabled={!canPoll}
+              onClick={onLockMock}
+            />
+          )}
           <span className="label">ID:</span>
           <Link to={`/pages/mocks/${mock.state.id}`}>{mock.state.id}</Link>
         </div>
@@ -276,6 +312,8 @@ interface Props {
   error: Error | null;
   fetch: (sessionID: string) => unknown;
   addMocks: (mocks: string) => unknown;
+  lockMock: (mockID: string) => unknown;
+  unlockMock: (mockID: string) => unknown;
   setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
@@ -288,6 +326,8 @@ const Mocks = ({
   error,
   fetch,
   addMocks,
+  lockMock,
+  unlockMock,
   setDisplayNewMock,
 }: Props) => {
   const minPageSize = 10;
@@ -352,7 +392,14 @@ const Mocks = ({
       <>
         {pagination}
         {paginatedMocks.map((mock) => (
-          <Mock key={`mock-${mock.state.id}`} mock={mock} />
+          <Mock
+            key={`mock-${mock.state.id}`}
+            mock={mock}
+            canPoll={canPoll}
+            loading={loading}
+            lockMock={lockMock}
+            unlockMock={unlockMock}
+          />
         ))}
         {filteredMocks.length > minPageSize && pagination}
       </>
@@ -437,6 +484,9 @@ export default connect(
     fetch: (sessionID: string) =>
       dispatch(actions.fetchMocks.request(sessionID)),
     addMocks: (mocks: string) => dispatch(actions.addMocks.request({ mocks })),
+    lockMock: (mockID: string) => dispatch(actions.lockMocks.request([mockID])),
+    unlockMock: (mockID: string) =>
+      dispatch(actions.unlockMocks.request([mockID])),
     setDisplayNewMock: (display: boolean, defaultValue: string) =>
       dispatch(actions.openMockEditor([display, defaultValue])),
   })
