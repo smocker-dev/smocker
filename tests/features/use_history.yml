@@ -48,3 +48,19 @@ testcases:
           - result.bodyjson.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.request.path ShouldEqual /test2
           - result.bodyjson.bodyjson0.response.body.message ShouldEqual "request path /test2"
+
+      - type: http
+        method: GET
+        url: http://localhost:8081/history/summary
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 9
+          - result.bodyjson.bodyjson0.type ShouldEqual request
+          - result.bodyjson.bodyjson0.from ShouldEqual Client
+          - result.bodyjson.bodyjson0.to ShouldEqual Smocker
+          - result.bodyjson.bodyjson1.type ShouldEqual processing
+          - result.bodyjson.bodyjson1.from ShouldEqual Smocker
+          - result.bodyjson.bodyjson1.to ShouldEqual Smocker
+          - result.bodyjson.bodyjson2.type ShouldEqual response
+          - result.bodyjson.bodyjson2.from ShouldEqual Smocker
+          - result.bodyjson.bodyjson2.to ShouldEqual Client

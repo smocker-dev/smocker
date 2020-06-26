@@ -41,10 +41,7 @@ type mocks struct {
 	persistence      Persistence
 }
 
-func NewMocks(historyRetention int, persistence Persistence) Mocks {
-	return NewMocksWithSessions(types.Sessions{}, historyRetention, persistence)
-}
-func NewMocksWithSessions(sessions types.Sessions, historyRetention int, persistence Persistence) Mocks {
+func NewMocks(sessions types.Sessions, historyRetention int, persistence Persistence) Mocks {
 	s := &mocks{
 		sessions:         types.Sessions{},
 		historyRetention: historyRetention,

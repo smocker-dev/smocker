@@ -99,3 +99,34 @@ testcases:
           - result.bodyjson.bodyjson1.history.history0.response.body.message ShouldEqual "request path /test2"
           - result.bodyjson.bodyjson2.name ShouldEqual test3
           - result.bodyjson.bodyjson2.history.history0.response.body.message ShouldEqual "request path /test3"
+
+  - name: RetrieveSessionsSummary
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8081/sessions/summary
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson0.name ShouldEqual test
+          - result.bodyjson.bodyjson1.name ShouldEqual test2
+          - result.bodyjson.bodyjson2.name ShouldEqual test3
+        vars:
+          session_id:
+            from: result.bodyjson.bodyjson0.id
+      - type: http
+        method: PUT
+        url: http://localhost:8081/sessions
+        headers:
+          Content-Type: "application/json"
+        body: >
+          { "id": "{{.RetrieveSessionsSummary.session_id}}", "name": "test4"}
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8081/sessions/summary
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson0.name ShouldEqual test4
