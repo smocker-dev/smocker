@@ -49,7 +49,7 @@ func (a *Admin) GetMocks(c echo.Context) error {
 
 func (a *Admin) AddMocks(c echo.Context) error {
 	if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
-		a.mocksServices.Reset()
+		a.mocksServices.Reset(false)
 	}
 
 	sessionName := c.QueryParam("session")
@@ -245,7 +245,8 @@ func (a *Admin) ImportSession(c echo.Context) error {
 }
 
 func (a *Admin) Reset(c echo.Context) error {
-	a.mocksServices.Reset()
+	force, _ := strconv.ParseBool(c.QueryParam("force"))
+	a.mocksServices.Reset(force)
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Reset successful",
 	})

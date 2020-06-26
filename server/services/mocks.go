@@ -31,7 +31,7 @@ type Mocks interface {
 	GetSessionByID(id string) (*types.Session, error)
 	GetSessions() types.Sessions
 	SetSessions(sessions types.Sessions)
-	Reset()
+	Reset(force bool)
 }
 
 type mocks struct {
@@ -85,6 +85,7 @@ func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
 func (s *mocks) LockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
@@ -92,15 +93,15 @@ func (s *mocks) LockMocks(ids []string) types.Mocks {
 			}
 		}
 	}
-	mocks := make(types.Mocks, len(session.Mocks))
-	copy(mocks, session.Mocks)
-	s.mu.Unlock()
-	return mocks
+	newMocks := session.Mocks.Clone()
+	go s.persistence.StoreMocks(session.ID, newMocks)
+	return newMocks
 }
 
 func (s *mocks) UnlockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
@@ -108,10 +109,9 @@ func (s *mocks) UnlockMocks(ids []string) types.Mocks {
 			}
 		}
 	}
-	mocks := make(types.Mocks, len(session.Mocks))
-	copy(mocks, session.Mocks)
-	s.mu.Unlock()
-	return mocks
+	newMocks := session.Mocks.Clone()
+	go s.persistence.StoreMocks(session.ID, newMocks)
+	return newMocks
 }
 
 func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
@@ -294,7 +294,7 @@ func (s *mocks) SetSessions(sessions types.Sessions) {
 	go s.persistence.StoreSessions(s.sessions.Clone())
 }
 
-func (s *mocks) Reset() {
+func (s *mocks) Reset(force bool) {
 	session := s.GetLastSession()
 
 	s.mu.Lock()
@@ -307,7 +307,7 @@ func (s *mocks) Reset() {
 	s.sessions = types.Sessions{}
 	s.mu.Unlock()
 
-	if len(mocks) > 0 {
+	if len(mocks) > 0 && !force {
 		_ = s.GetLastSession()
 		s.mu.Lock()
 		s.sessions[len(s.sessions)-1].Mocks = mocks
