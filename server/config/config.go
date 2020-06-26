@@ -6,6 +6,7 @@ type Config struct {
 	MockServerListenPort int
 	StaticFiles          string
 	HistoryMaxRetention  int
+	PersistenceDirectory string
 	Build                Build
 }
 

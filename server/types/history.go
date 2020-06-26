@@ -15,14 +15,8 @@ import (
 
 type History []*Entry
 
-type Sessions []*Session
-
-type Session struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Date    time.Time `json:"date"`
-	History History   `json:"history"`
-	Mocks   Mocks     `json:"mocks"`
+func (h History) Clone() History {
+	return append(make(History, 0, len(h)), h...)
 }
 
 type Entry struct {
@@ -35,7 +29,7 @@ type Request struct {
 	Path        string      `json:"path"`
 	Method      string      `json:"method"`
 	Origin      string      `json:"origin"`
-	BodyString  string      `json:"-" yaml:"-"`
+	BodyString  string      `json:"body_string" yaml:"body_string"`
 	Body        interface{} `json:"body,omitempty" yaml:"body,omitempty"`
 	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`

@@ -15,7 +15,13 @@ import (
 
 const MockIDKey = "MockID"
 
+var MockNotFound = fmt.Errorf("mock not found")
+
 type Mocks []*Mock
+
+func (m Mocks) Clone() Mocks {
+	return append(make(Mocks, 0, len(m)), m...)
+}
 
 type Mock struct {
 	Request         MockRequest          `json:"request,omitempty" yaml:"request"`

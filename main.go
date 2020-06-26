@@ -7,7 +7,6 @@ import (
 	"github.com/Thiht/smocker/server/config"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
-	"github.com/teris-io/shortid"
 )
 
 var (
@@ -30,6 +29,7 @@ func parseConfig() (c config.Config) {
 	flag.IntVar(&c.MockServerListenPort, "mock-server-listen-port", 8080, "")
 	flag.StringVar(&c.StaticFiles, "static-files", ".", "The location of the static files to serve (index.html, etc.)")
 	flag.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "The maximum number of calls to keep in the history by sessions (0 = infinity)")
+	flag.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
 	flag.Parse()
 	return
 }
@@ -49,15 +49,8 @@ func setupLogger(logLevel string) {
 	log.SetLevel(level)
 }
 
-func setupShortID() {
-	const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
-	sid := shortid.MustNew(0, alphabet, 1)
-	shortid.SetDefault(sid)
-}
-
 func main() {
 	c := parseConfig()
 	setupLogger(c.LogLevel)
-	setupShortID()
 	server.Serve(c)
 }

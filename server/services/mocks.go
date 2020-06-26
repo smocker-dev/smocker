@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/types"
 	"github.com/teris-io/shortid"
 )
@@ -30,22 +29,26 @@ type Mocks interface {
 	UpdateSession(id, name string) (*types.Session, error)
 	GetLastSession() *types.Session
 	GetSessionByID(id string) (*types.Session, error)
-	GetSessionByName(name string) (*types.Session, error)
 	GetSessions() types.Sessions
 	SetSessions(sessions types.Sessions)
-	Reset()
+	Reset(force bool)
 }
 
 type mocks struct {
 	sessions         types.Sessions
-	historyRetention int
 	mu               sync.Mutex
+	historyRetention int
+	persistence      Persistence
 }
 
-func NewMocks(cfg config.Config) Mocks {
+func NewMocks(sessions types.Sessions, historyRetention int, persistence Persistence) Mocks {
 	s := &mocks{
 		sessions:         types.Sessions{},
-		historyRetention: cfg.HistoryMaxRetention,
+		historyRetention: historyRetention,
+		persistence:      persistence,
+	}
+	if sessions != nil {
+		s.sessions = sessions
 	}
 	return s
 }
@@ -58,8 +61,10 @@ func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, err
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	newMock.Init()
 	session.Mocks = append(types.Mocks{newMock}, session.Mocks...)
+	go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
 	return newMock, nil
 }
 
@@ -70,16 +75,14 @@ func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
 	}
 
 	s.mu.Lock()
-	mocks := make(types.Mocks, len(session.Mocks))
-	copy(mocks, session.Mocks)
-	s.mu.Unlock()
-
-	return mocks, nil
+	defer s.mu.Unlock()
+	return session.Mocks.Clone(), nil
 }
 
 func (s *mocks) LockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
@@ -87,15 +90,15 @@ func (s *mocks) LockMocks(ids []string) types.Mocks {
 			}
 		}
 	}
-	mocks := make(types.Mocks, len(session.Mocks))
-	copy(mocks, session.Mocks)
-	s.mu.Unlock()
-	return mocks
+	newMocks := session.Mocks.Clone()
+	go s.persistence.StoreMocks(session.ID, newMocks)
+	return newMocks
 }
 
 func (s *mocks) UnlockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
@@ -103,10 +106,9 @@ func (s *mocks) UnlockMocks(ids []string) types.Mocks {
 			}
 		}
 	}
-	mocks := make(types.Mocks, len(session.Mocks))
-	copy(mocks, session.Mocks)
-	s.mu.Unlock()
-	return mocks
+	newMocks := session.Mocks.Clone()
+	go s.persistence.StoreMocks(session.ID, newMocks)
+	return newMocks
 }
 
 func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
@@ -123,7 +125,7 @@ func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
 			return mock, nil
 		}
 	}
-	return nil, MockNotFound
+	return nil, types.MockNotFound
 }
 
 func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error) {
@@ -140,6 +142,7 @@ func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.En
 	}
 
 	session.History = append(session.History, entry)
+	go s.persistence.StoreHistory(session.ID, session.History.Clone())
 	return entry, nil
 }
 
@@ -151,8 +154,7 @@ func (s *mocks) GetHistory(sessionID string) (types.History, error) {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	return session.History, nil
+	return session.History.Clone(), nil
 }
 
 func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, error) {
@@ -214,6 +216,8 @@ func (s *mocks) NewSession(name string) *types.Session {
 		Mocks:   mocks,
 	}
 	s.sessions = append(s.sessions, session)
+
+	go s.persistence.StoreSession(s.sessions.Summarize(), session)
 	return session
 }
 
@@ -227,6 +231,7 @@ func (s *mocks) UpdateSession(sessionID, name string) (*types.Session, error) {
 	defer s.mu.Unlock()
 
 	session.Name = name
+	go s.persistence.StoreSession(s.sessions.Summarize(), session)
 	return session, nil
 }
 
@@ -238,12 +243,12 @@ func (s *mocks) GetLastSession() *types.Session {
 		s.mu.Lock()
 	}
 	defer s.mu.Unlock()
-	return s.sessions[len(s.sessions)-1]
+	return s.sessions[len(s.sessions)-1].Clone()
 }
 
 func (s *mocks) GetSessionByID(id string) (*types.Session, error) {
 	if id == "" {
-		return nil, SessionNotFound
+		return nil, types.SessionNotFound
 	}
 
 	s.mu.Lock()
@@ -254,7 +259,7 @@ func (s *mocks) GetSessionByID(id string) (*types.Session, error) {
 			return session, nil
 		}
 	}
-	return nil, SessionNotFound
+	return nil, types.SessionNotFound
 }
 
 func (s *mocks) GetSessionByName(name string) (*types.Session, error) {
@@ -262,7 +267,7 @@ func (s *mocks) GetSessionByName(name string) (*types.Session, error) {
 	defer s.mu.Unlock()
 
 	if name == "" {
-		return nil, SessionNotFound
+		return nil, types.SessionNotFound
 	}
 
 	for _, session := range s.sessions {
@@ -270,22 +275,23 @@ func (s *mocks) GetSessionByName(name string) (*types.Session, error) {
 			return session, nil
 		}
 	}
-	return nil, SessionNotFound
+	return nil, types.SessionNotFound
 }
 
 func (s *mocks) GetSessions() types.Sessions {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.sessions
+	return s.sessions.Clone()
 }
 
 func (s *mocks) SetSessions(sessions types.Sessions) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.sessions = sessions
+	go s.persistence.StoreSessions(s.sessions.Clone())
 }
 
-func (s *mocks) Reset() {
+func (s *mocks) Reset(force bool) {
 	session := s.GetLastSession()
 
 	s.mu.Lock()
@@ -298,10 +304,12 @@ func (s *mocks) Reset() {
 	s.sessions = types.Sessions{}
 	s.mu.Unlock()
 
-	if len(mocks) > 0 {
-		session = s.GetLastSession()
+	if len(mocks) > 0 && !force {
+		_ = s.GetLastSession()
 		s.mu.Lock()
-		session.Mocks = mocks
+		s.sessions[len(s.sessions)-1].Mocks = mocks
 		s.mu.Unlock()
 	}
+
+	go s.persistence.StoreSessions(s.sessions.Clone())
 }
