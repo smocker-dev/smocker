@@ -4,6 +4,11 @@ os: linux
 go:
   - 1.14.x
 
+cache:
+  yarn: true
+  directories:
+    - $GOPATH/pkg/mod
+
 services:
   - docker
 
