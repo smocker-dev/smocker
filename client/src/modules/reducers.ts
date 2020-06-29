@@ -241,10 +241,19 @@ const mockList = (state: Mocks = [], action: Actions) => {
     case getType(reset.success): {
       return [];
     }
-    case getType(lockMocks.success):
-    case getType(unlockMocks.success):
     case getType(fetchMocks.success): {
       return action.payload;
+    }
+    case getType(lockMocks.success):
+    case getType(unlockMocks.success): {
+      return state.map((mock) => {
+        for (const modifiedMock of action.payload) {
+          if (mock.state.id === modifiedMock.state.id) {
+            return modifiedMock;
+          }
+        }
+        return mock;
+      });
     }
     default:
       return state;

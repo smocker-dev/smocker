@@ -7,6 +7,12 @@ Smocker's API is started on the port `8081` by default. This page lists all the 
 Clear the mocks and the history of calls.
 
 - **Endpoint**: `POST /reset`
+- **Query Parameters**:
+
+| Name    | Values          | Description                                                                 |
+| ------- | --------------- | --------------------------------------------------------------------------- |
+| `force` | `true`, `false` | _Optional_ (defaults to `false`), used to remove even locked mocks on reset |
+
 - **Sample Response**:
 
 ```json
@@ -143,6 +149,7 @@ Retrieves the mocks declared into Smocker for a session (by default the last one
     "state": {
       "id": "ffa3cd8d-779b-4814-9cb0-13b4717d987f",
       "times_count": 1,
+      "locked": false,
       "creation_date": "2020-02-01T03:47:48.911211+01:00"
     }
   }
@@ -152,6 +159,148 @@ Retrieves the mocks declared into Smocker for a session (by default the last one
 ::: tip Note
 The mocks will be ordered from highest to lowest priority.
 :::
+
+## Lock Mocks
+
+Lock a list of mocks in order to make them reset proof.
+
+- **Endpoint**: `POST /mocks/lock`
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `400 Bad Request`, if the payload cannot be parsed accordingly to the declared `Accept`,
+  - `400 Bad Request`, if the payload is not a mock ID list,
+  - `500 Internal Server Error`, if an error occurs when locking the mocks.
+
+- **Sample Body**:
+
+```json
+["ffa3cd8d-779b-4814-9cb0-13b4717d987f"]
+```
+
+- **Sample Response**:
+
+```json
+[
+  {
+    "request": {
+      "method": "POST",
+      "path": "/hello/world"
+    },
+    "response": {
+      "status": 500,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"message\": \"error\"}"
+    },
+    "context": {},
+    "state": {
+      "id": "b26ec829-1989-4c98-bbf7-f64b70c1a583",
+      "times_count": 2,
+      "creation_date": "2020-02-01T03:47:48.911213+01:00"
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/hello/world"
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"message\": \"Hello, World!\"}"
+    },
+    "context": {
+      "times": 1
+    },
+    "state": {
+      "id": "ffa3cd8d-779b-4814-9cb0-13b4717d987f",
+      "times_count": 1,
+      "locked": true,
+      "creation_date": "2020-02-01T03:47:48.911211+01:00"
+    }
+  }
+]
+```
+
+## Unlock Mocks
+
+Unlock a list of mocks in order to make them resetable.
+
+- **Endpoint**: `POST /mocks/unlock`
+- **Headers**:
+
+| Name     | Values                                   | Description                                                                           |
+| -------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `Accept` | `application/json`, `application/x-yaml` | _Optional_ (defaults to `application/json`), the preferred mime type of the response. |
+
+- **Errors**:
+
+  - `400 Bad Request`, if the payload cannot be parsed accordingly to the declared `Accept`,
+  - `400 Bad Request`, if the payload is not a mock ID list,
+  - `500 Internal Server Error`, if an error occurs when locking the mocks.
+
+- **Sample Body**:
+
+```json
+["ffa3cd8d-779b-4814-9cb0-13b4717d987f"]
+```
+
+- **Sample Response**:
+
+```json
+[
+  {
+    "request": {
+      "method": "POST",
+      "path": "/hello/world"
+    },
+    "response": {
+      "status": 500,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"message\": \"error\"}"
+    },
+    "context": {},
+    "state": {
+      "id": "b26ec829-1989-4c98-bbf7-f64b70c1a583",
+      "times_count": 2,
+      "creation_date": "2020-02-01T03:47:48.911213+01:00"
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/hello/world"
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"message\": \"Hello, World!\"}"
+    },
+    "context": {
+      "times": 1
+    },
+    "state": {
+      "id": "ffa3cd8d-779b-4814-9cb0-13b4717d987f",
+      "times_count": 1,
+      "locked": false,
+      "creation_date": "2020-02-01T03:47:48.911211+01:00"
+    }
+  }
+]
+```
 
 ## Get History
 
