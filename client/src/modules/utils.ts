@@ -85,11 +85,14 @@ const headersToClean = [
   "Accept-Encoding",
   "Accept-Language",
   "Connection",
+  "Content-Length",
+  "Date",
   "Dnt",
   "If-None-Match",
   "Sec-Fetch-Dest",
   "Sec-Fetch-Mode",
   "Sec-Fetch-Site",
+  "Te",
   "Upgrade-Insecure-Requests",
   "User-Agent",
 ];
@@ -104,6 +107,7 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   if (historyEntry.request.query_params) {
     request.query_params = simplifyMultimap(historyEntry.request.query_params);
   }
+  request = omit(request, "body_string") as EntryRequest;
   request = omit(request, "date") as EntryRequest;
   request = omit(request, "origin") as EntryRequest;
   request = pickBy(request) as EntryRequest; // remove nulls
