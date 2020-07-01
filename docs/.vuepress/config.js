@@ -96,6 +96,7 @@ module.exports = {
         collapsable: false,
         sidebarDepth: 1,
         children: [
+          "/technical-documentation/arguments",
           "/technical-documentation/api",
           "/technical-documentation/mock-definition",
           "/technical-documentation/errors",

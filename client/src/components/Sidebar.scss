@@ -53,6 +53,9 @@
     }
     .menu-button {
       padding: 0 24px;
+      .ant-btn > .anticon + span {
+        margin-left: 0;
+      }
     }
     .reset-button {
       width: 100%;

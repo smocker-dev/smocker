@@ -83,32 +83,34 @@ func (s *mocks) LockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	modifiedMocks := make(types.Mocks, 0, len(session.Mocks))
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
 				mock.State.Locked = true
+				modifiedMocks = append(modifiedMocks, mock)
 			}
 		}
 	}
-	newMocks := session.Mocks.Clone()
-	go s.persistence.StoreMocks(session.ID, newMocks)
-	return newMocks
+	go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
+	return modifiedMocks
 }
 
 func (s *mocks) UnlockMocks(ids []string) types.Mocks {
 	session := s.GetLastSession()
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	modifiedMocks := make(types.Mocks, 0, len(session.Mocks))
 	for _, id := range ids {
 		for _, mock := range session.Mocks {
 			if mock.State.ID == id {
 				mock.State.Locked = false
+				modifiedMocks = append(modifiedMocks, mock)
 			}
 		}
 	}
-	newMocks := session.Mocks.Clone()
-	go s.persistence.StoreMocks(session.ID, newMocks)
-	return newMocks
+	go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
+	return modifiedMocks
 }
 
 func (s *mocks) GetMockByID(sessionID, id string) (*types.Mock, error) {
