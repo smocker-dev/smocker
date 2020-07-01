@@ -2,7 +2,7 @@
 
 Smoker can be parameterized through several arguments.
 
-The list of existing Smocker errors is:
+The list of existing Smocker parameters is:
 
 | Flag                      | Environment Variable              | Default  | Description                                                                                      |
 | ------------------------- | --------------------------------- | :------: | ------------------------------------------------------------------------------------------------ |
