@@ -128,6 +128,7 @@ type Reservation struct {
 }
 ```
 </td>
+</tr>
 </tbody>
 </table>
 
