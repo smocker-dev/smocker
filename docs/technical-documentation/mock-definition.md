@@ -324,4 +324,4 @@ Host header is overriden using destination host value by default. With `keep_hos
 destination host have same `Host` HTTP header as incoming request.
 
 Headers defined in the proxy mock definition are injected in the request sent to the destination host. If the header is already
-present in the incoming request, its value is overwritten.
+present in the incoming request, its value will be overwritten.
