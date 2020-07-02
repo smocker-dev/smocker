@@ -258,3 +258,13 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.headers.host ShouldEqual localhost
+      - type: http
+        method: GET
+        url: http://localhost:8080/headers
+        no_follow_redirect: true
+        headers:
+          CuStOm: ShouldBeOverwritten
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.headers.custom ShouldEqual foobar
+          - result.bodyjson.headers.multi ShouldEqual foo,baz

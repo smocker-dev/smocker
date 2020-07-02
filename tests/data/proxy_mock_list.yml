@@ -30,3 +30,12 @@
   proxy:
     host: https://httpbin.org
     keep_host: true
+- request:
+    path: /headers
+  proxy:
+    host: https://httpbin.org
+    headers:
+      custom: "foobar"
+      multi:
+        - "foo"
+        - "baz"

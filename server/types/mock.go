@@ -148,10 +148,11 @@ type DynamicMockResponse struct {
 }
 
 type MockProxy struct {
-	Host           string        `json:"host" yaml:"host"`
-	Delay          time.Duration `json:"delay,omitempty" yaml:"delay,omitempty"`
-	FollowRedirect bool          `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
-	KeepHost       bool          `json:"keep_host,omitempty" yaml:"keep_host,omitempty"`
+	Host           string         `json:"host" yaml:"host"`
+	Delay          time.Duration  `json:"delay,omitempty" yaml:"delay,omitempty"`
+	FollowRedirect bool           `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
+	KeepHost       bool           `json:"keep_host,omitempty" yaml:"keep_host,omitempty"`
+	Headers        MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 func noFollow(req *http.Request, via []*http.Request) error {
@@ -163,9 +164,15 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	proxyReq.Header = req.Headers
+	proxyReq.Header = req.Headers.Clone()
 	if mp.KeepHost {
 		proxyReq.Host = req.Headers.Get("Host")
+	}
+	for key, values := range mp.Headers {
+		proxyReq.Header.Del(key)
+		for _, value := range values {
+			proxyReq.Header.Add(key, value)
+		}
 	}
 	query := url.Values{}
 	for key, values := range req.QueryParams {
