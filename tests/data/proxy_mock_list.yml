@@ -39,3 +39,19 @@
       multi:
         - "foo"
         - "baz"
+- request:
+    method: GET
+    headers:
+      X-Filter: badssl
+      X-Value: insecure
+  proxy:
+    host: https://self-signed.badssl.com
+    skip_verify_tls: true
+- request:
+    method: GET
+    headers:
+      X-Filter: badssl
+      X-Value: secure
+  proxy:
+    host: https://self-signed.badssl.com
+    skip_verify_tls: false
