@@ -313,6 +313,8 @@ proxy:
   host: # destination host
   follow_redirect: # optional boolean
   keep_host: # optional boolean
+  headers: # optional map of string lists
+    Forwarded: "for=unknown;host=www.example.com;proto=http"
 ```
 
 By default, redirect responses from the destination host are returned as any other response. Setting `follow_redirect` to `true`
@@ -320,3 +322,6 @@ makes Smocker follow any redirect response before responding.
 
 Host header is overriden using destination host value by default. With `keep_host` set to `true`, request sent to the 
 destination host have same `Host` HTTP header as incoming request.
+
+Headers defined in the proxy mock definition are injected in the request sent to the destination host. If the header is already
+present in the incoming request, its value is overwritten.

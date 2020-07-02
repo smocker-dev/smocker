@@ -108,22 +108,7 @@
           "default": 200
         },
         "delay": { "type": "string" },
-        "headers": {
-          "oneOf": [
-            {
-              "type": "object",
-              "additionalProperties": {
-                "oneOf": [
-                  { "type": "string" },
-                  {
-                    "type": "array",
-                    "items": { "type": "string" }
-                  }
-                ]
-              }
-            }
-          ]
-        }
+        "headers": { "$ref": "#/definitions/headers" }
       }
     },
     "dynamic_response": {
@@ -142,7 +127,8 @@
         "host": { "type": "string" },
         "delay": { "type": "string" },
         "follow_redirect": { "type": "boolean" },
-        "keep_host": { "type": "boolean" }
+        "keep_host": { "type": "boolean" },
+        "headers": { "$ref": "#/definitions/headers" }
       }
     },
     "string_matcher": {
@@ -171,6 +157,18 @@
         "value": { "type": "string" }
       },
       "required": ["matcher", "value"]
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        ]
+      }
     }
   }
 }
