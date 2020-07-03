@@ -187,9 +187,10 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		client.CheckRedirect = noFollow
 	}
 	if mp.SkipVerifyTLS {
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+		// we clone to avoid overwriting the default transport configuration
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		client.Transport = customTransport
 	}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
