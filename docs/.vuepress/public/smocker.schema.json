@@ -127,6 +127,7 @@
         "host": { "type": "string" },
         "delay": { "type": "string" },
         "follow_redirect": { "type": "boolean" },
+        "skip_verify_tls": { "type": "boolean" },
         "keep_host": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/headers" }
       }

@@ -268,3 +268,19 @@ testcases:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.headers.custom ShouldEqual foobar
           - result.bodyjson.headers.multi ShouldEqual foo,baz
+      - type: http
+        method: GET
+        url: http://localhost:8080/
+        headers:
+          X-Filter: badssl
+          X-Value: insecure
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: GET
+        url: http://localhost:8080/
+        headers:
+          X-Filter: badssl
+          X-Value: secure
+        assertions:
+          - result.statuscode ShouldEqual 602

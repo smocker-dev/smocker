@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -151,6 +152,7 @@ type MockProxy struct {
 	Host           string         `json:"host" yaml:"host"`
 	Delay          time.Duration  `json:"delay,omitempty" yaml:"delay,omitempty"`
 	FollowRedirect bool           `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
+	SkipVerifyTLS  bool           `json:"skip_verify_tls,omitempty" yaml:"skip_verify_tls,omitempty"`
 	KeepHost       bool           `json:"keep_host,omitempty" yaml:"keep_host,omitempty"`
 	Headers        MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
@@ -183,6 +185,12 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 	client := &http.Client{}
 	if !mp.FollowRedirect {
 		client.CheckRedirect = noFollow
+	}
+	if mp.SkipVerifyTLS {
+		// we clone to avoid overwriting the default transport configuration
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		client.Transport = customTransport
 	}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
