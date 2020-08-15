@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -115,7 +116,12 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	}
 
 	// Delay
-	time.Sleep(response.Delay)
+	if response.RandomDelay.MaxMs > response.RandomDelay.MinMs {
+		delay := rand.Intn(response.RandomDelay.MaxMs-response.RandomDelay.MinMs) + response.RandomDelay.MinMs
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+	} else {
+		time.Sleep(response.Delay)
+	}
 
 	// Status
 	if response.Status == 0 {

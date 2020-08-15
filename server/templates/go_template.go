@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/Thiht/smocker/server/types"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"

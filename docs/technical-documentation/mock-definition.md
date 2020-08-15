@@ -212,6 +212,9 @@ context:
 ```yaml
 response:
   status: 200 # optional number (HTTP status code), defaults to 200
+  random_delay: # optional min and max values in milliseconds to simulate a random delay on each call
+    min_ms: 0
+    max_ms: 0
   delay: 10s # optional duration (https://golang.org/pkg/time/#ParseDuration), defaults to 0
   headers: # optional map of string lists
     Content-Type: application/json
@@ -289,7 +292,11 @@ dynamic_response:
       body = {
         message = "request path: "..request.path
       },
-      delay = math.random(10),
+      random_delay = {
+        min_ms = 0,
+        max_ms = math.random(10)
+      },
+      delay = 0,
       headers = {
         ["Content-Type"] = {"application/json"}
       }

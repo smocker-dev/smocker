@@ -107,6 +107,7 @@
           "type": "number",
           "default": 200
         },
+        "random_delay": { "$ref": "#/definitions/random_delay" },
         "delay": { "type": "string" },
         "headers": { "$ref": "#/definitions/headers" }
       }
@@ -125,6 +126,7 @@
       "type": "object",
       "properties": {
         "host": { "type": "string" },
+        "random_delay": { "$ref": "#/definitions/random_delay" },
         "delay": { "type": "string" },
         "follow_redirect": { "type": "boolean" },
         "skip_verify_tls": { "type": "boolean" },
@@ -169,6 +171,13 @@
             "items": { "type": "string" }
           }
         ]
+      }
+    },
+    "random_delay": {
+      "type": "object",
+      "properties": {
+        "min_ms": { "type": "number" },
+        "max_ms": { "type": "number" }
       }
     }
   }
