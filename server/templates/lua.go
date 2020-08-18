@@ -2,6 +2,7 @@ package templates
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Thiht/smocker/server/types"
 	json "github.com/layeh/gopher-json"
@@ -64,6 +65,13 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 		luaResult.RawSetString("body", lua.LString(string(b)))
 	}
 
+	delay := &lua.LTable{}
+	if err := parseLuaDelay(luaResult, "delay", delay, "value"); err != nil {
+		log.WithError(err).Error("Invalid delay from lua script")
+		return nil, fmt.Errorf("invalid delay from Lua script: %w", err)
+	}
+	luaResult.RawSetString("delay", delay)
+
 	var result types.MockResponse
 	if err := gluamapper.Map(luaResult, &result); err != nil {
 		log.WithError(err).Error("Invalid result from Lua script")
@@ -71,4 +79,34 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 	}
 
 	return &result, nil
+}
+
+func parseLuaDelay(value *lua.LTable, valueKey string, res *lua.LTable, resKey string) error {
+	d := value.RawGetString(valueKey)
+	switch d.Type() {
+	case lua.LTNil:
+		return nil
+	case lua.LTNumber:
+		res.RawSetString(resKey, d)
+	case lua.LTString:
+		delay, err := time.ParseDuration(d.String())
+		if err != nil {
+			return err
+		}
+		res.RawSetString(resKey, lua.LNumber(float64(delay)))
+	case lua.LTTable:
+		table := d.(*lua.LTable)
+		if err := parseLuaDelay(table, "value", res, "value"); err != nil {
+			return err
+		}
+		if err := parseLuaDelay(table, "min", res, "min"); err != nil {
+			return err
+		}
+		if err := parseLuaDelay(table, "max", res, "max"); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid lua type for key %q: %s", valueKey, d.Type().String())
+	}
+	return nil
 }

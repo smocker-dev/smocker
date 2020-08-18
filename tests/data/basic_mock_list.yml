@@ -13,6 +13,7 @@
       Content-Type: application/json
     body: >
       {"message": "test2"}
+    delay: 10ms
 - request:
     path: /test
     method: DELETE
@@ -21,6 +22,9 @@
       Content-Type: application/json
     body: >
       {"message": "test3"}
+    delay:
+      min: 0ms
+      max: 10ms
 - request:
     path: /test
     query_params:

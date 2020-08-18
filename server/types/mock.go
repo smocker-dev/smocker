@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -137,11 +138,10 @@ func (mr MockRequest) Match(req Request) bool {
 }
 
 type MockResponse struct {
-	Body        string         `json:"body,omitempty" yaml:"body,omitempty"`
-	Status      int            `json:"status" yaml:"status"`
-	Delay       time.Duration  `json:"delay,omitempty" yaml:"delay,omitempty"`
-	RandomDelay RandomDelay    `json:"random_delay,omitempty" yaml:"random_delay,omitempty"`
-	Headers     MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Body    string         `json:"body,omitempty" yaml:"body,omitempty"`
+	Status  int            `json:"status" yaml:"status"`
+	Delay   Delay          `json:"delay,omitempty" yaml:"delay,omitempty"`
+	Headers MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
 type DynamicMockResponse struct {
@@ -151,17 +151,63 @@ type DynamicMockResponse struct {
 
 type MockProxy struct {
 	Host           string         `json:"host" yaml:"host"`
-	Delay          time.Duration  `json:"delay,omitempty" yaml:"delay,omitempty"`
-	RandomDelay    RandomDelay    `json:"random_delay,omitempty" yaml:"random_delay,omitempty"`
+	Delay          Delay          `json:"delay,omitempty" yaml:"delay,omitempty"`
 	FollowRedirect bool           `json:"follow_redirect,omitempty" yaml:"follow_redirect,omitempty"`
 	SkipVerifyTLS  bool           `json:"skip_verify_tls,omitempty" yaml:"skip_verify_tls,omitempty"`
 	KeepHost       bool           `json:"keep_host,omitempty" yaml:"keep_host,omitempty"`
 	Headers        MapStringSlice `json:"headers,omitempty" yaml:"headers,omitempty"`
 }
 
-type RandomDelay struct {
-	MinMs int `json:"min_ms,omitempty" yaml:"min_ms,omitempty"`
-	MaxMs int `json:"max_ms,omitempty" yaml:"max_ms,omitempty"`
+type Delay struct {
+	Value time.Duration `json:"value,omitempty" yaml:"value,omitempty"`
+	Min   time.Duration `json:"min,omitempty" yaml:"min,omitempty"`
+	Max   time.Duration `json:"max,omitempty" yaml:"max,omitempty"`
+}
+
+func (d *Delay) UnmarshalJSON(data []byte) error {
+	var s time.Duration
+	if err := json.Unmarshal(data, &s); err == nil {
+		d.Value = s
+		return nil
+	}
+
+	var res struct {
+		Value time.Duration `json:"value"`
+		Min   time.Duration `json:"min"`
+		Max   time.Duration `json:"max"`
+	}
+
+	if err := json.Unmarshal(data, &res); err != nil {
+		return err
+	}
+
+	d.Value = res.Value
+	d.Min = res.Min
+	d.Max = res.Max
+	return nil
+}
+
+func (d *Delay) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s time.Duration
+	if err := unmarshal(&s); err == nil {
+		d.Value = s
+		return nil
+	}
+
+	var res struct {
+		Value time.Duration `yaml:"value,flow"`
+		Min   time.Duration `yaml:"min,flow"`
+		Max   time.Duration `yaml:"max,flow"`
+	}
+
+	if err := unmarshal(&res); err != nil {
+		return err
+	}
+
+	d.Value = res.Value
+	d.Min = res.Min
+	d.Max = res.Max
+	return nil
 }
 
 func noFollow(req *http.Request, via []*http.Request) error {
@@ -213,11 +259,10 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		respHeader[key] = values
 	}
 	return &MockResponse{
-		Status:      resp.StatusCode,
-		Body:        string(body),
-		Headers:     respHeader,
-		Delay:       mp.Delay,
-		RandomDelay: mp.RandomDelay,
+		Status:  resp.StatusCode,
+		Body:    string(body),
+		Headers: respHeader,
+		Delay:   mp.Delay,
 	}, nil
 }
 

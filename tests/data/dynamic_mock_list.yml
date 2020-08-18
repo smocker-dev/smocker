@@ -8,6 +8,10 @@
         body = '{"message":"request path '..request.path..'"}',
         headers = {
           ["Content-Type"] = "application/json"
+        },
+        delay = {
+          min = "0",
+          max = "10ms"
         }
       }
 
@@ -23,7 +27,8 @@
         },
         headers = {
           ["Content-Type"] = "application/json"
-        }
+        },
+        delay = "10ms"
       }
 
 - # Go Template Yaml mock by default on go_template engine
@@ -62,7 +67,8 @@
         "body": "{\"message\": \"request path {{.Request.Path}}\"}",
         "headers": {
           "Content-Type": ["application/json"]
-        }
+        },
+        "delay": "1ms"
       }
 
 - # Go Template Json mock with body as json
@@ -77,5 +83,9 @@
         },
         "headers": {
           "Content-Type": ["application/json"]
+        },
+        "delay": {
+          "min": "0",
+          "max": "10ms"
         }
       }
