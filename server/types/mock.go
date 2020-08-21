@@ -159,54 +159,57 @@ type MockProxy struct {
 }
 
 type Delay struct {
-	Value time.Duration `json:"value,omitempty" yaml:"value,omitempty"`
-	Min   time.Duration `json:"min,omitempty" yaml:"min,omitempty"`
-	Max   time.Duration `json:"max,omitempty" yaml:"max,omitempty"`
+	Min time.Duration `json:"min,omitempty" yaml:"min,omitempty"`
+	Max time.Duration `json:"max,omitempty" yaml:"max,omitempty"`
 }
 
 func (d *Delay) UnmarshalJSON(data []byte) error {
 	var s time.Duration
 	if err := json.Unmarshal(data, &s); err == nil {
-		d.Value = s
-		return nil
+		d.Min = s
+		d.Max = s
+		return d.validate()
 	}
 
 	var res struct {
-		Value time.Duration `json:"value"`
-		Min   time.Duration `json:"min"`
-		Max   time.Duration `json:"max"`
+		Min time.Duration `json:"min"`
+		Max time.Duration `json:"max"`
 	}
 
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
-
-	d.Value = res.Value
 	d.Min = res.Min
 	d.Max = res.Max
-	return nil
+	return d.validate()
 }
 
 func (d *Delay) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var s time.Duration
 	if err := unmarshal(&s); err == nil {
-		d.Value = s
-		return nil
+		d.Min = s
+		d.Max = s
+		return d.validate()
 	}
 
 	var res struct {
-		Value time.Duration `yaml:"value,flow"`
-		Min   time.Duration `yaml:"min,flow"`
-		Max   time.Duration `yaml:"max,flow"`
+		Min time.Duration `yaml:"min,flow"`
+		Max time.Duration `yaml:"max,flow"`
 	}
 
 	if err := unmarshal(&res); err != nil {
 		return err
 	}
 
-	d.Value = res.Value
 	d.Min = res.Min
 	d.Max = res.Max
+	return d.validate()
+}
+
+func (d *Delay) validate() error {
+	if d.Min < 0 || d.Max < d.Min {
+		return fmt.Errorf("invalid delay range: min => %v, max => %v", d.Min, d.Max)
+	}
 	return nil
 }
 

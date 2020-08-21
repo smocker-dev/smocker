@@ -116,13 +116,13 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	}
 
 	// Delay
-	if response.Delay.Min >= 0 && response.Delay.Max > response.Delay.Min {
+	if response.Delay.Min != response.Delay.Max {
 		rand.Seed(time.Now().Unix())
 		var n int64 = int64(response.Delay.Max - response.Delay.Min)
 		delay := rand.Int63n(n) + int64(response.Delay.Min)
 		time.Sleep(time.Duration(delay))
-	} else if response.Delay.Value > 0 {
-		time.Sleep(response.Delay.Value)
+	} else {
+		time.Sleep(response.Delay.Min)
 	}
 
 	// Status
