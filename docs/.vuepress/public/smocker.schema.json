@@ -2,20 +2,32 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Smocker",
   "oneOf": [
-    { "$ref": "#/definitions/mock" },
+    {
+      "$ref": "#/definitions/mock"
+    },
     {
       "type": "array",
-      "items": { "$ref": "#/definitions/mock" }
+      "items": {
+        "$ref": "#/definitions/mock"
+      }
     }
   ],
   "definitions": {
     "mock": {
       "type": "object",
       "properties": {
-        "request": { "$ref": "#/definitions/request" },
-        "response": { "$ref": "#/definitions/response" },
-        "dynamic_response": { "$ref": "#/definitions/dynamic_response" },
-        "proxy": { "$ref": "#/definitions/proxy" }
+        "request": {
+          "$ref": "#/definitions/request"
+        },
+        "response": {
+          "$ref": "#/definitions/response"
+        },
+        "dynamic_response": {
+          "$ref": "#/definitions/dynamic_response"
+        },
+        "proxy": {
+          "$ref": "#/definitions/proxy"
+        }
       },
       "required": ["request"]
     },
@@ -24,8 +36,12 @@
       "properties": {
         "path": {
           "oneOf": [
-            { "type": "string" },
-            { "$ref": "#/definitions/string_matcher" }
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/string_matcher"
+            }
           ]
         },
         "method": {
@@ -44,13 +60,19 @@
                 "TRACE"
               ]
             },
-            { "$ref": "#/definitions/string_matcher" }
+            {
+              "$ref": "#/definitions/string_matcher"
+            }
           ]
         },
         "body": {
           "oneOf": [
-            { "type": "string" },
-            { "$ref": "#/definitions/string_matcher" }
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/string_matcher"
+            }
           ]
         },
         "query_params": {
@@ -59,20 +81,28 @@
               "type": "object",
               "additionalProperties": {
                 "oneOf": [
-                  { "type": "string" },
+                  {
+                    "type": "string"
+                  },
                   {
                     "type": "array",
                     "items": {
                       "oneOf": [
-                        { "type": "string" },
-                        { "$ref": "#/definitions/string_matcher" }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/string_matcher"
+                        }
                       ]
                     }
                   }
                 ]
               }
             },
-            { "$ref": "#/definitions/string_matcher" }
+            {
+              "$ref": "#/definitions/string_matcher"
+            }
           ]
         },
         "headers": {
@@ -81,20 +111,28 @@
               "type": "object",
               "additionalProperties": {
                 "oneOf": [
-                  { "type": "string" },
+                  {
+                    "type": "string"
+                  },
                   {
                     "type": "array",
                     "items": {
                       "oneOf": [
-                        { "type": "string" },
-                        { "$ref": "#/definitions/string_matcher" }
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/string_matcher"
+                        }
                       ]
                     }
                   }
                 ]
               }
             },
-            { "$ref": "#/definitions/string_matcher" }
+            {
+              "$ref": "#/definitions/string_matcher"
+            }
           ]
         }
       }
@@ -102,13 +140,26 @@
     "response": {
       "type": "object",
       "properties": {
-        "body": { "type": "string" },
+        "body": {
+          "type": "string"
+        },
         "status": {
           "type": "number",
           "default": 200
         },
-        "delay": { "type": "string" },
-        "headers": { "$ref": "#/definitions/headers" }
+        "delay": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/delay"
+            }
+          ]
+        },
+        "headers": {
+          "$ref": "#/definitions/headers"
+        }
       }
     },
     "dynamic_response": {
@@ -118,18 +169,39 @@
           "type": "string",
           "enum": ["go_template", "go_template_yaml", "go_template_json", "lua"]
         },
-        "script": { "type": "string" }
+        "script": {
+          "type": "string"
+        }
       }
     },
     "proxy": {
       "type": "object",
       "properties": {
-        "host": { "type": "string" },
-        "delay": { "type": "string" },
-        "follow_redirect": { "type": "boolean" },
-        "skip_verify_tls": { "type": "boolean" },
-        "keep_host": { "type": "boolean" },
-        "headers": { "$ref": "#/definitions/headers" }
+        "host": {
+          "type": "string"
+        },
+        "delay": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/delay"
+            }
+          ]
+        },
+        "follow_redirect": {
+          "type": "boolean"
+        },
+        "skip_verify_tls": {
+          "type": "boolean"
+        },
+        "keep_host": {
+          "type": "boolean"
+        },
+        "headers": {
+          "$ref": "#/definitions/headers"
+        }
       }
     },
     "string_matcher": {
@@ -155,7 +227,9 @@
             "ShouldNotMatch"
           ]
         },
-        "value": { "type": "string" }
+        "value": {
+          "type": "string"
+        }
       },
       "required": ["matcher", "value"]
     },
@@ -163,12 +237,30 @@
       "type": "object",
       "additionalProperties": {
         "oneOf": [
-          { "type": "string" },
+          {
+            "type": "string"
+          },
           {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           }
         ]
+      }
+    },
+    "delay": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "min": {
+          "type": "string"
+        },
+        "max": {
+          "type": "string"
+        }
       }
     }
   }
