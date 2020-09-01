@@ -45,7 +45,6 @@
     "jest": "^26.1.0",
     "lint-staged": ">=10.2.11",
     "parcel": "^1.12.4",
-    "parcel-plugin-bundle-visualiser": "^1.2.0",
     "prettier": "2.0.5",
     "react-hot-loader": "^4.12.15",
     "redux-devtools-extension": "^2.13.8",
@@ -87,7 +86,6 @@
     "puppeteer": "^4.0.1"
   },
   "resolutions": {
-    "watchpack": "1.6.1",
     "@types/react": "16.9.41"
   },
   "alias": {
