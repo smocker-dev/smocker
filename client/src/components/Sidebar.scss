@@ -19,10 +19,11 @@
     height: 100%;
     border-right: 0;
 
-    input[type="file"] {
-      display: none;
-
-      & + a {
+    label {
+      input[type="file"] {
+        display: none;
+      }
+      a {
         margin-right: 0.5em;
       }
     }

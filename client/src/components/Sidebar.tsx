@@ -1,6 +1,7 @@
 import {
   DeleteOutlined,
   EditOutlined,
+  LoadingOutlined,
   PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
@@ -69,6 +70,7 @@ const EditableItem = ({
 interface Props {
   sessions: Sessions;
   loading: boolean;
+  uploading: boolean;
   selected: string;
   fetch: () => unknown;
   selectSession: (sessionID: string) => unknown;
@@ -83,6 +85,7 @@ const SideBar = ({
   selected,
   sessions,
   loading,
+  uploading,
   selectSession,
   updateSession,
   newSession,
@@ -91,6 +94,7 @@ const SideBar = ({
 }: Props) => {
   const [queryParams, setQueryParams] = useQueryParams();
   const [, , setPolling] = usePoll(10000, fetch, undefined);
+  const [fileUploading, setFileUploading] = React.useState(false);
 
   const querySessionID = queryParams.get("session");
 
@@ -146,6 +150,7 @@ const SideBar = ({
   ));
 
   const onFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFileUploading(true);
     const files = event.target.files;
     if (!files) {
       return;
@@ -156,6 +161,7 @@ const SideBar = ({
       try {
         const sessionToUpload = JSON.parse(ev.target?.result as string);
         uploadSessions(sessionToUpload);
+        setFileUploading(false);
       } catch (e) {
         console.error(e);
       }
@@ -163,23 +169,33 @@ const SideBar = ({
     reader.readAsText(file);
   };
 
-  const title: JSX.Element = (
-    <>
-      <Tooltip
-        title="Load a session from a file"
-        placement="right"
-        mouseEnterDelay={0.5}
-      >
+  const title: JSX.Element =
+    fileUploading || uploading ? (
+      <>
         <label>
-          <input type="file" onChange={onFileUpload} />
           <a>
-            <UploadOutlined />
+            <LoadingOutlined />
           </a>
         </label>
-      </Tooltip>
-      <span>Sessions</span>
-    </>
-  );
+        <span>Sessions</span>
+      </>
+    ) : (
+      <>
+        <Tooltip
+          title="Load a session from a file"
+          placement="right"
+          mouseEnterDelay={0.5}
+        >
+          <label>
+            <input type="file" onChange={onFileUpload} />
+            <a>
+              <UploadOutlined />
+            </a>
+          </label>
+        </Tooltip>
+        <span>Sessions</span>
+      </>
+    );
   return (
     <Layout.Sider
       className="sidebar"
@@ -229,6 +245,7 @@ export default connect(
   (state: AppState) => ({
     sessions: state.sessions.list,
     loading: state.sessions.loading,
+    uploading: state.sessions.uploading,
     selected: state.sessions.selected,
   }),
   (dispatch: Dispatch<Actions>) => ({
