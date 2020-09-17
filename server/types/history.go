@@ -13,6 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const ContextKey = "Context"
+
 type History []*Entry
 
 func (h History) Clone() History {
@@ -20,9 +22,15 @@ func (h History) Clone() History {
 }
 
 type Entry struct {
-	MockID   string   `json:"mock_id,omitempty"`
+	Context  Context  `json:"context"`
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
+}
+
+type Context struct {
+	MockID   string `json:"mock_id,omitempty"`
+	MockType string `json:"mock_type,omitempty"`
+	Delay    string `json:"delay,omitempty"`
 }
 
 type Request struct {

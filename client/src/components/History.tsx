@@ -46,6 +46,17 @@ const Entry = React.memo(
   }) => {
     const path =
       value.request.path + formatQueryParams(value.request.query_params);
+
+    let responseStatusColor = "blue";
+    if (value.response.status >= 600) {
+      responseStatusColor = "magenta";
+    } else if (value.context.mock_type === "proxy") {
+      if (value.response.status >= 500) {
+        responseStatusColor = "red";
+      } else if (value.response.status >= 400) {
+        responseStatusColor = "orange";
+      }
+    }
     return (
       <div className="entry">
         <div className="request">
@@ -87,19 +98,24 @@ const Entry = React.memo(
         </div>
         <div className="response">
           <div className="details">
-            <Tag color={value.response.status > 600 ? "red" : "blue"}>
-              {value.response.status}
-            </Tag>
+            {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
+            <Tag color={responseStatusColor}>{value.response.status}</Tag>
             {value.response.status > 600 && (
-              <Typography.Text type="danger" ellipsis>
+              <Typography.Text
+                className="error"
+                ellipsis
+                title={value.response.body.message}
+              >
                 {value.response.body.message}
               </Typography.Text>
             )}
-            <Typography.Text ellipsis>
-              {value.mock_id && (
-                <Link to={`/pages/mocks/${value.mock_id}`}>Matched Mock</Link>
-              )}
-            </Typography.Text>
+            {value.context.mock_id && (
+              <span>
+                <Link to={`/pages/mocks/${value.context.mock_id}`}>
+                  Matched Mock
+                </Link>
+              </span>
+            )}
             <span className="date">
               {dayjs(value.response.date).format(dateFormat)}
             </span>
@@ -134,6 +150,11 @@ const Entry = React.memo(
               }
               language="json"
             />
+          )}
+          {value.context.delay && (
+            <Typography.Paragraph className="delay">
+              This response was delayed by <span>{value.context.delay}</span>
+            </Typography.Paragraph>
           )}
         </div>
       </div>
