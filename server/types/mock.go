@@ -15,8 +15,6 @@ import (
 	"github.com/teris-io/shortid"
 )
 
-const MockIDKey = "MockID"
-
 var MockNotFound = fmt.Errorf("mock not found")
 
 type Mocks []*Mock

@@ -75,9 +75,9 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 			Date:    entry.Response.Date,
 		})
 
-		if entry.MockID != "" {
-			if mocksByID[entry.MockID].Proxy != nil {
-				host := mocksByID[entry.MockID].Proxy.Host
+		if entry.Context.MockID != "" {
+			if mocksByID[entry.Context.MockID].Proxy != nil {
+				host := mocksByID[entry.Context.MockID].Proxy.Host
 				u, err := url.Parse(host)
 				if err == nil {
 					host = u.Host

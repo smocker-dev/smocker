@@ -37,6 +37,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		err          error
 	)
 	exceededMocks := types.Mocks{}
+	context := &types.Context{}
 	session := m.mocksServices.GetLastSession()
 	mocks, err := m.mocksServices.GetMocks(session.ID)
 	if err != nil {
@@ -58,9 +59,12 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 			b, _ = yaml.Marshal(matchingMock)
 			log.Debugf("Matching mock:\n---\n%s\n", string(b))
+			context.MockID = mock.State.ID
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
+				context.MockType = "dynamic"
 				if err != nil {
+					c.Set(types.ContextKey, context)
 					return c.JSON(types.StatusSmockerEngineExecutionError, echo.Map{
 						"message": fmt.Sprintf("%s: %v", types.SmockerEngineExecutionError, err),
 						"request": actualRequest,
@@ -68,18 +72,20 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 				}
 			} else if mock.Proxy != nil {
 				response, err = mock.Proxy.Redirect(actualRequest)
+				context.MockType = "proxy"
 				if err != nil {
+					c.Set(types.ContextKey, context)
 					return c.JSON(types.StatusSmockerProxyRedirectionError, echo.Map{
 						"message": fmt.Sprintf("%s: %v", types.SmockerProxyRedirectionError, err),
 						"request": actualRequest,
 					})
 				}
 			} else if mock.Response != nil {
+				context.MockType = "static"
 				response = mock.Response
 			}
 
 			matchingMock.State.TimesCount++
-			c.Set(types.MockIDKey, matchingMock.State.ID)
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -116,14 +122,19 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	}
 
 	// Delay
+	var delay time.Duration
 	if response.Delay.Min != response.Delay.Max {
 		rand.Seed(time.Now().Unix())
 		var n int64 = int64(response.Delay.Max - response.Delay.Min)
-		delay := rand.Int63n(n) + int64(response.Delay.Min)
-		time.Sleep(time.Duration(delay))
+		delay = time.Duration(rand.Int63n(n) + int64(response.Delay.Min))
 	} else {
-		time.Sleep(response.Delay.Min)
+		delay = response.Delay.Min
 	}
+	if delay > 0 {
+		context.Delay = delay.String()
+	}
+	time.Sleep(delay)
+	c.Set(types.ContextKey, context)
 
 	// Status
 	if response.Status == 0 {
