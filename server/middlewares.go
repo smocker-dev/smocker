@@ -79,9 +79,12 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 				body = string(responseBytes)
 			}
 
-			mockID, _ := c.Get(types.MockIDKey).(string)
+			context, _ := c.Get(types.ContextKey).(*types.Context)
+			if context == nil {
+				context = &types.Context{}
+			}
 			_, err := s.AddHistoryEntry(session.ID, &types.Entry{
-				MockID:  mockID,
+				Context: *context,
 				Request: request,
 				Response: types.Response{
 					Status:  c.Response().Status,

@@ -1,8 +1,12 @@
-import { entryToCurl } from "./utils";
 import { Entry } from "./types";
+import { entryToCurl } from "./utils";
 
 const baseEntry: Entry = {
-  mock_id: undefined,
+  context: {
+    mock_id: "",
+    mock_type: "",
+    delay: "",
+  },
   request: {
     method: "",
     path: "",

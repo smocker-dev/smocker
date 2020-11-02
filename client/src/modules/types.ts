@@ -43,6 +43,13 @@ export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);
 export type BodyMatcher = t.TypeOf<typeof BodyMatcherCodec>;
 
+const EntryContextCodec = t.type({
+  mock_id: t.union([t.string, t.undefined]),
+  mock_type: t.union([t.string, t.undefined]),
+  delay: t.union([t.string, t.undefined]),
+});
+export type EntryContext = t.TypeOf<typeof EntryContextCodec>;
+
 const EntryRequestCodec = t.type({
   path: t.string,
   method: t.string,
@@ -62,7 +69,7 @@ const EntryResponseCodec = t.type({
 export type EntryResponse = t.TypeOf<typeof EntryResponseCodec>;
 
 const EntryCodec = t.type({
-  mock_id: t.union([t.undefined, t.string]),
+  context: EntryContextCodec,
   request: EntryRequestCodec,
   response: EntryResponseCodec,
 });

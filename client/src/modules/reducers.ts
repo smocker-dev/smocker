@@ -36,6 +36,21 @@ const loadingSessions = (state = false, action: Actions) => {
   }
 };
 
+const uploadingSessions = (state = false, action: Actions) => {
+  const { uploadSessions } = actions;
+  switch (action.type) {
+    case getType(uploadSessions.request): {
+      return true;
+    }
+    case getType(uploadSessions.success):
+    case getType(uploadSessions.failure): {
+      return false;
+    }
+    default:
+      return state;
+  }
+};
+
 const sessionList = (state: Sessions = [], action: Actions) => {
   const {
     fetchSessions,
@@ -130,6 +145,7 @@ const selectedSession = (state = "", action: Actions) => {
 
 const sessions = combineReducers({
   loading: loadingSessions,
+  uploading: uploadingSessions,
   list: sessionList,
   error: sessionError,
   selected: selectedSession,
