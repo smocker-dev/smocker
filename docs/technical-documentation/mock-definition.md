@@ -281,7 +281,7 @@ Note that the `script` is a string which must be written in YAML.
 
 ### Dynamic responses using Lua scripts
 
-A dynamic response using Lua must generate a [Lua table](https://devhints.io/lua#lookups) representing a `response` object. In Lua scripts, the [`request`](https://godoc.org/github.com/Thiht/smocker/types#Request) variable is available, containing the values of the current request. The [`math`](http://lua-users.org/wiki/MathLibraryTutorial), [`string`](http://lua-users.org/wiki/StringLibraryTutorial), and [`table`](http://lua-users.org/wiki/TableLibraryTutorial) libraries are available.
+A dynamic response using Lua must generate a [Lua table](https://devhints.io/lua#lookups) representing a `response` object. In Lua scripts, the [`request`](https://pkg.go.dev/github.com/Thiht/smocker/server/types#Request) variable is available, containing the values of the current request. The [`math`](http://lua-users.org/wiki/MathLibraryTutorial), [`string`](http://lua-users.org/wiki/StringLibraryTutorial), and [`table`](http://lua-users.org/wiki/TableLibraryTutorial) libraries are available.
 
 A dynamic response using Lua scripts has the following format:
 
@@ -308,6 +308,7 @@ Tips:
 
 - In associative tables, keys containing a `-` (such as `Content-Type`) must be wrapped: `{ ["Content-Type"] = ... }`
 - You can write multi-line strings (for the `body` for instance) using double square braces instead of quotes: `[[ ... ]]`
+- If you already have a JSON body, you can convert it to a Lua table using any existing [converter](http://mageddo.com/tools/json-to-lua-converter)
 
 ## Format of `proxy` section
 
