@@ -25,6 +25,7 @@ import { Link, useParams } from "react-router-dom";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
+import { trimedPath } from "~modules/utils";
 import {
   dateFormat,
   defaultMatcher,
@@ -237,7 +238,9 @@ const Mock = ({
             />
           )}
           <span className="label">ID:</span>
-          <Link to={`/pages/mocks/${mock.state.id}`}>{mock.state.id}</Link>
+          <Link to={trimedPath + `/pages/mocks/${mock.state.id}`}>
+            {mock.state.id}
+          </Link>
         </div>
         <span className="date">
           {dayjs(mock.state.creation_date).format(dateFormat)}

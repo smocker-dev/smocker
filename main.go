@@ -25,6 +25,7 @@ func parseConfig() (c config.Config) {
 	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "SMOCKER", flag.ExitOnError)
 
 	flag.StringVar(&c.LogLevel, "log-level", "info", "Available levels: panic, fatal, error, warning, info, debug, trace")
+	flag.StringVar(&c.ConfigBasePath, "config-base-path", "/", "")
 	flag.IntVar(&c.ConfigListenPort, "config-listen-port", 8081, "")
 	flag.IntVar(&c.MockServerListenPort, "mock-server-listen-port", 8080, "")
 	flag.StringVar(&c.StaticFiles, "static-files", ".", "The location of the static files to serve (index.html, etc.)")

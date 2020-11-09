@@ -25,6 +25,7 @@ import useLocalStorage from "react-use-localstorage";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
+import { trimedPath } from "~modules/utils";
 import { dateFormat, Entry, Error, History } from "~modules/types";
 import {
   cleanupRequest,
@@ -111,7 +112,7 @@ const Entry = React.memo(
             )}
             {value.context.mock_id && (
               <span>
-                <Link to={`/pages/mocks/${value.context.mock_id}`}>
+                <Link to={trimedPath + `/pages/mocks/${value.context.mock_id}`}>
                   Matched Mock
                 </Link>
               </span>
@@ -121,7 +122,10 @@ const Entry = React.memo(
             </span>
           </div>
           <Typography.Paragraph>
-            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
+            <Link
+              to={trimedPath + "/pages/mocks"}
+              onClick={handleDisplayNewMock}
+            >
               <Button block type="dashed">
                 <PlusCircleOutlined />
                 {value.response.status > 600
@@ -282,7 +286,7 @@ const History = ({
             <Link
               to={(location) => ({
                 ...location,
-                pathname: "/pages/visualize",
+                pathname: trimedPath + "/pages/visualize",
               })}
             >
               <Button
