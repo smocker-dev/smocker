@@ -39,28 +39,28 @@ func Serve(config config.Config) {
 	handler := handlers.NewAdmin(mockServices, graphServices)
 
 	// Admin Routes
-	adminServerEngine.GET(config.ConfigBasePath+"/mocks", handler.GetMocks)
-	adminServerEngine.POST(config.ConfigBasePath+"/mocks", handler.AddMocks)
-	adminServerEngine.POST(config.ConfigBasePath+"/mocks/lock", handler.LockMocks)
-	adminServerEngine.POST(config.ConfigBasePath+"/mocks/unlock", handler.UnlockMocks)
-	adminServerEngine.GET(config.ConfigBasePath+"/history", handler.GetHistory)
-	adminServerEngine.GET(config.ConfigBasePath+"/history/summary", handler.SummarizeHistory)
-	adminServerEngine.GET(config.ConfigBasePath+"/sessions", handler.GetSessions)
-	adminServerEngine.POST(config.ConfigBasePath+"/sessions", handler.NewSession)
-	adminServerEngine.PUT(config.ConfigBasePath+"/sessions", handler.UpdateSession)
-	adminServerEngine.POST(config.ConfigBasePath+"/sessions/verify", handler.VerifySession)
-	adminServerEngine.GET(config.ConfigBasePath+"/sessions/summary", handler.SummarizeSessions)
-	adminServerEngine.POST(config.ConfigBasePath+"/sessions/import", handler.ImportSession)
-	adminServerEngine.POST(config.ConfigBasePath+"/reset", handler.Reset)
+	adminServerEngine.GET("/mocks", handler.GetMocks)
+	adminServerEngine.POST("/mocks", handler.AddMocks)
+	adminServerEngine.POST("/mocks/lock", handler.LockMocks)
+	adminServerEngine.POST("/mocks/unlock", handler.UnlockMocks)
+	adminServerEngine.GET("/history", handler.GetHistory)
+	adminServerEngine.GET("/history/summary", handler.SummarizeHistory)
+	adminServerEngine.GET("/sessions", handler.GetSessions)
+	adminServerEngine.POST("/sessions", handler.NewSession)
+	adminServerEngine.PUT("/sessions", handler.UpdateSession)
+	adminServerEngine.POST("/sessions/verify", handler.VerifySession)
+	adminServerEngine.GET("/sessions/summary", handler.SummarizeSessions)
+	adminServerEngine.POST("/sessions/import", handler.ImportSession)
+	adminServerEngine.POST("/reset", handler.Reset)
 
 	// Health Check Route
-	adminServerEngine.GET(config.ConfigBasePath+"/version", func(c echo.Context) error {
+	adminServerEngine.GET("/version", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, config.Build)
 	})
 
 	// UI Routes
-	adminServerEngine.Static(config.ConfigBasePath+"/assets", config.StaticFiles)
-	adminServerEngine.GET(config.ConfigBasePath+"/*", renderIndex(adminServerEngine, config))
+	adminServerEngine.Static("/assets", config.StaticFiles)
+	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
 	log.WithField("port", config.ConfigListenPort).Info("Starting admin server")
 	log.WithField("port", config.MockServerListenPort).Info("Starting mock server")

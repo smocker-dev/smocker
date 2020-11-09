@@ -2,7 +2,7 @@ import { Layout, Menu, Row } from "antd";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "~assets/logo.png";
-import { cleanQueryParams, trimedPath } from "~modules/utils";
+import { cleanQueryParams } from "~modules/utils";
 import "./Navbar.scss";
 
 const Navbar = (): JSX.Element => {
@@ -11,31 +11,31 @@ const Navbar = (): JSX.Element => {
     <Layout.Header className="navbar">
       <Row justify="start" align="middle">
         <Link className="logo" to="/">
-          <img height={42} src={trimedPath + Logo} />
+          <img height={42} src={Logo} />
           Smocker
         </Link>
         <Menu
           selectedKeys={[location.pathname]}
-          defaultSelectedKeys={[trimedPath + "/pages/history"]}
+          defaultSelectedKeys={["/pages/history"]}
           className="menu"
           theme="dark"
           mode="horizontal"
         >
-          <Menu.Item key={trimedPath + "/pages/history"}>
+          <Menu.Item key="/pages/history">
             <Link
               to={(location) => ({
                 ...cleanQueryParams(location),
-                pathname: trimedPath + "/pages/history",
+                pathname: "/pages/history",
               })}
             >
               History
             </Link>
           </Menu.Item>
-          <Menu.Item key={trimedPath + "/pages/mocks"}>
+          <Menu.Item key="/pages/mocks">
             <Link
               to={(location) => ({
                 ...cleanQueryParams(location),
-                pathname: trimedPath + "/pages/mocks",
+                pathname: "/pages/mocks",
               })}
             >
               Mocks

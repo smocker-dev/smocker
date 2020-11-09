@@ -4,7 +4,7 @@
     "start": "concurrently --kill-others 'yarn:start:tsc' 'yarn:start:parcel'",
     "start:parcel": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
     "start:tsc": "tsc -p . --noEmit --watch",
-    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url /assets ./client/src/index.html; sed -i'' -e 's!/assets!{{.basePath}}/assets!g' ./build/index.html",
+    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url assets ./client/src/index.html",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}",
     "test": "jest",
