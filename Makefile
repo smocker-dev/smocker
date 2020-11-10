@@ -49,6 +49,10 @@ GOCOVMERGE=$(GOPATH)/bin/gocovmerge
 $(GOCOVMERGE):
 	go install github.com/wadey/gocovmerge
 
+CADDY=$(GOPATH)/bin/caddy
+$(CADDY):
+	go get github.com/caddyserver/caddy/v2/...
+
 .PHONY: start
 start: $(REFLEX)
 	$(REFLEX) --start-service \
@@ -131,7 +135,7 @@ start-release: clean build/smocker.tar.gz
 	cd build/; ./smocker --config-base-path=/test/
 
 .PHONY: start-caddy
-start-caddy:
+start-caddy: $(CADDY)
 	caddy run
 
 .PHONY: deploy-docker
