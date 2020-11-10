@@ -121,10 +121,18 @@ build/smocker.tar.gz:
 	$(MAKE) build
 	yarn install --frozen-lockfile
 	yarn build
-	cd build/ ; tar cvf smocker.tar.gz *
+	cd build/; tar cvf smocker.tar.gz *
 
 .PHONY: release
 release: build/smocker.tar.gz
+
+.PHONY: start-release
+start-release: clean build/smocker.tar.gz
+	cd build/; ./smocker --config-base-path=/test/
+
+.PHONY: start-caddy
+start-caddy:
+	caddy run
 
 .PHONY: deploy-docker
 deploy-docker:
