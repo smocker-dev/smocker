@@ -89,7 +89,7 @@ As described above a `request` is an object composed of _matchers_ to apply on d
 
 Matchers are used to apply a predicate on a field. The most basic example of matcher is `ShouldEqual` which is used to compare a field to a text. Smocker defines three types of matchers: **string matcher**, **multi map matcher** and **body matcher**.
 
----
+### String Matchers
 
 **String Matchers** are used with the basic type `string`. With the example of a field `method`, a string matcher could be declared as follows:
 
@@ -113,7 +113,7 @@ method:
   value: (PUT|POST) # This is a regular expression
 ```
 
----
+### Multi Map Matchers
 
 **Multi Map Matchers** are used with the complex type `map[string][]string` (map of strings). This complex type is used with query parameters and headers. This is because they can be declared multiple times. For example, the query string `?key=foo&key=bar&key=baz` is valid and would be represented as:
 
@@ -142,7 +142,7 @@ query_params:
       value: baz
 ```
 
----
+### Body Matcher
 
 **Body Matcher** is specific to the `body` field.
 It allows you to define matchers on keys of the JSON body.
@@ -167,19 +167,24 @@ body:
     value: bar.*
 ```
 
-**Body Matcher** use [stretchr/objx](https://github.com/stretchr/objx) to query the keys of a JSON body.
+**Body Matcher** uses [stretchr/objx](https://github.com/stretchr/objx) to query the keys of a JSON body.
 So, if you want to make an assertion on the `test` value in the body example above, you can define your matcher as follow:
+
+```yaml
+body:
+  bar.baz[0]: test
+```
+
+or:
 
 ```yaml
 body:
   bar.baz[0]:
     matcher: ShouldEqual
     value: test
-  #--- or ---
-  bar.baz[0]: test
 ```
 
----
+### Match Operators
 
 The whole list of available matchers is:
 
@@ -193,8 +198,6 @@ The whole list of available matchers is:
 | `ShouldEndWith` / `ShouldNotEndWith`                   | Ends with substring    |
 | `ShouldMatch` / `ShouldNotMatch`                       | Regexp match           |
 | `ShouldBeEmpty` / `ShouldNotBeEmpty`                   | Emptiness of a field   |
-
----
 
 ## Format of `context` section
 
