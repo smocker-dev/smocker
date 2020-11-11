@@ -2,7 +2,7 @@
   <img src="docs/.vuepress/public/logo/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
 </h1>
 
-[![Build Status](https://img.shields.io/travis/Thiht/smocker/master?logo=travis)](https://travis-ci.org/Thiht/smocker)
+[![Build Status](https://img.shields.io/travis/com/Thiht/smocker/master?logo=travis)](https://travis-ci.com/github/Thiht/smocker)
 [![Netlify Status](https://img.shields.io/netlify/61d4e090-b242-419f-8d69-e9dee3d50a37?logo=netlify)](https://app.netlify.com/sites/smocker/deploys)
 [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
 [![Github Release](https://img.shields.io/github/v/release/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/releases/latest)
