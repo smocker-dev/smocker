@@ -6,6 +6,7 @@ The list of existing Smocker parameters is:
 
 | Flag                      | Environment Variable              | Default  | Description                                                                                      |
 | ------------------------- | --------------------------------- | :------: | ------------------------------------------------------------------------------------------------ |
+| `config-base-path`        | `SMOCKER_CONFIG_BASE_PATH`        |  **/**   | Used to deploy Smocker under a sub-path of a domain                                              |
 | `config-listen-port`      | `SMOCKER_CONFIG_LISTEN_PORT`      | **8081** | Port exposed by Smocker's API which is used to administrate Smocker                              |
 | `mock-server-listen-port` | `SMOCKER_MOCK_SERVER_LISTEN_PORT` | **8080** | Port exposed by Smocker's mock server where should be redirected your HTTP calls                 |
 | `static-files`            | `SMOCKER_STATIC_FILES`            |  **.**   | The location of the static files to serve for the UI (index.html, etc.)                          |

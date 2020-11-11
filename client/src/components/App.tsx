@@ -3,12 +3,7 @@ import { Layout } from "antd";
 import * as React from "react";
 import { hot } from "react-hot-loader";
 import { Provider } from "react-redux";
-import {
-  BrowserRouter as Router,
-  Redirect,
-  Route,
-  Switch,
-} from "react-router-dom";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import { applyMiddleware, createStore } from "redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 import { createEpicMiddleware } from "redux-observable";
@@ -33,7 +28,7 @@ epicMiddleware.run(rootEpic);
 
 const App = () => (
   <Provider store={store}>
-    <Router>
+    <BrowserRouter basename={window.basePath}>
       <Layout className="layout">
         <Navbar />
         <Layout className="layout">
@@ -72,7 +67,7 @@ const App = () => (
           </Layout>
         </Layout>
       </Layout>
-    </Router>
+    </BrowserRouter>
   </Provider>
 );
 export default hot(module)(App);
