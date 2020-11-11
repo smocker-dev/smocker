@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine AS build-backend
+FROM golang:1.15-alpine AS build-backend
 RUN apk add --no-cache make
 ARG VERSION=snapshot
 ARG COMMIT
