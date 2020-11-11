@@ -36,7 +36,7 @@ REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
 	go get github.com/cespare/reflex
 
-GOLANGCILINTVERSION:=1.24.0
+GOLANGCILINTVERSION:=1.32.0
 GOLANGCILINT=$(GOPATH)/bin/golangci-lint
 $(GOLANGCILINT):
 	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)

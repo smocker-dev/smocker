@@ -64,7 +64,7 @@ async function main() {
   await page.waitForSelector("li.ant-menu-item:nth-child(1) > div:nth-child(1)", {
     visible: true,
   });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotElement({
     page,
     name: "screenshot-sessions.png",
@@ -75,10 +75,10 @@ async function main() {
   await page.waitForSelector("li.ant-menu-item:nth-child(1)", {
     visible: true,
   });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-empty-mocks.png");
   await page.click("button.add-mocks-button");
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await page.screenshot({ path: screenshotsDir + "screenshot-add-mocks.png" });
   await page.setViewport(defaultViewPort);
 
@@ -88,7 +88,7 @@ async function main() {
   } catch {}
   await page.goto(smockerAdminHost + "/pages/history");
   await page.waitForSelector(".history", { visible: true });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-history-666.png");
   await screenshotElement({
     page,
@@ -103,7 +103,7 @@ async function main() {
   });
   await page.goto(smockerAdminHost + "/pages/mocks");
   await page.waitForSelector(".mocks", { visible: true });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await page.screenshot({ path: screenshotsDir + "screenshot-mocks.png" });
 
   // Screenshot hello-world 200 + 500
@@ -113,9 +113,9 @@ async function main() {
   await axios.get(smockerServerHost + "/hello/world");
   await page.goto(smockerAdminHost + "/pages/history");
   await page.waitForSelector(".history", { visible: true });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-history.png");
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotElement({
     page,
     name: "screenshot-hello-world-200.png",
@@ -125,7 +125,7 @@ async function main() {
 
   await page.click("button.visualize-button");
   await page.waitForSelector(".mermaid", { visible: true });
-  await page.waitFor(300);
+  await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-history-visualize.png");
 
   await browser.close();
