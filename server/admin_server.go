@@ -84,7 +84,7 @@ func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 		}
 
 		return c.Render(http.StatusOK, "index.html", echo.Map{
-			"basePath": "/",
+			"basePath": cfg.ConfigBasePath,
 			"version":  cfg.Build.BuildVersion,
 		})
 	}
