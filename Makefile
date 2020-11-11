@@ -132,11 +132,11 @@ release: build/smocker.tar.gz
 
 .PHONY: start-release
 start-release: clean build/smocker.tar.gz
-	cd build/; ./smocker --config-base-path=/test/
+	cd build/; ./smocker --config-base-path=/smocker/
 
 .PHONY: start-caddy
 start-caddy: $(CADDY)
-	caddy run
+	$(CADDY) run
 
 .PHONY: deploy-docker
 deploy-docker:

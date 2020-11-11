@@ -178,8 +178,8 @@ The application can be packaged as a standalone Docker image. You can use the fo
 
 If you need to test Smocker with a base path, you can use the Caddyfile provided in the repository ([Caddy v2](https://caddyserver.com/v2)):
 
-- `make start-release`, `make VERSION=xxx start-release`: create a released version of Smocker and launch it with **/test/** as base path
-- `make start-caddy`: start Caddy to make Smocker accessible at http://localhost:8082/test/
+- `make start-release`, `make VERSION=xxx start-release`: create a released version of Smocker and launch it with `/smocker/` as base path
+- `make start-caddy`: start Caddy to make Smocker accessible at http://localhost:8082/smocker/
 
 ## Authors
 
