@@ -1,12 +1,12 @@
 .cache/
 .vscode/
 build/
-coverage/
 client/dist/
+coverage/
 docs/.vuepress/dist/
 node_modules/
+sessions/
 smocker
 smocker.test
-yarn-error.log
-sessions/
 vendor/
+yarn-error.log
