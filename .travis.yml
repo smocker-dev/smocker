@@ -12,6 +12,10 @@ cache:
 services:
   - docker
 
+addons:
+  sonarcloud:
+    organization: thiht
+
 before_script:
   - nvm install
   - nvm use
@@ -30,7 +34,7 @@ script:
   - make VERSION=$TRAVIS_BRANCH start-docker
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -f coverage/cover.out
+  - sonar-scanner
 
 before_deploy:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
