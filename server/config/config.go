@@ -3,6 +3,7 @@ package config
 type Config struct {
 	LogLevel             string
 	ConfigListenPort     int
+	ConfigBasePath       string
 	MockServerListenPort int
 	StaticFiles          string
 	HistoryMaxRetention  int
