@@ -9,7 +9,7 @@ COPY Makefile main.go ./
 COPY server/ ./server/
 RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 
-FROM node:12-alpine AS build-frontend
+FROM node:14-alpine AS build-frontend
 WORKDIR /wd
 ENV PARCEL_WORKERS 1
 COPY package.json yarn.lock ./
