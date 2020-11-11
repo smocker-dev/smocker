@@ -83,7 +83,7 @@
     "use-lodash-debounce": "^1.1.0"
   },
   "peerDependencies": {
-    "puppeteer": "^4.0.1"
+    "puppeteer": "^5.4.1"
   },
   "resolutions": {
     "@types/react": "16.9.41"
