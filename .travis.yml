@@ -16,6 +16,10 @@ addons:
   sonarcloud:
     organization: thiht
 
+# See: https://docs.travis-ci.com/user/sonarcloud/#accessing-full-scm-history
+git:
+  depth: false
+
 before_script:
   - nvm install
   - nvm use
