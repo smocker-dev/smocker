@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "./client/src",
+    "baseUrl": "./client",
     "allowSyntheticDefaultImports": true,
     "module": "ESNext",
     "target": "ES5",
@@ -22,6 +22,6 @@
       "~*": ["./*"]
     }
   },
-  "include": ["client/src/**/*"],
+  "include": ["client/**/*"],
   "exclude": ["node_modules", "build"]
 }
