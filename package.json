@@ -2,9 +2,9 @@
   "private": true,
   "scripts": {
     "start": "concurrently --kill-others 'yarn:start:tsc' 'yarn:start:parcel'",
-    "start:parcel": "parcel watch --out-dir ./build --public-url /assets ./client/src/index.html",
+    "start:parcel": "parcel watch --out-dir ./build --public-url /assets ./client/index.html",
     "start:tsc": "tsc -p . --noEmit --watch",
-    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url assets ./client/src/index.html",
+    "build": "NODE_ENV=production parcel build --out-dir ./build --public-url assets ./client/index.html",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}",
     "test": "jest",
