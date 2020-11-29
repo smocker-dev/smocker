@@ -36,6 +36,7 @@
       padding-right: 1em;
     }
     .response {
+      border-left: 1px dashed $color-grey-dark;
       padding-left: 1em;
     }
 
@@ -128,10 +129,6 @@
       &.path {
         font-family: monospace;
       }
-    }
-
-    .response {
-      border-left: 1px dashed $color-grey-dark;
     }
   }
 }

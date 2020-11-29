@@ -39,18 +39,24 @@ func Serve(config config.Config) {
 	handler := handlers.NewAdmin(mockServices, graphServices)
 
 	// Admin Routes
-	adminServerEngine.GET("/mocks", handler.GetMocks)
-	adminServerEngine.POST("/mocks", handler.AddMocks)
-	adminServerEngine.POST("/mocks/lock", handler.LockMocks)
-	adminServerEngine.POST("/mocks/unlock", handler.UnlockMocks)
-	adminServerEngine.GET("/history", handler.GetHistory)
-	adminServerEngine.GET("/history/summary", handler.SummarizeHistory)
-	adminServerEngine.GET("/sessions", handler.GetSessions)
-	adminServerEngine.POST("/sessions", handler.NewSession)
-	adminServerEngine.PUT("/sessions", handler.UpdateSession)
-	adminServerEngine.POST("/sessions/verify", handler.VerifySession)
-	adminServerEngine.GET("/sessions/summary", handler.SummarizeSessions)
-	adminServerEngine.POST("/sessions/import", handler.ImportSession)
+	mocksGroup := adminServerEngine.Group("/mocks")
+	mocksGroup.GET("", handler.GetMocks)
+	mocksGroup.POST("", handler.AddMocks)
+	mocksGroup.POST("/lock", handler.LockMocks)
+	mocksGroup.POST("/unlock", handler.UnlockMocks)
+
+	historyGroup := adminServerEngine.Group("/history")
+	historyGroup.GET("", handler.GetHistory)
+	historyGroup.GET("/summary", handler.SummarizeHistory)
+
+	sessionsGroup := adminServerEngine.Group("/sessions")
+	sessionsGroup.GET("", handler.GetSessions)
+	sessionsGroup.POST("", handler.NewSession)
+	sessionsGroup.PUT("", handler.UpdateSession)
+	sessionsGroup.POST("/verify", handler.VerifySession)
+	sessionsGroup.GET("/summary", handler.SummarizeSessions)
+	sessionsGroup.POST("/import", handler.ImportSession)
+
 	adminServerEngine.POST("/reset", handler.Reset)
 
 	// Health Check Route

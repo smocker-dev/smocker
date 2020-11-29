@@ -14,7 +14,7 @@ WORKDIR /wd
 ENV PARCEL_WORKERS 1
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
-COPY .babelrc tsconfig.json ./
+COPY tsconfig.json ./
 COPY client/ ./client/
 RUN yarn build
 
