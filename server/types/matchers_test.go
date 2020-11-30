@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestStringMatcher_JSON(t *testing.T) {
+func TestStringMatcherJSON(t *testing.T) {
 	test := `"test"`
 	serialized := `{"matcher":"ShouldEqual","value":"test"}`
 
@@ -56,7 +56,7 @@ func TestStringMatcher_JSON(t *testing.T) {
 	}
 }
 
-func TestStringMatcher_YAML(t *testing.T) {
+func TestStringMatcherYAML(t *testing.T) {
 	test := `test`
 	var res StringMatcher
 	if err := yaml.Unmarshal([]byte(test), &res); err != nil {
@@ -92,7 +92,7 @@ func TestStringMatcher_YAML(t *testing.T) {
 	}
 }
 
-func TestMultiMapMatcher_JSON(t *testing.T) {
+func TestMultiMapMatcherJSON(t *testing.T) {
 	test := `{"test":"test"}`
 	serialized := `{"test":[{"matcher":"ShouldEqual","value":"test"}]}`
 	var res MultiMapMatcher

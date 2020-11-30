@@ -25,7 +25,7 @@ import useLocalStorage from "react-use-localstorage";
 import { Dispatch } from "redux";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
-import { dateFormat, Entry, Error, History } from "~modules/types";
+import { dateFormat, Entry, History, SmockerError } from "~modules/types";
 import {
   cleanupRequest,
   cleanupResponse,
@@ -36,7 +36,14 @@ import {
 import Code from "./Code";
 import "./History.scss";
 
-const Entry = React.memo(
+const TableRow = ([key, values]: [string, string[]]) => (
+  <tr key={key}>
+    <td>{key}</td>
+    <td>{values.join(", ")}</td>
+  </tr>
+);
+
+const EntryComponent = React.memo(
   ({
     value,
     handleDisplayNewMock,
@@ -72,12 +79,9 @@ const Entry = React.memo(
           {value.request.headers && (
             <table>
               <tbody>
-                {Object.entries(value.request.headers).map(([key, values]) => (
-                  <tr key={key}>
-                    <td>{key}</td>
-                    <td>{values.join(", ")}</td>
-                  </tr>
-                ))}
+                {Object.entries(value.request.headers).map((entry) =>
+                  TableRow(entry)
+                )}
               </tbody>
             </table>
           )}
@@ -85,7 +89,7 @@ const Entry = React.memo(
             <Code
               value={
                 JSON.stringify(value.request.body, null, "  ") ||
-                value.request.body
+                `${value.request.body}`
               }
               language="json"
             />
@@ -104,9 +108,9 @@ const Entry = React.memo(
               <Typography.Text
                 className="error"
                 ellipsis
-                title={value.response.body.message}
+                title={(value.response.body as SmockerError).message}
               >
-                {value.response.body.message}
+                {(value.response.body as SmockerError).message}
               </Typography.Text>
             )}
             {value.context.mock_id && (
@@ -133,12 +137,9 @@ const Entry = React.memo(
           {value.response.headers && (
             <table>
               <tbody>
-                {Object.entries(value.response.headers).map(([key, values]) => (
-                  <tr key={key}>
-                    <td>{key}</td>
-                    <td>{values.join(", ")}</td>
-                  </tr>
-                ))}
+                {Object.entries(value.response.headers).map((entry) =>
+                  TableRow(entry)
+                )}
               </tbody>
             </table>
           )}
@@ -146,7 +147,7 @@ const Entry = React.memo(
             <Code
               value={
                 JSON.stringify(value.response.body, null, "  ") ||
-                value.response.body
+                `${value.response.body}`
               }
               language="json"
             />
@@ -161,19 +162,19 @@ const Entry = React.memo(
     );
   }
 );
-Entry.displayName = "Entry";
+EntryComponent.displayName = "Entry";
 
 interface Props {
   sessionID: string;
   loading: boolean;
   canPoll: boolean;
   historyEntry: History;
-  error: Error | null;
+  error: SmockerError | null;
   fetch: (sessionID: string) => unknown;
   setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
-const History = ({
+const HistoryComponent = ({
   sessionID,
   historyEntry,
   loading,
@@ -260,7 +261,7 @@ const History = ({
       <>
         {pagination}
         {entries.map((entry, index) => (
-          <Entry
+          <EntryComponent
             key={`entry-${index}`}
             value={entry}
             handleDisplayNewMock={handleDisplayNewMock(entry)}
@@ -349,4 +350,4 @@ export default connect(
     setDisplayNewMock: (display: boolean, defaultValue: string) =>
       dispatch(actions.openMockEditor([display, defaultValue])),
   })
-)(History);
+)(HistoryComponent);

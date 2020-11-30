@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/Masterminds/sprig/v3 v3.1.0
-	github.com/cespare/reflex v0.3.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
