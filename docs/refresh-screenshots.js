@@ -9,7 +9,7 @@ const smockerServerHost = "http://localhost:8080";
 
 const historyPagePath = "/pages/history";
 const mocksPagePath = "/pages/mocks";
-const resetPath = "reset";
+const resetPath = "/reset";
 
 const defaultViewPort = { width: 1400, height: 700 };
 const zoomedViewPort = { width: 1201, height: 500 };
