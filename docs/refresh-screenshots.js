@@ -7,6 +7,10 @@ const screenshotsDir = path.join(__dirname, ".vuepress/public/screenshots/");
 const smockerAdminHost = "http://localhost:8081";
 const smockerServerHost = "http://localhost:8080";
 
+const historyPagePath = "/pages/history";
+const mocksPagePath = "/pages/mocks";
+const resetPath = "/reset";
+
 const defaultViewPort = { width: 1400, height: 700 };
 const zoomedViewPort = { width: 1201, height: 500 };
 
@@ -32,13 +36,13 @@ const mocks = `
 `;
 
 const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
-  const rect = await page.evaluate((selector) => {
-    const element = document.querySelector(selector);
+  const rect = await page.evaluate((select) => {
+    const element = document.querySelector(select);
     const { x, y, width, height } = element.getBoundingClientRect();
     return { left: x, top: y, width, height, id: element.id };
   }, selector);
 
-  return await page.screenshot({
+  return page.screenshot({
     path: screenshotsDir + name,
     clip: {
       x: rect.left - padding,
@@ -50,17 +54,17 @@ const screenshotElement = async ({ page, name, selector, padding = 0 }) => {
 };
 
 const screenshotPage = async (page, name) => {
-  return await page.screenshot({ path: screenshotsDir + name });
+  return page.screenshot({ path: screenshotsDir + name });
 };
 
 async function main() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ args : ['--single-process', '--disable-gpu'] })
   const page = await browser.newPage();
   await page.setViewport(zoomedViewPort);
 
   // Screenshot empty + add
-  await axios.post(smockerAdminHost + "/reset");
-  await page.goto(smockerAdminHost + "/pages/history");
+  await axios.post(smockerAdminHost + resetPath);
+  await page.goto(smockerAdminHost + historyPagePath);
   await page.waitForSelector("li.ant-menu-item:nth-child(1) > div:nth-child(1)", {
     visible: true,
   });
@@ -71,7 +75,7 @@ async function main() {
     selector: ".sidebar",
   });
   await screenshotPage(page, "screenshot-empty-history.png");
-  await page.goto(smockerAdminHost + "/pages/mocks");
+  await page.goto(smockerAdminHost + mocksPagePath);
   await page.waitForSelector("li.ant-menu-item:nth-child(1)", {
     visible: true,
   });
@@ -86,7 +90,7 @@ async function main() {
   try {
     await axios.get(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
-  await page.goto(smockerAdminHost + "/pages/history");
+  await page.goto(smockerAdminHost + historyPagePath);
   await page.waitForSelector(".history", { visible: true });
   await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-history-666.png");
@@ -101,7 +105,7 @@ async function main() {
   await axios.post(smockerAdminHost + "/mocks", mocks, {
     headers: { "Content-Type": "application/x-yaml" },
   });
-  await page.goto(smockerAdminHost + "/pages/mocks");
+  await page.goto(smockerAdminHost + mocksPagePath);
   await page.waitForSelector(".mocks", { visible: true });
   await page.waitForTimeout(300);
   await page.screenshot({ path: screenshotsDir + "screenshot-mocks.png" });
@@ -111,7 +115,7 @@ async function main() {
     await axios.post(smockerServerHost + "/hello/world"); //ignore legit error
   } catch {}
   await axios.get(smockerServerHost + "/hello/world");
-  await page.goto(smockerAdminHost + "/pages/history");
+  await page.goto(smockerAdminHost + historyPagePath);
   await page.waitForSelector(".history", { visible: true });
   await page.waitForTimeout(300);
   await screenshotPage(page, "screenshot-history.png");

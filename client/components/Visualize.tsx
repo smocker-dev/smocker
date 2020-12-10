@@ -104,8 +104,8 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   const handleEditGraph = () => setEditGraph(true);
   const handleChangeGraph = (diag: string) => setDiagram(diag);
   const handleCloseEditGraph = () => setEditGraph(false);
-  const handleChangeSVG = (svg: string) => {
-    setSVG(svg);
+  const handleChangeSVG = (content: string) => {
+    setSVG(content);
   };
 
   const onSaveSVG = () => {

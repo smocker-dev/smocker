@@ -1,7 +1,7 @@
 import { combineReducers } from "redux";
 import { getType, StateType } from "typesafe-actions";
 import { Actions, actions } from "./actions";
-import { Error, GraphHistory, History, Mocks, Sessions } from "./types";
+import { GraphHistory, History, Mocks, Sessions, SmockerError } from "./types";
 
 const loadingSessions = (state = false, action: Actions) => {
   const {
@@ -80,7 +80,7 @@ const sessionList = (state: Sessions = [], action: Actions) => {
   }
 };
 
-const sessionError = (state: Error | null = null, action: Actions) => {
+const sessionError = (state: SmockerError | null = null, action: Actions) => {
   const {
     fetchSessions,
     newSession,
@@ -186,7 +186,7 @@ const entryList = (state: History = [], action: Actions) => {
   }
 };
 
-const entryError = (state: Error | null = null, action: Actions) => {
+const entryError = (state: SmockerError | null = null, action: Actions) => {
   const { fetchHistory, reset } = actions;
   switch (action.type) {
     case getType(fetchHistory.failure):
@@ -289,7 +289,7 @@ const mockEditor = (
   }
 };
 
-const mocksError = (state: Error | null = null, action: Actions) => {
+const mocksError = (state: SmockerError | null = null, action: Actions) => {
   const { fetchMocks, addMocks, lockMocks, unlockMocks, reset } = actions;
   switch (action.type) {
     case getType(fetchMocks.failure):

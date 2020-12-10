@@ -8,9 +8,9 @@ export const dateFormat = "ddd, D MMM YYYY HH:mm:ss.SSS";
 export const defaultMatcher = "ShouldEqual";
 
 export const ErrorCodec = t.type({
-  message: t.any,
+  message: t.union([t.string, t.undefined]),
 });
-export type Error = t.TypeOf<typeof ErrorCodec>;
+export type SmockerError = t.TypeOf<typeof ErrorCodec>;
 
 export const SessionCodec = t.type({
   id: t.string,
@@ -22,7 +22,7 @@ export type Session = t.TypeOf<typeof SessionCodec>;
 export const SessionsCodec = t.array(SessionCodec);
 export type Sessions = t.TypeOf<typeof SessionsCodec>;
 
-const MultimapCodec = t.dictionary(t.string, t.array(t.string));
+const MultimapCodec = t.record(t.string, t.array(t.string));
 export type Multimap = t.TypeOf<typeof MultimapCodec>;
 
 const StringMatcherCodec = t.type({
@@ -34,10 +34,10 @@ export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
 const StringMatcherSliceCodec = t.array(StringMatcherCodec);
 export type StringMatcherSlice = t.TypeOf<typeof StringMatcherSliceCodec>;
 
-const StringMatcherMapCodec = t.dictionary(t.string, StringMatcherCodec);
+const StringMatcherMapCodec = t.record(t.string, StringMatcherCodec);
 export type StringMatcherMap = t.TypeOf<typeof StringMatcherMapCodec>;
 
-const MultimapMatcherCodec = t.dictionary(t.string, StringMatcherSliceCodec);
+const MultimapMatcherCodec = t.record(t.string, StringMatcherSliceCodec);
 export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
 
 const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);
@@ -53,7 +53,7 @@ export type EntryContext = t.TypeOf<typeof EntryContextCodec>;
 const EntryRequestCodec = t.type({
   path: t.string,
   method: t.string,
-  body: t.union([t.any, t.undefined]),
+  body: t.union([t.unknown, t.undefined]),
   query_params: t.union([MultimapCodec, t.undefined]),
   headers: t.union([MultimapCodec, t.undefined]),
   date: t.string,
@@ -62,7 +62,7 @@ export type EntryRequest = t.TypeOf<typeof EntryRequestCodec>;
 
 const EntryResponseCodec = t.type({
   status: t.number,
-  body: t.union([t.undefined, t.any]),
+  body: t.union([t.unknown, t.undefined]),
   headers: t.union([MultimapCodec, t.undefined]),
   date: t.string,
 });

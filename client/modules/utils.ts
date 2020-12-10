@@ -16,7 +16,7 @@ import {
 } from "./types";
 
 export const entryToCurl = (historyEntry: Entry): string => {
-  const escape = (unsafe: string) => unsafe.replace(/'/g, "\\'");
+  const escapeQuote = (unsafe: string) => unsafe.replace(/'/g, "\\'");
 
   const command = ["curl"];
   let host = "";
@@ -39,7 +39,7 @@ export const entryToCurl = (historyEntry: Entry): string => {
         }
 
         return values.map(
-          (value) => `--header '${escape(key)}: ${escape(value)}'`
+          (value) => `--header '${escapeQuote(key)}: ${escapeQuote(value)}'`
         );
       })
     );
@@ -56,11 +56,13 @@ export const entryToCurl = (historyEntry: Entry): string => {
       .join("&");
   }
   command.push(
-    `'${escape(host)}${escape(request.path)}${escape(queryString)}'`
+    `'${escapeQuote(host)}${escapeQuote(request.path)}${escapeQuote(
+      queryString
+    )}'`
   );
 
   if (request.body) {
-    command.push(`--data '${escape(JSON.stringify(request.body))}'`);
+    command.push(`--data '${escapeQuote(JSON.stringify(request.body))}'`);
   }
 
   return command.join(" ");
@@ -152,7 +154,7 @@ export const formatQueryParams = (
   if (!params) {
     return "";
   }
-  const res =
+  return (
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
@@ -167,15 +169,15 @@ export const formatQueryParams = (
         });
         return acc;
       }, [])
-      .join("&");
-  return res;
+      .join("&")
+  );
 };
 
 export const formatHeaderValue = (headerValue?: StringMatcherSlice): string => {
   if (!headerValue) {
     return "";
   }
-  const res = headerValue
+  return headerValue
     .reduce((acc: string[], v) => {
       const param =
         v.matcher !== defaultMatcher
@@ -185,7 +187,6 @@ export const formatHeaderValue = (headerValue?: StringMatcherSlice): string => {
       return acc;
     }, [])
     .join(", ");
-  return res;
 };
 
 export const trimedPath = trimEnd(window.basePath, "/");
@@ -220,6 +221,7 @@ export function usePoll<K, V>(
       const id = setInterval(poll, delay);
       return () => clearInterval(id);
     }
+    return undefined;
   }, [delay, polling, init, pollParams]);
 
   const togglePollingCb = React.useCallback(() => {

@@ -34,7 +34,7 @@ default: start
 
 REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
-	go get github.com/cespare/reflex
+	cd /tmp; go get github.com/cespare/reflex
 
 GOLANGCILINTVERSION:=1.32.0
 GOLANGCILINT=$(GOPATH)/bin/golangci-lint
@@ -51,7 +51,7 @@ $(GOCOVMERGE):
 
 CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
-	go get github.com/caddyserver/caddy/v2/...
+	cd /tmp; go get github.com/caddyserver/caddy/v2/...
 
 .PHONY: start
 start: $(REFLEX)

@@ -28,12 +28,12 @@ import { AppState } from "~modules/reducers";
 import {
   dateFormat,
   defaultMatcher,
-  Error,
   Mock,
   MockDynamicResponse,
   MockRequest,
   MockResponse,
   Mocks,
+  SmockerError,
   StringMatcher,
   StringMatcherMap,
 } from "~modules/types";
@@ -64,7 +64,7 @@ const renderTimes = (count: number, expected?: number) => {
 
 const emptyResponse: unknown = {};
 
-const MockResponse = ({ mock }: { mock: Mock }) => {
+const MockResponseComponent = ({ mock }: { mock: Mock }) => {
   const { response: resp, context, state } = mock;
   const response = resp ? resp : (emptyResponse as MockResponse);
 
@@ -93,7 +93,7 @@ const MockResponse = ({ mock }: { mock: Mock }) => {
   );
 };
 
-const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
+const MockDynamicResponseComponent = ({ mock }: { mock: Mock }) => {
   const { dynamic_response, context, state } = mock;
   const response = dynamic_response
     ? dynamic_response
@@ -115,7 +115,7 @@ const MockDynamicResponse = ({ mock }: { mock: Mock }) => {
   );
 };
 
-const MockProxy = ({ mock }: { mock: Mock }) => {
+const MockProxyComponent = ({ mock }: { mock: Mock }) => {
   const { proxy, context, state } = mock;
   const host = proxy ? proxy.host : "";
   return (
@@ -133,7 +133,7 @@ const MockProxy = ({ mock }: { mock: Mock }) => {
   );
 };
 
-const MockRequest = ({ request }: { request: MockRequest }) => {
+const MockRequestComponent = ({ request }: { request: MockRequest }) => {
   const showMethodMatcher = request.method.matcher !== defaultMatcher;
   const showPathMatcher = request.path.matcher !== defaultMatcher;
   const isBodyStringMatcher = isStringMatcher(request.body);
@@ -197,7 +197,7 @@ const MockRequest = ({ request }: { request: MockRequest }) => {
   );
 };
 
-const Mock = ({
+const MockComponent = ({
   mock,
   canPoll,
   loading,
@@ -244,16 +244,16 @@ const Mock = ({
         </span>
       </div>
       <div className="content">
-        <MockRequest request={mock.request} />
-        {mock.response && <MockResponse mock={mock} />}
-        {mock.dynamic_response && <MockDynamicResponse mock={mock} />}
-        {mock.proxy && <MockProxy mock={mock} />}
+        <MockRequestComponent request={mock.request} />
+        {mock.response && <MockResponseComponent mock={mock} />}
+        {mock.dynamic_response && <MockDynamicResponseComponent mock={mock} />}
+        {mock.proxy && <MockProxyComponent mock={mock} />}
       </div>
     </div>
   );
 };
 
-const NewMock = ({
+const NewMockComponent = ({
   display,
   defaultValue,
   onSave,
@@ -309,7 +309,7 @@ interface Props {
   canPoll: boolean;
   mocks: Mocks;
   mockEditor: [boolean, string];
-  error: Error | null;
+  error: SmockerError | null;
   fetch: (sessionID: string) => unknown;
   addMocks: (mocks: string) => unknown;
   lockMock: (mockID: string) => unknown;
@@ -317,7 +317,7 @@ interface Props {
   setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
 }
 
-const Mocks = ({
+const MocksComponent = ({
   sessionID,
   loading,
   canPoll,
@@ -392,7 +392,7 @@ const Mocks = ({
       <>
         {pagination}
         {paginatedMocks.map((mock) => (
-          <Mock
+          <MockComponent
             key={`mock-${mock.state.id}`}
             mock={mock}
             canPoll={canPoll}
@@ -454,7 +454,7 @@ const Mocks = ({
         </Spin>
       </PageHeader>
       {displayNewMock && (
-        <NewMock
+        <NewMockComponent
           display={displayNewMock}
           defaultValue={mockEditor[1]}
           onSave={handleSaveNewMock}
@@ -490,4 +490,4 @@ export default connect(
     setDisplayNewMock: (display: boolean, defaultValue: string) =>
       dispatch(actions.openMockEditor([display, defaultValue])),
   })
-)(Mocks);
+)(MocksComponent);

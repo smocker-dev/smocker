@@ -7,12 +7,12 @@ import { trimedPath } from "~modules/utils";
 import { Actions, actions } from "./actions";
 import {
   decode,
-  Error,
   GraphHistoryCodec,
   HistoryCodec,
   MocksCodec,
   SessionCodec,
   SessionsCodec,
+  SmockerError,
 } from "./types";
 
 const {
@@ -29,7 +29,10 @@ const {
   reset,
 } = actions;
 
-const extractError = (error: AjaxResponse | AjaxError | Error) => {
+const ContentTypeJSON = "application/json";
+const ContentTypeYAML = "application/x-yaml";
+
+const extractError = (error: AjaxResponse | AjaxError | SmockerError) => {
   const ajaxError = error as AjaxResponse | AjaxError;
   return {
     message:
@@ -44,7 +47,7 @@ const fetchSessionsEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf([fetchSessions.request, reset.success])),
     exhaustMap(() =>
-      ajax.get(trimedPath + "/sessions/summary").pipe(
+      ajax.get(`${trimedPath}/sessions/summary`).pipe(
         mergeMap(({ response }) =>
           decode(SessionsCodec)(response).pipe(
             map((resp) => fetchSessions.success(resp))
@@ -59,7 +62,7 @@ const newSessionEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(newSession.request)),
     exhaustMap(() =>
-      ajax.post(trimedPath + "/sessions").pipe(
+      ajax.post(`${trimedPath}/sessions`).pipe(
         mergeMap(({ response }) =>
           decode(SessionCodec)(response).pipe(
             map((resp) => newSession.success(resp))
@@ -75,8 +78,8 @@ const updateSessionEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(updateSession.request)),
     exhaustMap((action) =>
       ajax
-        .put(trimedPath + "/sessions", action.payload, {
-          "Content-Type": "application/json",
+        .put(`${trimedPath}/sessions`, action.payload, {
+          "Content-Type": ContentTypeJSON,
         })
         .pipe(
           mergeMap(({ response }) =>
@@ -94,8 +97,8 @@ const uploadSessionsEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(uploadSessions.request)),
     exhaustMap((action) =>
       ajax
-        .post(trimedPath + "/sessions/import", action.payload, {
-          "Content-Type": "application/json",
+        .post(`${trimedPath}/sessions/import`, action.payload, {
+          "Content-Type": ContentTypeJSON,
         })
         .pipe(
           mergeMap(({ response }) =>
@@ -113,7 +116,7 @@ const fetchHistoryEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(fetchHistory.request)),
     exhaustMap((action) => {
       const query = action.payload ? `?session=${action.payload}` : "";
-      return ajax.get(trimedPath + "/history" + query).pipe(
+      return ajax.get(`${trimedPath}/history${query}`).pipe(
         mergeMap(({ response }) =>
           decode(HistoryCodec)(response).pipe(
             map((resp) => fetchHistory.success(resp))
@@ -129,7 +132,7 @@ const summarizeHistoryEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(summarizeHistory.request)),
     exhaustMap((action) => {
       const query = `?session=${action.payload.sessionID}&src=${action.payload.src}&dest=${action.payload.dest}`;
-      return ajax.get(trimedPath + "/history/summary" + query).pipe(
+      return ajax.get(`${trimedPath}/history/summary${query}`).pipe(
         mergeMap(({ response }) =>
           decode(GraphHistoryCodec)(response).pipe(
             map((resp) => summarizeHistory.success(resp))
@@ -145,7 +148,7 @@ const fetchMocksEpic: Epic<Actions> = (action$) =>
     filter(isActionOf([fetchMocks.request, addMocks.success])),
     exhaustMap((action) => {
       const query = action.payload ? `?session=${action.payload}` : "";
-      return ajax.get(trimedPath + "/mocks" + query).pipe(
+      return ajax.get(`${trimedPath}/mocks${query}`).pipe(
         mergeMap(({ response }) =>
           decode(MocksCodec)(response).pipe(
             map((resp) => fetchMocks.success(resp))
@@ -161,8 +164,8 @@ const addMocksEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(addMocks.request)),
     exhaustMap((action) =>
       ajax
-        .post(trimedPath + "/mocks", action.payload.mocks, {
-          "Content-Type": "application/x-yaml",
+        .post(`${trimedPath}/mocks`, action.payload.mocks, {
+          "Content-Type": ContentTypeYAML,
         })
         .pipe(
           map(() => addMocks.success()),
@@ -176,8 +179,8 @@ const lockMocksEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(lockMocks.request)),
     exhaustMap((action) => {
       return ajax
-        .post(trimedPath + "/mocks/lock", action.payload, {
-          "Content-Type": "application/json",
+        .post(`${trimedPath}/mocks/lock`, action.payload, {
+          "Content-Type": ContentTypeJSON,
         })
         .pipe(
           mergeMap(({ response }) => {
@@ -197,8 +200,8 @@ const unlockMocksEpic: Epic<Actions> = (action$) =>
     filter(isActionOf(unlockMocks.request)),
     exhaustMap((action) => {
       return ajax
-        .post(trimedPath + "/mocks/unlock", action.payload, {
-          "Content-Type": "application/json",
+        .post(`${trimedPath}/mocks/unlock`, action.payload, {
+          "Content-Type": ContentTypeJSON,
         })
         .pipe(
           mergeMap(({ response }) => {
@@ -217,7 +220,7 @@ const resetEpic: Epic<Actions> = (action$) =>
   action$.pipe(
     filter(isActionOf(reset.request)),
     exhaustMap(() =>
-      ajax.post(trimedPath + "/reset").pipe(
+      ajax.post(`${trimedPath}/reset`).pipe(
         map(() => reset.success()),
         catchError((error) => of(reset.failure(extractError(error))))
       )

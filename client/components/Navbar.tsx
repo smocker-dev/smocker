@@ -23,8 +23,8 @@ const Navbar = (): JSX.Element => {
         >
           <Menu.Item key="/pages/history">
             <Link
-              to={(location) => ({
-                ...cleanQueryParams(location),
+              to={(loc) => ({
+                ...cleanQueryParams(loc),
                 pathname: "/pages/history",
               })}
             >
@@ -33,8 +33,8 @@ const Navbar = (): JSX.Element => {
           </Menu.Item>
           <Menu.Item key="/pages/mocks">
             <Link
-              to={(location) => ({
-                ...cleanQueryParams(location),
+              to={(loc) => ({
+                ...cleanQueryParams(loc),
                 pathname: "/pages/mocks",
               })}
             >
