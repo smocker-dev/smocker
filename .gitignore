@@ -1,4 +1,5 @@
 .cache/
+.DS_Store
 .vscode/
 build/
 client/dist/

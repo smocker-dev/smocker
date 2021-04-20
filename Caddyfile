@@ -1,4 +1,4 @@
 http://localhost:8082 {
-    uri strip_prefix /smocker
-    reverse_proxy localhost:8081
+  uri strip_prefix /smocker
+  reverse_proxy localhost:8081
 }

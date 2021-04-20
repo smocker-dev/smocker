@@ -11,6 +11,7 @@ import {
   PageHeader,
   Pagination,
   Row,
+  Select,
   Spin,
   Tag,
   Typography,
@@ -193,6 +194,7 @@ const HistoryComponent = ({
     "history.order.by.entry.field",
     "response"
   );
+  const [filter, setFilter] = useLocalStorage("history.filter", "all");
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
@@ -216,10 +218,20 @@ const HistoryComponent = ({
       historyEntry,
       `${entryField}.date`,
       order as "asc" | "desc"
-    ).slice(
-      Math.max((page - 1) * pageSize, 0),
-      Math.min(page * pageSize, historyEntry.length)
-    );
+    )
+      .slice(
+        Math.max((page - 1) * pageSize, 0),
+        Math.min(page * pageSize, historyEntry.length)
+      )
+      .filter((entry) => {
+        if (filter === "http-errors") {
+          return entry.response.status >= 400 && entry.response.status <= 599;
+        }
+        if (filter === "smocker-errors") {
+          return entry.response.status >= 600 && entry.response.status <= 699;
+        }
+        return true;
+      });
     const handleDisplayNewMock = (entry: Entry) => () => {
       const request = cleanupRequest(entry);
       const response =
@@ -274,6 +286,7 @@ const HistoryComponent = ({
   const onSort = () =>
     setEntryField(entryField === "request" ? "response" : "request");
   const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
+  const onFilter = (value: string) => setFilter(value);
   return (
     <div className="history" ref={ref}>
       <PageHeader
@@ -319,7 +332,24 @@ const HistoryComponent = ({
           <Button onClick={onSortDate} type="link">
             {order === "asc" ? "oldest" : "newest"}
           </Button>
-          are displayed first.
+          are displayed first. Show
+          <Select
+            defaultValue={filter}
+            bordered={false}
+            showArrow={false}
+            className="ant-btn-link"
+            dropdownStyle={{
+              minWidth: 180, // required to allow all the text to fit in the dropdown
+            }}
+            onChange={onFilter}
+          >
+            <Select.Option value="all">everything</Select.Option>
+            <Select.Option value="http-errors">HTTP errors only</Select.Option>
+            <Select.Option value="smocker-errors">
+              Smocker errors only
+            </Select.Option>
+          </Select>
+          .
         </p>
         <Spin delay={300} spinning={loading && historyEntry.length === 0}>
           {body}
