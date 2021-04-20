@@ -76,14 +76,14 @@
     "ts-jest": "^26.1.1",
     "tslib": "^2.0.0",
     "typescript": "^3.8.3",
-    "vuepress": "^1.5.2",
-    "vuepress-plugin-fulltext-search": "^2.0.3",
-    "vuepress-plugin-mermaidjs": "^1.2.0",
-    "vuepress-plugin-one-click-copy": "^1.0.1",
+    "vuepress": "^1.8.2",
+    "vuepress-plugin-fulltext-search": "^2.2.0",
+    "vuepress-plugin-mermaidjs": "^1.8.1",
+    "vuepress-plugin-one-click-copy": "^1.0.3",
     "vuepress-plugin-zooming": "^1.1.7"
   },
   "peerDependencies": {
-    "puppeteer": "^5.5.0"
+    "puppeteer": "^8.0.0"
   },
   "resolutions": {
     "@types/react": "16.9.41"
