@@ -334,7 +334,7 @@ const HistoryComponent = ({
           </Button>
           are displayed first. Show
           <Select
-            defaultValue="all"
+            defaultValue={filter}
             bordered={false}
             showArrow={false}
             className="ant-btn-link"
