@@ -23,6 +23,14 @@
     }
   }
 
+  // These rules are used for the inline filters (sort by, filter, etc.)
+  .ant-btn-link {
+    padding: 6px;
+    .ant-select-selector {
+      padding: 0;
+    }
+  }
+
   .entry {
     border-radius: 3px;
     background-color: white;
