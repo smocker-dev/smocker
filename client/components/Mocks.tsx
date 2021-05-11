@@ -281,7 +281,11 @@ const NewMockComponent = ({
       footer={
         <div className="action buttons">
           <Button onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} type="primary">
+          <Button
+            onClick={handleSubmit}
+            type="primary"
+            className="save-mock-button"
+          >
             Save
           </Button>
         </div>

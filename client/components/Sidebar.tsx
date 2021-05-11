@@ -121,9 +121,9 @@ const SideBar = ({
 
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
-  const onSelect = ({ key }: { key: string }) => {
+  const onSelect = ({ key }: { key: React.Key }) => {
     if (key !== "new" && key !== "reset") {
-      handleSelectSession(key);
+      handleSelectSession(key as string);
     } else {
       setQueryParams({ session: "" });
     }

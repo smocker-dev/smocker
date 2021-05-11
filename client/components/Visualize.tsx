@@ -19,7 +19,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import { Dispatch } from "redux";
-import { useDebounce } from "use-lodash-debounce";
+import { useDebounce } from "use-debounce";
 import { Actions, actions } from "~modules/actions";
 import { AppState } from "~modules/reducers";
 import { GraphHistory } from "~modules/types";
@@ -82,7 +82,7 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   );
   const [editGraph, setEditGraph] = React.useState(false);
   const [svg, setSVG] = React.useState("");
-  const debouncedDiagram = useDebounce(diagram, 1000);
+  const [debouncedDiagram] = useDebounce(diagram, 1000);
 
   React.useEffect(() => {
     setDiagram(computeGraph(graph));

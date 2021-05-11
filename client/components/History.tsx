@@ -243,7 +243,7 @@ const HistoryComponent = ({
               headers: { "Content-Type": "application/json" },
               body: "",
             };
-      return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
+      return setDisplayNewMock(true, yaml.dump([{ request, response }]));
     };
     const onChangePage = (p: number) => setPage(p);
     const onChangePageSize = (p: number, ps: number) => {
@@ -323,7 +323,7 @@ const HistoryComponent = ({
         <p>
           This is the history of the requests made during the selected session.
         </p>
-        <p>
+        <div>
           Entries are sorted by
           <Button onClick={onSort} type="link">
             {entryField}
@@ -334,7 +334,8 @@ const HistoryComponent = ({
           </Button>
           are displayed first. Show
           <Select
-            defaultValue={filter}
+            defaultValue="all"
+            value={filter}
             bordered={false}
             showArrow={false}
             className="ant-btn-link"
@@ -350,7 +351,7 @@ const HistoryComponent = ({
             </Select.Option>
           </Select>
           .
-        </p>
+        </div>
         <Spin delay={300} spinning={loading && historyEntry.length === 0}>
           {body}
         </Spin>

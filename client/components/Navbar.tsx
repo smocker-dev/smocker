@@ -21,7 +21,7 @@ const Navbar = (): JSX.Element => {
           theme="dark"
           mode="horizontal"
         >
-          <Menu.Item key="/pages/history">
+          <Menu.Item key="/pages/history" className="history-item">
             <Link
               to={(loc) => ({
                 ...cleanQueryParams(loc),
@@ -31,7 +31,7 @@ const Navbar = (): JSX.Element => {
               History
             </Link>
           </Menu.Item>
-          <Menu.Item key="/pages/mocks">
+          <Menu.Item key="/pages/mocks" className="mocks-item">
             <Link
               to={(loc) => ({
                 ...cleanQueryParams(loc),
@@ -41,7 +41,7 @@ const Navbar = (): JSX.Element => {
               Mocks
             </Link>
           </Menu.Item>
-          <Menu.Item>
+          <Menu.Item className="documentation-item">
             <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
               Documentation
             </a>
