@@ -8,6 +8,7 @@ const analytics = process.env.GA_ID
 module.exports = {
   title: "Smocker",
   description: "Smocker is a simple and efficient HTTP mock server.",
+  globalUIComponents: ["CookieLaw"],
   head: [
     [
       "link",

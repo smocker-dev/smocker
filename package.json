@@ -76,6 +76,7 @@
     "ts-jest": "^26.1.1",
     "tslib": "^2.0.0",
     "typescript": "^3.8.3",
+    "vue-cookie-law": "^1.13.3",
     "vuepress": "^1.8.2",
     "vuepress-plugin-fulltext-search": "^2.2.0",
     "vuepress-plugin-mermaidjs": "^1.8.1",
