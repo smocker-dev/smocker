@@ -169,7 +169,7 @@ interface Props {
   sessionID: string;
   loading: boolean;
   canPoll: boolean;
-  historyEntry: History;
+  historyEntries: History;
   error: SmockerError | null;
   fetch: (sessionID: string) => unknown;
   setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
@@ -177,7 +177,7 @@ interface Props {
 
 const HistoryComponent = ({
   sessionID,
-  historyEntry,
+  historyEntries,
   loading,
   canPoll,
   error,
@@ -188,16 +188,20 @@ const HistoryComponent = ({
     document.title = "History | Smocker";
   });
 
-  const minPageSize = 10;
+  // Filters and order
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
     "history.order.by.entry.field",
     "response"
   );
   const [filter, setFilter] = useLocalStorage("history.filter", "all");
+
+  // Pagination
+  const minPageSize = 10;
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
   const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
+
   const ref = React.createRef<HTMLDivElement>();
   React.useLayoutEffect(() => {
     if (ref.current) {
@@ -207,86 +211,99 @@ const HistoryComponent = ({
       });
     }
   }, [page, pageSize]);
-  const isEmpty = historyEntry.length === 0;
+
   let body = null;
   if (error) {
     body = <Alert message={error.message} type="error" />;
-  } else if (isEmpty) {
-    body = <Empty description="The history is empty." />;
   } else {
-    const entries = orderBy(
-      historyEntry,
+    const filteredEntries = orderBy(
+      historyEntries,
       `${entryField}.date`,
       order as "asc" | "desc"
-    )
-      .slice(
-        Math.max((page - 1) * pageSize, 0),
-        Math.min(page * pageSize, historyEntry.length)
-      )
-      .filter((entry) => {
-        if (filter === "http-errors") {
-          return entry.response.status >= 400 && entry.response.status <= 599;
-        }
-        if (filter === "smocker-errors") {
-          return entry.response.status >= 600 && entry.response.status <= 699;
-        }
-        return true;
-      });
-    const handleDisplayNewMock = (entry: Entry) => () => {
-      const request = cleanupRequest(entry);
-      const response =
-        entry.response.status < 600
-          ? cleanupResponse(entry)
-          : {
-              // Sane default response
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-              body: "",
-            };
-      return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
-    };
-    const onChangePage = (p: number) => setPage(p);
-    const onChangePageSize = (p: number, ps: number) => {
-      setPage(p);
-      setPageSize(ps);
-    };
-    const pagination = (
-      <Row justify="space-between" align="middle" className="container">
-        <div>
-          <Pagination
-            hideOnSinglePage={historyEntry.length <= minPageSize}
-            showSizeChanger
-            pageSize={pageSize}
-            current={page}
-            onChange={onChangePage}
-            onShowSizeChange={onChangePageSize}
-            total={historyEntry.length}
+    ).filter((entry) => {
+      if (filter === "http-errors") {
+        return entry.response.status >= 400 && entry.response.status <= 599;
+      }
+      if (filter === "smocker-errors") {
+        return entry.response.status >= 600 && entry.response.status <= 699;
+      }
+      return true;
+    });
+
+    if (filteredEntries.length === 0) {
+      if (filter === "http-errors") {
+        body = <Empty description="No HTTP errors in the history." />;
+      } else if (filter === "smocker-errors") {
+        body = <Empty description="No Smocker errors in the history." />;
+      } else {
+        body = <Empty description="The history is empty." />;
+      }
+    } else {
+      const handleDisplayNewMock = (entry: Entry) => () => {
+        const request = cleanupRequest(entry);
+        const response =
+          entry.response.status < 600
+            ? cleanupResponse(entry)
+            : {
+                // Sane default response
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+                body: "",
+              };
+        return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
+      };
+      const onChangePage = (p: number) => setPage(p);
+      const onChangePageSize = (p: number, ps: number) => {
+        setPage(p);
+        setPageSize(ps);
+      };
+      const pagination = (
+        <Row justify="space-between" align="middle" className="container">
+          <div>
+            <Pagination
+              hideOnSinglePage={filteredEntries.length <= minPageSize}
+              showSizeChanger
+              pageSize={pageSize}
+              current={page}
+              onChange={onChangePage}
+              onShowSizeChange={onChangePageSize}
+              total={filteredEntries.length}
+            />
+          </div>
+          <Spin
+            spinning={loading}
+            className={filteredEntries.length <= minPageSize ? "absolute" : ""}
           />
-        </div>
-        <Spin
-          spinning={loading}
-          className={historyEntry.length <= minPageSize ? "absolute" : ""}
-        />
-      </Row>
-    );
-    body = (
-      <>
-        {pagination}
-        {entries.map((entry, index) => (
-          <EntryComponent
-            key={`entry-${index}`}
-            value={entry}
-            handleDisplayNewMock={handleDisplayNewMock(entry)}
-          />
-        ))}
-        {historyEntry.length > minPageSize && pagination}
-      </>
-    );
+        </Row>
+      );
+      body = (
+        <>
+          {pagination}
+          {filteredEntries
+            .slice(
+              Math.max((page - 1) * pageSize, 0),
+              Math.min(page * pageSize, filteredEntries.length)
+            )
+            .map((entry, index) => (
+              <EntryComponent
+                key={`entry-${index}`}
+                value={entry}
+                handleDisplayNewMock={handleDisplayNewMock(entry)}
+              />
+            ))}
+          {filteredEntries.length > minPageSize && pagination}
+        </>
+      );
+    }
   }
+
   const onSort = () =>
     setEntryField(entryField === "request" ? "response" : "request");
   const onSortDate = () => setOrder(order === "asc" ? "desc" : "asc");
-  const onFilter = (value: string) => setFilter(value);
+  const onFilter = (value: string) => {
+    setPage(1);
+    setFilter(value);
+  };
   return (
     <div className="history" ref={ref}>
       <PageHeader
@@ -351,7 +368,7 @@ const HistoryComponent = ({
           </Select>
           .
         </p>
-        <Spin delay={300} spinning={loading && historyEntry.length === 0}>
+        <Spin delay={300} spinning={loading && historyEntries.length === 0}>
           {body}
         </Spin>
       </PageHeader>
@@ -369,7 +386,7 @@ export default connect(
     return {
       sessionID: sessions.selected,
       loading: history.loading,
-      historyEntry: history.list,
+      historyEntries: history.list,
       error: history.error,
       canPoll,
     };
