@@ -1,10 +1,5 @@
 const path = require("path");
 
-// Optionally add google-analytics plugin if the environment variable is present
-const analytics = process.env.GA_ID
-  ? [["@vuepress/google-analytics", { ga: process.env.GA_ID }]]
-  : [];
-
 module.exports = {
   title: "Smocker",
   description: "Smocker is a simple and efficient HTTP mock server.",
@@ -105,7 +100,6 @@ module.exports = {
     ],
   },
   plugins: [
-    ...analytics,
     "fulltext-search",
     "vuepress-plugin-mermaidjs",
     [
