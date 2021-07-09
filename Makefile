@@ -34,20 +34,21 @@ default: start
 
 REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
-	cd /tmp; go get github.com/cespare/reflex
+	go install github.com/cespare/reflex@latest
 
 GOLANGCILINTVERSION:=1.32.0
 GOLANGCILINT=$(GOPATH)/bin/golangci-lint
 $(GOLANGCILINT):
 	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
 
+VENOMVERSION:=v1.0.0-rc.6
 VENOM=$(GOPATH)/bin/venom
 $(VENOM):
-	go install github.com/ovh/venom/cli/venom
+	go install github.com/ovh/venom/cmd/venom@$(VENOMVERSION)
 
 GOCOVMERGE=$(GOPATH)/bin/gocovmerge
 $(GOCOVMERGE):
-	go install github.com/wadey/gocovmerge
+	go install github.com/wadey/gocovmerge@latest
 
 CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
