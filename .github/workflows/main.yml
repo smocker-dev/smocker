@@ -115,12 +115,12 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: smocker-bin
-          path: ./build/smocker.tar.gz
+          path: ./build
 
       - uses: actions/download-artifact@v2
         with:
           name: smocker-docker
-          path: /tmp/smocker.tar
+          path: /tmp
 
       - run: make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} load-docker
 
