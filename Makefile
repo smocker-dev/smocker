@@ -139,6 +139,15 @@ start-release: clean build/smocker.tar.gz
 start-caddy: $(CADDY)
 	$(CADDY) run
 
+.PHONY: save-docker
+save-docker:
+	docker save --output /tmp/smocker.tar $(DOCKER_IMAGE):latest
+
+.PHONY: load-docker
+load-docker:
+	docker load --input /tmp/smocker.tar
+	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
+
 .PHONY: deploy-docker
 deploy-docker:
 	docker push $(DOCKER_IMAGE):latest
