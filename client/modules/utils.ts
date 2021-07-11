@@ -113,7 +113,40 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   request = omit(request, "date") as EntryRequest;
   request = omit(request, "origin") as EntryRequest;
   request = pickBy(request) as EntryRequest; // remove nulls
+  if (typeof request.body === "object" && request.body !== null) {
+    request.body = bodyMatcherToPaths(request.body);
+  }
   return request;
+};
+
+// Convert a body matcher to a list of paths compatible with objx:
+//  - keys are dot separated
+//  - array indices are accessed with []
+// Example: foo.bar[0].baz represents a key of the following object:
+//   {"foo": {"bar": [{"baz": "Hello"}]}}
+export const bodyMatcherToPaths = (
+  bodyMatcher: unknown | Record<string, unknown>,
+  currentPath = "",
+  result = {}
+): Record<string, unknown> => {
+  if (Array.isArray(bodyMatcher)) {
+    bodyMatcher.forEach((item, index) => {
+      bodyMatcherToPaths(item, `${currentPath}[${index}]`, result);
+    });
+    return result;
+  } else if (typeof bodyMatcher === "object" && bodyMatcher !== null) {
+    Object.entries(bodyMatcher).forEach(([key, value]) => {
+      bodyMatcherToPaths(
+        value,
+        currentPath ? `${currentPath}.${key}` : `${key}`,
+        result
+      );
+    });
+    return result;
+  } else {
+    result[currentPath] = bodyMatcher;
+    return result;
+  }
 };
 
 export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
