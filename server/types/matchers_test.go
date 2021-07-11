@@ -32,15 +32,15 @@ func TestStringMatcherJSON(t *testing.T) {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 
-	test = `{"matcher":"test","value":"test2"}`
+	test = `{"matcher":"ShouldEqual","value":"test2"}`
 	serialized = test
 	res = StringMatcher{}
 	if err = json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
 	}
 
-	if res.Matcher != "test" {
-		t.Fatalf("matcher %s should be equal to %s", res.Matcher, "test")
+	if res.Matcher != "ShouldEqual" {
+		t.Fatalf("matcher %s should be equal to %s", res.Matcher, "ShouldEqual")
 	}
 	if res.Value != "test2" {
 		t.Fatalf("value %s should be equal to %s", res.Value, "test2")
@@ -74,14 +74,14 @@ func TestStringMatcherYAML(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	test = `{"matcher":"test","value":"test2"}`
+	test = `{"matcher":"ShouldEqual","value":"test2"}`
 	res = StringMatcher{}
 	if err := yaml.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
 	}
 
-	if res.Matcher != "test" {
-		t.Fatalf("matcher %s should be equal to %s", res.Matcher, "test")
+	if res.Matcher != "ShouldEqual" {
+		t.Fatalf("matcher %s should be equal to %s", res.Matcher, "ShouldEqual")
 	}
 	if res.Value != "test2" {
 		t.Fatalf("value %s should be equal to %s", res.Value, "test2")
@@ -128,20 +128,20 @@ func TestMultiMapMatcherJSON(t *testing.T) {
 		t.Fatalf("serialized value %s should be equal to %s", string(b), test)
 	}
 
-	test = `{"test":{"matcher":"test2","value":"test3"}}`
-	serialized = `{"test":[{"matcher":"test2","value":"test3"}]}`
+	test = `{"test":{"matcher":"ShouldEqual","value":"test3"}}`
+	serialized = `{"test":[{"matcher":"ShouldEqual","value":"test3"}]}`
 	res = MultiMapMatcher{}
 	if err = json.Unmarshal([]byte(test), &res); err != nil {
 		t.Fatal(err)
 	}
 
-	if res["test"][0].Matcher != "test2" {
-		t.Fatalf("matcher %s should be equal to %s", res["test"][0].Matcher, "test")
+	if res["test"][0].Matcher != "ShouldEqual" {
+		t.Fatalf("matcher %s should be equal to %s", res["test"][0].Matcher, "ShouldEqual")
 	}
 
 	expected = MultiMapMatcher{
 		"test": {
-			{Matcher: "test2", Value: "test3"},
+			{Matcher: "ShouldEqual", Value: "test3"},
 		},
 	}
 

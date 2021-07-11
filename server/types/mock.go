@@ -45,7 +45,6 @@ func (m *Mock) Validate() error {
 	if m.Request.Path.Value == "" {
 		m.Request.Path.Matcher = "ShouldMatch"
 		m.Request.Path.Value = ".*"
-
 	}
 
 	m.Request.Method.Value = strings.TrimSpace(m.Request.Method.Value)

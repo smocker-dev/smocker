@@ -91,6 +91,20 @@ type StringMatcher struct {
 	Value   string `json:"value" yaml:"value,flow"`
 }
 
+func (sm StringMatcher) Validate() error {
+	if _, ok := asserts[sm.Matcher]; !ok {
+		return fmt.Errorf("invalid matcher %q", sm.Matcher)
+	}
+
+	// Try to compile ShouldMatch regular expressions
+	if sm.Matcher == "ShouldMatch" || sm.Matcher == "ShouldNotMatch" {
+		if _, err := regexp.Compile(sm.Value); err != nil {
+			return fmt.Errorf("invalid regular expression provided to %q operator: %v", sm.Matcher, sm.Value)
+		}
+	}
+	return nil
+}
+
 func (sm StringMatcher) Match(value string) bool {
 	matcher := asserts[sm.Matcher]
 	if matcher == nil {
@@ -125,7 +139,7 @@ func (sm *StringMatcher) UnmarshalJSON(data []byte) error {
 
 	sm.Matcher = res.Matcher
 	sm.Value = res.Value
-	return nil
+	return sm.Validate()
 }
 
 func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -147,7 +161,7 @@ func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 	sm.Matcher = res.Matcher
 	sm.Value = res.Value
-	return nil
+	return sm.Validate()
 }
 
 type StringMatcherSlice []StringMatcher
