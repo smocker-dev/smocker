@@ -1,4 +1,5 @@
 import { Collapse } from "antd";
+import { EditorConfiguration } from "codemirror";
 import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/comment-fold";
 import "codemirror/addon/fold/foldcode";
@@ -36,13 +37,20 @@ interface Props {
   onBeforeChange?: (value: string) => unknown;
 }
 
-const codeMirrorOptions = {
+const codeMirrorOptions: EditorConfiguration = {
   theme: "material",
   lineWrapping: true,
   readOnly: true,
   viewportMargin: Infinity,
   foldGutter: true,
   gutters: ["CodeMirror-foldgutter"],
+  indentWithTabs: false,
+  indentUnit: 2,
+  smartIndent: false,
+  extraKeys: {
+    // Insert spaces when using the Tab key
+    Tab: (cm) => cm.replaceSelection("  ", "end"),
+  },
 };
 
 const Code = ({
@@ -98,7 +106,7 @@ const Code = ({
         lineNumbers: true,
         lint: true,
         gutters: [
-          ...codeMirrorOptions.gutters,
+          ...(codeMirrorOptions?.gutters ?? []),
           "CodeMirror-linenumbers",
           "CodeMirror-lint-markers",
         ],
