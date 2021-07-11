@@ -1,5 +1,5 @@
 import { Entry } from "./types";
-import { entryToCurl } from "./utils";
+import { entryToCurl, bodyMatcherToPaths } from "./utils";
 
 const baseEntry: Entry = {
   context: {
@@ -118,5 +118,48 @@ describe("Generate curl command from:", () => {
       // FIXME: we shouldn't have the " if the client sent raw text
       `curl -XPOST '/test' --data '"value containing \\'single quotes\\'"'`
     );
+  });
+});
+
+describe("Generate paths from body matcher:", () => {
+  test("Nested array", () => {
+    const body = [{ foo: 0 }, { foo: 1 }];
+    const actual = {
+      body: bodyMatcherToPaths(body),
+    };
+    expect(actual).toMatchObject({
+      body: {
+        "[0].foo": 0,
+        "[1].foo": 1,
+      },
+    });
+  });
+
+  test("Nested object body", () => {
+    const body = {
+      foo: 3,
+      bar: ["a", "b"],
+      baz: {
+        level1: {
+          level2: {
+            foo: 3,
+            bar: ["a", "b"],
+          },
+        },
+      },
+    };
+    const actual = {
+      body: bodyMatcherToPaths(body),
+    };
+    expect(actual).toMatchObject({
+      body: {
+        foo: 3,
+        "bar[0]": "a",
+        "bar[1]": "b",
+        "baz.level1.level2.foo": 3,
+        "baz.level1.level2.bar[0]": "a",
+        "baz.level1.level2.bar[1]": "b",
+      },
+    });
   });
 });
