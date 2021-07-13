@@ -29,7 +29,9 @@
           "$ref": "#/definitions/proxy"
         }
       },
-      "required": ["request"]
+      "required": [
+        "request"
+      ]
     },
     "request": {
       "type": "object",
@@ -85,34 +87,7 @@
                     "type": "string"
                   },
                   {
-                    "type": "array",
-                    "items": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/definitions/string_matcher"
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "$ref": "#/definitions/string_matcher"
-            }
-          ]
-        },
-        "headers": {
-          "oneOf": [
-            {
-              "type": "object",
-              "additionalProperties": {
-                "oneOf": [
-                  {
-                    "type": "string"
+                    "$ref": "#/definitions/string_matcher"
                   },
                   {
                     "type": "array",
@@ -129,9 +104,36 @@
                   }
                 ]
               }
-            },
+            }
+          ]
+        },
+        "headers": {
+          "oneOf": [
             {
-              "$ref": "#/definitions/string_matcher"
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/string_matcher"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/string_matcher"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           ]
         }
@@ -167,7 +169,12 @@
       "properties": {
         "engine": {
           "type": "string",
-          "enum": ["go_template", "go_template_yaml", "go_template_json", "lua"]
+          "enum": [
+            "go_template",
+            "go_template_yaml",
+            "go_template_json",
+            "lua"
+          ]
         },
         "script": {
           "type": "string"
@@ -231,7 +238,10 @@
           "type": "string"
         }
       },
-      "required": ["matcher", "value"]
+      "required": [
+        "matcher",
+        "value"
+      ]
     },
     "headers": {
       "type": "object",
