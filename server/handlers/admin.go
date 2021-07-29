@@ -10,8 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const MIMEApplicationXYaml = "application/x-yaml"
-
 type Admin struct {
 	mocksServices  services.Mocks
 	graphsServices services.Graph
