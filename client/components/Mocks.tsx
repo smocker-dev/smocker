@@ -15,6 +15,7 @@ import {
   Pagination,
   Row,
   Spin,
+  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -45,6 +46,7 @@ import {
   usePoll,
 } from "../modules/utils";
 import Code from "./Code";
+import MockEditor from "./MockEditor";
 import "./Mocks.scss";
 
 const renderTimes = (count: number, expected?: number) => {
@@ -287,14 +289,21 @@ const NewMockComponent = ({
         </div>
       }
     >
-      <Form className="form">
-        <Code
-          value={mock}
-          language="yaml"
-          onBeforeChange={changeMock}
-          collapsible={false}
-        />
-      </Form>
+      <Tabs defaultActiveKey="1">
+        <Tabs.TabPane tab="Raw YAML Editor" key="1">
+          <Form className="form">
+            <Code
+              value={mock}
+              language="yaml"
+              onChange={changeMock}
+              collapsible={false}
+            />
+          </Form>
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Visual Editor" key="2">
+          <MockEditor />
+        </Tabs.TabPane>
+      </Tabs>
     </Drawer>
   );
 };
