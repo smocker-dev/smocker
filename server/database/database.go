@@ -1,9 +1,10 @@
 package database
 
 import (
-	"log"
 	"os"
 	"path"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/asdine/storm/v3"
 )
@@ -15,7 +16,7 @@ type DB interface {
 	SessionRepository
 	Begin() (DB, error)
 	Commit() error
-	Rollback() error
+	Rollback()
 	Close() error
 }
 
@@ -26,7 +27,7 @@ type client struct {
 
 // NewClient return interface of db
 func NewClient(directory string) DB {
-	os.MkdirAll(directory, os.ModePerm)
+	_ = os.MkdirAll(directory, os.ModePerm)
 	db, err := storm.Open(path.Join(directory, "smocker.db"))
 	if err != nil {
 		log.Fatal(err)
@@ -60,8 +61,10 @@ func (c *client) Commit() error {
 	return c.db.Commit()
 }
 
-func (c *client) Rollback() error {
-	return c.db.Rollback()
+func (c *client) Rollback() {
+	if err := c.db.Rollback(); err != nil {
+		log.WithField("error", err).Error("Unable to rollback transaction")
+	}
 }
 
 func (c *client) Close() error {

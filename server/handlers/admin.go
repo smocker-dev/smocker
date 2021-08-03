@@ -53,7 +53,9 @@ func (a *Admin) GetMocks(c echo.Context) error {
 
 func (a *Admin) AddMocks(c echo.Context) error {
 	if reset, _ := strconv.ParseBool(c.QueryParam("reset")); reset {
-		a.mocksServices.Reset(false)
+		if err := a.mocksServices.Reset(false); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
 	}
 
 	sessionName := c.QueryParam("session")
@@ -62,7 +64,9 @@ func (a *Admin) AddMocks(c echo.Context) error {
 		sessionName = c.QueryParam("newSession")
 	}
 	if sessionName != "" {
-		a.mocksServices.NewSession(sessionName)
+		if _, err := a.mocksServices.NewSession(sessionName); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
 	}
 
 	session, err := a.mocksServices.GetLastSession()
