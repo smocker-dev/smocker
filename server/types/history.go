@@ -15,6 +15,14 @@ import (
 
 const ContextKey = "Context"
 
+type MockType string
+
+const (
+	StaticMockType  MockType = "static"
+	DynamicMockType MockType = "dynamic"
+	ProxyMockType   MockType = "proxy"
+)
+
 type History []*Entry
 
 func (h History) Clone() History {
@@ -22,15 +30,17 @@ func (h History) Clone() History {
 }
 
 type Entry struct {
+	ID       string   `json:"id"`
 	Context  Context  `json:"context"`
 	Request  Request  `json:"request"`
 	Response Response `json:"response"`
 }
 
 type Context struct {
-	MockID   string `json:"mock_id,omitempty"`
-	MockType string `json:"mock_type,omitempty"`
-	Delay    string `json:"delay,omitempty"`
+	SessionID string   `json:"session_id,omitempty"`
+	MockID    string   `json:"mock_id,omitempty"`
+	MockType  MockType `json:"mock_type,omitempty"`
+	Delay     string   `json:"delay,omitempty"`
 }
 
 type Request struct {

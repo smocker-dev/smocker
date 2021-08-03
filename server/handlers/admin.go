@@ -27,11 +27,15 @@ func NewAdmin(ms services.Mocks, graph services.Graph) *Admin {
 func (a *Admin) GetMocks(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	if sessionID == "" {
-		sessionID = a.mocksServices.GetLastSession().ID
+		session, err := a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		sessionID = session.ID
 	}
 
 	if id := c.QueryParam("id"); id != "" {
-		mock, err := a.mocksServices.GetMockByID(sessionID, id)
+		mock, err := a.mocksServices.GetMockByID(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
@@ -61,7 +65,11 @@ func (a *Admin) AddMocks(c echo.Context) error {
 		a.mocksServices.NewSession(sessionName)
 	}
 
-	sessionID := a.mocksServices.GetLastSession().ID
+	session, err := a.mocksServices.GetLastSession()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+
 	var mocks []*types.Mock
 	if err := bindAccordingAccept(c, &mocks); err != nil {
 		return err
@@ -74,7 +82,7 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	}
 
 	for _, mock := range mocks {
-		if _, err := a.mocksServices.AddMock(sessionID, mock); err != nil {
+		if _, err := a.mocksServices.AddMock(session.ID, mock); err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 	}
@@ -90,7 +98,19 @@ func (a *Admin) LockMocks(c echo.Context) error {
 		return err
 	}
 
-	mocks := a.mocksServices.LockMocks(ids)
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
+		session, err := a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		sessionID = session.ID
+	}
+
+	mocks, err := a.mocksServices.LockMocks(sessionID, ids)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 	return c.JSON(http.StatusOK, mocks)
 }
 
@@ -100,25 +120,44 @@ func (a *Admin) UnlockMocks(c echo.Context) error {
 		return err
 	}
 
-	mocks := a.mocksServices.UnlockMocks(ids)
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
+		session, err := a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		sessionID = session.ID
+	}
+
+	mocks, err := a.mocksServices.UnlockMocks(sessionID, ids)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 	return c.JSON(http.StatusOK, mocks)
 }
 
 func (a *Admin) VerifySession(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	var session *types.Session
+	var err error
 	if sessionID != "" {
-		var err error
 		session, err = a.mocksServices.GetSessionByID(sessionID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 	} else {
-		session = a.mocksServices.GetLastSession()
+		session, err = a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
 	}
 	failedMocks := types.Mocks{}
 	unusedMocks := types.Mocks{}
-	for _, mock := range session.Mocks {
+	mocks, err := a.mocksServices.GetMocks(session.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	for _, mock := range mocks {
 		if !mock.Verify() {
 			failedMocks = append(failedMocks, mock)
 		}
@@ -128,7 +167,11 @@ func (a *Admin) VerifySession(c echo.Context) error {
 	}
 
 	failedHistory := types.History{}
-	for _, entry := range session.History {
+	history, err := a.mocksServices.GetHistory(session.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	for _, entry := range history {
 		if entry.Response.Status > 600 {
 			failedHistory = append(failedHistory, entry)
 		}
@@ -168,7 +211,11 @@ func (a *Admin) VerifySession(c echo.Context) error {
 func (a *Admin) GetHistory(c echo.Context) error {
 	sessionID := c.QueryParam("session")
 	if sessionID == "" {
-		sessionID = a.mocksServices.GetLastSession().ID
+		session, err := a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		sessionID = session.ID
 	}
 
 	filter := c.QueryParam("filter")
@@ -185,19 +232,45 @@ func (a *Admin) GetHistory(c echo.Context) error {
 }
 
 func (a *Admin) GetSessions(c echo.Context) error {
-	sessions := a.mocksServices.GetSessions()
-	return respondAccordingAccept(c, sessions)
+	res := []*types.SessionDump{}
+	sessions, err := a.mocksServices.GetSessions()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+
+	for _, session := range sessions {
+		history, err := a.mocksServices.GetHistory(session.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		mocks, err := a.mocksServices.GetMocks(session.ID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		res = append(res, &types.SessionDump{
+			Session: *session,
+			History: history,
+			Mocks:   mocks,
+		})
+	}
+	return respondAccordingAccept(c, res)
 }
 
 func (a *Admin) SummarizeSessions(c echo.Context) error {
-	sessions := a.mocksServices.GetSessions()
-	return respondAccordingAccept(c, sessions.Summarize())
+	sessions, err := a.mocksServices.GetSessions()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return respondAccordingAccept(c, sessions)
 }
 
 func (a *Admin) NewSession(c echo.Context) error {
 	name := c.QueryParam("name")
-	session := a.mocksServices.NewSession(name)
-	return respondAccordingAccept(c, types.SessionSummary(*session))
+	session, err := a.mocksServices.NewSession(name)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return respondAccordingAccept(c, *session)
 }
 
 type updateSessionBody struct {
@@ -220,54 +293,58 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return respondAccordingAccept(c, types.SessionSummary{
-		ID:   session.ID,
-		Name: session.Name,
-		Date: session.Date,
-	})
+	return respondAccordingAccept(c, session)
 }
 
 func (a *Admin) ImportSession(c echo.Context) error {
-	var sessions types.Sessions
-	if err := c.Bind(&sessions); err != nil {
+	var body []*types.SessionDump
+	if err := c.Bind(&body); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	a.mocksServices.SetSessions(sessions)
-	sessionSummaries := []types.SessionSummary{}
-	for _, session := range sessions {
-		sessionSummaries = append(sessionSummaries, types.SessionSummary{
-			ID:   session.ID,
-			Name: session.Name,
-			Date: session.Date,
-		})
+	err := a.mocksServices.ImportSessions(body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return respondAccordingAccept(c, sessionSummaries)
+	sessions, err := a.mocksServices.GetSessions()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return respondAccordingAccept(c, sessions)
 }
 
 func (a *Admin) Reset(c echo.Context) error {
 	force, _ := strconv.ParseBool(c.QueryParam("force"))
-	a.mocksServices.Reset(force)
+	if err := a.mocksServices.Reset(force); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Reset successful",
 	})
 }
 
 func (a *Admin) SummarizeHistory(c echo.Context) error {
-	sessionID := ""
-	if sessionID = c.QueryParam("session"); sessionID == "" {
-		sessionID = a.mocksServices.GetLastSession().ID
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
+		session, err := a.mocksServices.GetLastSession()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		}
+		sessionID = session.ID
 	}
-	session, err := a.mocksServices.GetSessionByID(sessionID)
-	if err == types.SessionNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
-	} else if err != nil {
-		log.WithError(err).Error("Failed to retrieve session")
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+
+	history, err := a.mocksServices.GetHistory(sessionID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	mocks, err := a.mocksServices.GetMocks(sessionID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	var cfg types.GraphConfig
 	if err := c.Bind(&cfg); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return respondAccordingAccept(c, a.graphsServices.Generate(cfg, session))
+	return respondAccordingAccept(c, a.graphsServices.Generate(cfg, history, mocks))
 }
