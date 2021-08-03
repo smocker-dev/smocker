@@ -4,6 +4,8 @@ go 1.15
 
 require (
 	github.com/Masterminds/sprig/v3 v3.1.0
+	github.com/asdine/storm v2.1.2+incompatible // indirect
+	github.com/asdine/storm/v3 v3.2.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
@@ -30,11 +32,10 @@ require (
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb
+	go.etcd.io/bbolt v1.3.6 // indirect
 	golang.org/x/net v0.0.0-20200219183655-46282727080f // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
-	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
 	golang.org/x/text v0.3.2 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200121175148-a6ecf24a6d71
 	layeh.com/gopher-luar v1.0.7
 )

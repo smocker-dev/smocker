@@ -5,7 +5,7 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
+        url: http://localhost:8081/reset?force=true
       - type: http
         method: POST
         url: http://localhost:8081/mocks

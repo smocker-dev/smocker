@@ -272,6 +272,7 @@ type MockContext struct {
 
 type MockState struct {
 	ID           string    `json:"id" yaml:"id"`
+	SessionID    string    `json:"session_id" yaml:"session_id"`
 	TimesCount   int       `json:"times_count" yaml:"times_count"`
 	Locked       bool      `json:"locked" yaml:"locked"`
 	CreationDate time.Time `json:"creation_date" yaml:"creation_date"`

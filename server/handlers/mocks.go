@@ -37,8 +37,16 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		err          error
 	)
 	exceededMocks := types.Mocks{}
-	context := &types.Context{}
-	session := m.mocksServices.GetLastSession()
+	session, err := m.mocksServices.GetLastSession()
+	if err != nil {
+		return c.JSON(types.StatusSmockerInternalError, echo.Map{
+			"message": fmt.Sprintf("%s: %v", types.SmockerInternalError, err),
+			"request": actualRequest,
+		})
+	}
+	context := &types.Context{
+		SessionID: session.ID,
+	}
 	mocks, err := m.mocksServices.GetMocks(session.ID)
 	if err != nil {
 		return c.JSON(types.StatusSmockerInternalError, echo.Map{
@@ -62,7 +70,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			context.MockID = mock.State.ID
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
-				context.MockType = "dynamic"
+				context.MockType = types.DynamicMockType
 				if err != nil {
 					c.Set(types.ContextKey, context)
 					return c.JSON(types.StatusSmockerEngineExecutionError, echo.Map{
@@ -72,7 +80,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 				}
 			} else if mock.Proxy != nil {
 				response, err = mock.Proxy.Redirect(actualRequest)
-				context.MockType = "proxy"
+				context.MockType = types.ProxyMockType
 				if err != nil {
 					c.Set(types.ContextKey, context)
 					return c.JSON(types.StatusSmockerProxyRedirectionError, echo.Map{
@@ -81,11 +89,19 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 					})
 				}
 			} else if mock.Response != nil {
-				context.MockType = "static"
+				context.MockType = types.StaticMockType
 				response = mock.Response
 			}
 
 			matchingMock.State.TimesCount++
+			_, err = m.mocksServices.SaveMock(matchingMock)
+			if err != nil {
+				c.Set(types.ContextKey, context)
+				return c.JSON(types.StatusSmockerInternalError, echo.Map{
+					"message": fmt.Sprintf("%s: %v", types.SmockerInternalError, err),
+					"request": actualRequest,
+				})
+			}
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -102,6 +118,14 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		if len(exceededMocks) > 0 {
 			for _, mock := range exceededMocks {
 				mock.State.TimesCount++
+				_, err = m.mocksServices.SaveMock(mock)
+				if err != nil {
+					c.Set(types.ContextKey, context)
+					return c.JSON(types.StatusSmockerInternalError, echo.Map{
+						"message": fmt.Sprintf("%s: %v", types.SmockerInternalError, err),
+						"request": actualRequest,
+					})
+				}
 			}
 			resp["message"] = types.SmockerMockExceeded
 			resp["nearest"] = exceededMocks

@@ -17,6 +17,7 @@ import (
 	"github.com/Thiht/smocker/server/types"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
+	"github.com/teris-io/shortid"
 )
 
 type bodyDumpResponseWriter struct {
@@ -43,7 +44,10 @@ func (w *bodyDumpResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			session := s.GetLastSession()
+			session, err := s.GetLastSession()
+			if err != nil {
+				return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: %v", types.SmockerInternalError, err))
+			}
 			if c.Request() == nil {
 				return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: Empty request", types.SmockerInternalError))
 			}
@@ -81,9 +85,12 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 
 			context, _ := c.Get(types.ContextKey).(*types.Context)
 			if context == nil {
-				context = &types.Context{}
+				context = &types.Context{
+					SessionID: session.ID,
+				}
 			}
-			_, err := s.AddHistoryEntry(session.ID, &types.Entry{
+			_, err = s.AddHistoryEntry(session.ID, &types.Entry{
+				ID:      shortid.MustGenerate(),
 				Context: *context,
 				Request: request,
 				Response: types.Response{

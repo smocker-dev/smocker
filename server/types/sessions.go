@@ -8,51 +8,16 @@ import (
 var SessionNotFound = fmt.Errorf("session not found")
 
 type Sessions []*Session
-
-func (s Sessions) Clone() Sessions {
-	sessions := make(Sessions, 0, len(s))
-	for _, session := range s {
-		sessions = append(sessions, session.Clone())
-	}
-	return sessions
-}
-
-func (s Sessions) Summarize() []SessionSummary {
-	sessions := make([]SessionSummary, 0, len(s))
-	for _, session := range s {
-		sessions = append(sessions, session.Summarize())
-	}
-	return sessions
-}
-
 type Session struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Date    time.Time `json:"date"`
-	History History   `json:"history"`
-	Mocks   Mocks     `json:"mocks"`
+	ID   string    `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
 }
 
-func (s *Session) Clone() *Session {
-	return &Session{
-		ID:      s.ID,
-		Name:    s.Name,
-		Date:    s.Date,
-		History: s.History.Clone(),
-		Mocks:   s.Mocks.Clone(),
-	}
-}
-
-func (s Session) Summarize() SessionSummary {
-	return SessionSummary(s)
-}
-
-type SessionSummary struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Date    time.Time `json:"date"`
-	History History   `json:"-" yaml:"-"`
-	Mocks   Mocks     `json:"-" yaml:"-"`
+type SessionDump struct {
+	Session
+	History History `json:"history"`
+	Mocks   Mocks   `json:"mocks"`
 }
 
 type VerifyResult struct {

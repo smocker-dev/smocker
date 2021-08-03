@@ -22,6 +22,7 @@ testcases:
               "date": "2020-02-12T00:04:29.5940297+01:00",
               "history": [
                 {
+                  "id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9g",
                   "mock_id": "05519745-7648-46ed-a5b0-757534e077d0",
                   "request": {
                     "path": "/hello/world",
@@ -44,6 +45,9 @@ testcases:
                       "Content-Type": ["application/json"]
                     },
                     "date": "2020-02-12T00:04:46.1532019+01:00"
+                  },
+                  "context": {
+                    "session_id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f"
                   }
                 }
               ],
@@ -63,6 +67,7 @@ testcases:
                   "context": {},
                   "state": {
                     "id": "05519745-7648-46ed-a5b0-757534e077d0",
+                    "session_id": "1d6d264b-4d13-4e0b-a51e-e44fc80eca9f",
                     "times_count": 1,
                     "creation_date": "2020-02-12T00:04:43.3337425+01:00"
                   }

@@ -19,7 +19,7 @@ const (
 )
 
 type Graph interface {
-	Generate(cfg types.GraphConfig, session *types.Session) types.GraphHistory
+	Generate(cfg types.GraphConfig, history types.History, mocks types.Mocks) types.GraphHistory
 }
 
 type graph struct {
@@ -29,18 +29,18 @@ func NewGraph() Graph {
 	return &graph{}
 }
 
-func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.GraphHistory {
+func (g *graph) Generate(cfg types.GraphConfig, history types.History, mocks types.Mocks) types.GraphHistory {
 
 	endpointCpt := 0
 	endpoints := map[string]string{}
 
 	mocksByID := map[string]*types.Mock{}
-	for _, mock := range session.Mocks {
+	for _, mock := range mocks {
 		mocksByID[mock.State.ID] = mock
 	}
 
-	history := types.GraphHistory{}
-	for _, entry := range session.History {
+	graphHistory := types.GraphHistory{}
+	for _, entry := range history {
 		from := ClientHost
 		if src := entry.Request.Headers.Get(cfg.SrcHeader); src != "" {
 			from = src
@@ -59,7 +59,7 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 		}
 
 		requestMessage := entry.Request.Method + " " + entry.Request.Path + params
-		history = append(history, types.GraphEntry{
+		graphHistory = append(graphHistory, types.GraphEntry{
 			Type:    requestType,
 			Message: requestMessage,
 			From:    from,
@@ -67,7 +67,7 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 			Date:    entry.Request.Date,
 		})
 
-		history = append(history, types.GraphEntry{
+		graphHistory = append(graphHistory, types.GraphEntry{
 			Type:    responseType,
 			Message: fmt.Sprintf("%d", entry.Response.Status),
 			From:    SmockerHost,
@@ -90,7 +90,7 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 					to = endpoints[host]
 				}
 
-				history = append(history, types.GraphEntry{
+				graphHistory = append(graphHistory, types.GraphEntry{
 					Type:    requestType,
 					Message: requestMessage,
 					From:    SmockerHost,
@@ -98,7 +98,7 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 					Date:    entry.Request.Date.Add(1 * time.Nanosecond),
 				})
 
-				history = append(history, types.GraphEntry{
+				graphHistory = append(graphHistory, types.GraphEntry{
 					Type:    responseType,
 					Message: fmt.Sprintf("%d", entry.Response.Status),
 					From:    to,
@@ -106,7 +106,7 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 					Date:    entry.Response.Date.Add(-1 * time.Nanosecond),
 				})
 			} else {
-				history = append(history, types.GraphEntry{
+				graphHistory = append(graphHistory, types.GraphEntry{
 					Type:    processingType,
 					Message: "use response mock",
 					From:    SmockerHost,
@@ -117,6 +117,6 @@ func (g *graph) Generate(cfg types.GraphConfig, session *types.Session) types.Gr
 		}
 
 	}
-	sort.Sort(history)
-	return history
+	sort.Sort(graphHistory)
+	return graphHistory
 }
