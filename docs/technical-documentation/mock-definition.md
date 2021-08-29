@@ -248,7 +248,7 @@ dynamic_response:
 
 ### Dynamic responses using Go templates
 
-A dynamic response using Go templates must generate a YAML string representing a `response` object. Some parts of the response can be generated dynamically. In Go templates, the [`Request`](https://godoc.org/github.com/Thiht/smocker/types#Request) variable is available, containing the values of the current request. The utility library [Masterminds/sprig](https://masterminds.github.io/sprig/) is also fully available.
+A dynamic response using Go templates must generate a YAML string representing a `response` object. Some parts of the response can be generated dynamically. In Go templates, the [`Request`](https://pkg.go.dev/github.com/Thiht/smocker/server/types#Request) variable is available, containing the values of the current request. The utility library [Masterminds/sprig](https://masterminds.github.io/sprig/) is also fully available.
 
 The easiest way to write a dynamic response using Go templates is to first write the static response you want:
 
