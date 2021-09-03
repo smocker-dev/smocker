@@ -1,7 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/Thiht/smocker/server/types"
 	"github.com/teris-io/shortid"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -32,6 +36,7 @@ type Mocks interface {
 	GetSessions() types.Sessions
 	SetSessions(sessions types.Sessions)
 	Reset(force bool)
+	Load(path string) error
 }
 
 type mocks struct {
@@ -314,4 +319,60 @@ func (s *mocks) Reset(force bool) {
 	}
 
 	go s.persistence.StoreSessions(s.sessions.Clone())
+}
+
+func (s *mocks) Load(path string) error {
+	mockslist := make(map[string][]types.Mock)
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("unable to find mocks files: %w ", err)
+	}
+
+	for _, file := range files {
+		ext := filepath.Ext(file.Name())
+
+		if ext != ".yml" && ext != ".yaml" && ext != ".json" {
+			continue
+		}
+
+		content, err := ioutil.ReadFile(filepath.Join(path, file.Name()))
+		if err != nil {
+			return fmt.Errorf("unable to read mock file %s: %w ", file.Name(), err)
+		}
+
+		var Ms []types.Mock
+
+		switch ext {
+		case ".yml", ".yaml":
+			err = yaml.Unmarshal(content, &Ms)
+		case ".json":
+			err = json.Unmarshal(content, &Ms)
+		}
+
+		if err != nil {
+			return fmt.Errorf("unable to parse mock file %s: %w ", file.Name(), err)
+		}
+
+		for _, mock := range Ms {
+			if err = mock.Validate(); err != nil {
+				return fmt.Errorf("unvalid mock file %s: %w ", file.Name(), err)
+			}
+		}
+
+		mockslist[file.Name()] = Ms
+	}
+
+	sessionID := s.GetLastSession().ID
+
+	for fileName, mocks := range mockslist {
+		for _, mock := range mocks {
+			m := mock
+			if _, err = s.AddMock(sessionID, &m); err != nil {
+				return fmt.Errorf("unable to add mock file %s: %w ", fileName, err)
+			}
+		}
+	}
+
+	return nil
 }
