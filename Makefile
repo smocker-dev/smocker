@@ -24,6 +24,7 @@ DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
 # A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
 # A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
 DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
+IS_SEMVER:=$(shell [[ $(DOCKER_TAG) =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] && echo true)
 
 LEVEL=debug
 
@@ -150,5 +151,7 @@ load-docker:
 
 .PHONY: deploy-docker
 deploy-docker:
+ifdef IS_SEMVER
 	docker push $(DOCKER_IMAGE):latest
+endif
 	docker push $(DOCKER_IMAGE):$(DOCKER_TAG)

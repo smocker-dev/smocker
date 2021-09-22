@@ -1,11 +1,15 @@
 name: CI
 on:
   push:
-    branches: [ master ]
-    tags: [ '*' ]
+    branches:
+      - master
+    tags:
+      - '*.*.*' # semver, will override latest
+      - '*-preview' # preview, won't override latest
   pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+    branches:
+      - master
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   lint:
