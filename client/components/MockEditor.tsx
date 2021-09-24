@@ -19,6 +19,7 @@ import { NamePath } from "rc-field-form/lib/interface";
 import Code, { Language } from "./Code";
 import yaml from "js-yaml";
 import { defaultMatcher } from "~modules/types";
+import "./MockEditor.scss";
 
 const defaultResponseStatus = 200;
 
@@ -62,6 +63,7 @@ interface MockEditorForm {
     keep_host?: boolean;
   };
   context?: {
+    times_enabled: boolean;
     times?: number;
   };
 }
@@ -95,6 +97,12 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
           }),
           {}
         ),
+    },
+
+    context: {
+      times: mockEditorForm.context?.times_enabled
+        ? mockEditorForm.context?.times
+        : undefined,
     },
 
     response:
@@ -159,6 +167,7 @@ const MockEditor = (): JSX.Element => {
       engine: "go_template_yaml",
     },
     context: {
+      times_enabled: false,
       times: 1,
     },
   };
@@ -394,25 +403,37 @@ const MockProxyResponseEditor = (): JSX.Element => (
 );
 
 const MockContextEditor = (): JSX.Element => (
-  <Form.Item
-    label="Limit this mock to be called"
-    shouldUpdate={(prevValues, currentValues) =>
-      prevValues?.context?.times !== currentValues?.context?.times
-    }
-  >
-    {({ getFieldValue }) => (
-      <>
-        <Form.Item name={["context", "times"]} noStyle>
-          <InputNumber min={1} />
-        </Form.Item>
-        {getFieldValue(["context", "times"]) <= 1 ? (
-          <span> time</span>
-        ) : (
-          <span> times</span>
-        )}
-      </>
-    )}
-  </Form.Item>
+  <div className="inline-form-items">
+    <Form.Item name={["context", "times_enabled"]} noStyle>
+      <Switch size="small" />
+    </Form.Item>
+
+    <Form.Item
+      label="Limit this mock to be called"
+      shouldUpdate={(prevValues, currentValues) =>
+        prevValues?.context?.times_enabled !==
+          currentValues?.context?.times_enabled ||
+        prevValues?.context?.times !== currentValues?.context?.times
+      }
+      style={{ marginBottom: 0, paddingLeft: "5px" }}
+    >
+      {({ getFieldValue }) => (
+        <>
+          <Form.Item name={["context", "times"]} noStyle>
+            <InputNumber
+              min={1}
+              disabled={!getFieldValue(["context", "times_enabled"])}
+            />
+          </Form.Item>
+          {getFieldValue(["context", "times"]) <= 1 ? (
+            <span> time</span>
+          ) : (
+            <span> times</span>
+          )}
+        </>
+      )}
+    </Form.Item>
+  </div>
 );
 
 interface KeyValueEditorProps {
