@@ -96,6 +96,52 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
           {}
         ),
     },
+
+    response:
+      mockEditorForm.response_type === "static"
+        ? {
+            status: mockEditorForm?.response?.status,
+            body: mockEditorForm?.response?.body ?? "",
+            headers: mockEditorForm.response?.headers
+              ?.filter((item) => item.key && item.value)
+              .reduce(
+                (acc, item) => ({
+                  ...acc,
+                  [item?.key ?? ""]: item.value,
+                }),
+                {}
+              ),
+          }
+        : undefined,
+
+    dynamic_response:
+      mockEditorForm.response_type === "dynamic"
+        ? {
+            engine: mockEditorForm?.dynamic_response?.engine,
+            script: mockEditorForm?.dynamic_response?.script,
+          }
+        : undefined,
+
+    proxy:
+      mockEditorForm.response_type === "proxy"
+        ? {
+            host: mockEditorForm?.proxy?.host,
+            headers: mockEditorForm.proxy?.headers
+              ?.filter((item) => item.key && item.value)
+              .reduce(
+                (acc, item) => ({
+                  ...acc,
+                  [item?.key ?? ""]: item.value,
+                }),
+                {}
+              ),
+            follow_redirect:
+              Boolean(mockEditorForm.proxy?.follow_redirect) || undefined,
+            skip_verify_tls:
+              Boolean(mockEditorForm.proxy?.skip_verify_tls) || undefined,
+            keep_host: Boolean(mockEditorForm.proxy?.keep_host) || undefined,
+          }
+        : undefined,
   };
 };
 
@@ -314,9 +360,9 @@ const MockProxyResponseEditor = (): JSX.Element => (
   <Row gutter={24}>
     <Col span={12}>
       <Form.Item label="Host" name={["proxy", "host"]}>
-        <Input />
+        <Input placeholder="http://example.com" />
       </Form.Item>
-      Headers:
+      Additional Headers:
       <KeyValueEditor name={["proxy", "headers"]} />
     </Col>
 
