@@ -290,7 +290,10 @@ const NewMockComponent = ({
       }
     >
       <Tabs defaultActiveKey="1">
-        <Tabs.TabPane tab="Raw YAML Editor" key="1">
+        <Tabs.TabPane tab="Visual Editor" key="1">
+          <MockEditor />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Raw YAML Editor" key="2">
           <Form className="form">
             <Code
               value={mock}
@@ -299,9 +302,6 @@ const NewMockComponent = ({
               collapsible={false}
             />
           </Form>
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Visual Editor" key="2">
-          <MockEditor />
         </Tabs.TabPane>
       </Tabs>
     </Drawer>

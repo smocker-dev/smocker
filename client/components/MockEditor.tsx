@@ -13,39 +13,41 @@ import {
   Select,
   Space,
   Switch,
+  Tooltip,
 } from "antd";
 import { getReasonPhrase } from "http-status-codes";
-import { NamePath } from "rc-field-form/lib/interface";
 import Code, { Language } from "./Code";
 import yaml from "js-yaml";
 import { defaultMatcher } from "~modules/types";
 import "./MockEditor.scss";
+import classNames from "classnames";
 
 const defaultResponseStatus = 200;
 
-// This type is juste used in Antd's onFinish/onValuesChange callbacks, it's not very useful but nice to have
+interface KeyValueMatcher {
+  key?: string;
+  matcher: string;
+  value?: string;
+}
+
+interface KeyValue {
+  key?: string;
+  value?: string;
+}
+
+// This type is just used in Antd's onFinish/onValuesChange callbacks, it's not very useful but nice to have
 interface MockEditorForm {
   request: {
     method: string;
+    path_regex: boolean;
     path: string;
-    query_parameters?: {
-      key?: string;
-      matcher: string;
-      value?: string;
-    }[];
-    headers?: {
-      key: string;
-      matcher: string;
-      value: string;
-    }[];
+    query_parameters?: KeyValueMatcher[];
+    headers?: KeyValueMatcher[];
   };
   response_type: "static" | "dynamic" | "proxy";
   response?: {
     status: number;
-    headers?: {
-      key?: string;
-      value?: string;
-    }[];
+    headers?: KeyValue[];
     body?: string;
   };
   dynamic_response?: {
@@ -54,10 +56,7 @@ interface MockEditorForm {
   };
   proxy?: {
     host?: string;
-    headers?: {
-      key?: string;
-      value?: string;
-    }[];
+    headers?: KeyValue[];
     follow_redirect?: boolean;
     skip_verify_tls?: boolean;
     keep_host?: boolean;
@@ -68,57 +67,77 @@ interface MockEditorForm {
   };
 }
 
+const unaryMatchers = ["ShouldBeEmpty", "ShouldNotBeEmpty"];
+
+const matcherReducer = (acc = {}, item: KeyValueMatcher) => ({
+  ...acc,
+  [item?.key ?? ""]:
+    item.matcher === defaultMatcher
+      ? item.value
+      : { matcher: item.matcher, value: item.value },
+});
+
+const keyValueReducer = (acc = {}, item: KeyValue) => ({
+  ...acc,
+  [item?.key ?? ""]: item.value,
+});
+
 const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
+  const requestQueryParams =
+    mockEditorForm.request?.query_parameters
+      ?.filter((item) =>
+        unaryMatchers.includes(item.matcher) ? item.key : item.key && item.value
+      )
+      .map((item) =>
+        unaryMatchers.includes(item.matcher)
+          ? { ...item, value: undefined }
+          : item
+      ) || [];
+
+  const requestHeaders =
+    mockEditorForm.request?.headers
+      ?.filter((item) =>
+        unaryMatchers.includes(item.matcher) ? item.key : item.key && item.value
+      )
+      .map((item) =>
+        unaryMatchers.includes(item.matcher)
+          ? { ...item, value: undefined }
+          : item
+      ) || [];
+
   return {
     request: {
       method: mockEditorForm.request.method,
-      path: mockEditorForm.request.path,
-      query_params: mockEditorForm.request?.query_parameters
-        ?.filter((item) => item.key && item.value)
-        .reduce(
-          (acc, item) => ({
-            ...acc,
-            [item?.key ?? ""]:
-              item.matcher === defaultMatcher
-                ? item.value
-                : { matcher: item.matcher, value: item.value },
-          }),
-          {}
-        ),
-      headers: mockEditorForm.request?.headers
-        ?.filter((item) => item.key && item.value)
-        .reduce(
-          (acc, item) => ({
-            ...acc,
-            [item?.key ?? ""]:
-              item.matcher === defaultMatcher
-                ? item.value
-                : { matcher: item.matcher, value: item.value },
-          }),
-          {}
-        ),
+      path: mockEditorForm.request.path_regex
+        ? {
+            matcher: "ShouldMatch",
+            value: mockEditorForm.request.path,
+          }
+        : mockEditorForm.request.path,
+      query_params:
+        requestQueryParams.length > 0
+          ? requestQueryParams.reduce(matcherReducer, {})
+          : undefined,
+      headers:
+        requestHeaders.length > 0
+          ? requestHeaders.reduce(matcherReducer, {})
+          : undefined,
     },
 
-    context: {
-      times: mockEditorForm.context?.times_enabled
-        ? mockEditorForm.context?.times
-        : undefined,
-    },
+    context: mockEditorForm.context?.times_enabled
+      ? {
+          times: mockEditorForm.context?.times,
+        }
+      : undefined,
 
     response:
       mockEditorForm.response_type === "static"
         ? {
             status: mockEditorForm?.response?.status,
-            body: mockEditorForm?.response?.body ?? "",
+            body: mockEditorForm?.response?.body,
             headers: mockEditorForm.response?.headers
               ?.filter((item) => item.key && item.value)
-              .reduce(
-                (acc, item) => ({
-                  ...acc,
-                  [item?.key ?? ""]: item.value,
-                }),
-                {}
-              ),
+              .reduce(keyValueReducer, {}),
           }
         : undefined,
 
@@ -157,6 +176,7 @@ const MockEditor = (): JSX.Element => {
   const initialValues: MockEditorForm = {
     request: {
       method: "GET",
+      path_regex: false,
       path: "",
     },
     response_type: "static",
@@ -188,7 +208,6 @@ const MockEditor = (): JSX.Element => {
       form={form}
       initialValues={initialValues}
       onValuesChange={(_, values) => {
-        console.log(values);
         setMockString(
           yaml.safeDump(MockEditorFormToMock(values), { skipInvalid: true })
         );
@@ -249,10 +268,22 @@ const MockRequestEditor = (): JSX.Element => {
     </Form.Item>
   );
 
+  const regexToggle = (
+    <Tooltip title="Use Golang Regular Expression" placement="left">
+      <Form.Item name={["request", "path_regex"]} noStyle>
+        <Switch checkedChildren="Regex" unCheckedChildren="Raw" />
+      </Form.Item>
+    </Tooltip>
+  );
+
   return (
     <>
       <Form.Item label="Endpoint" name={["request", "path"]}>
-        <Input addonBefore={methodSelector} placeholder="/example" />
+        <Input
+          addonBefore={methodSelector}
+          addonAfter={regexToggle}
+          placeholder="/example"
+        />
       </Form.Item>
 
       <Row gutter={24}>
@@ -437,7 +468,7 @@ const MockContextEditor = (): JSX.Element => (
 );
 
 interface KeyValueEditorProps {
-  name: NamePath;
+  name: string[];
   withMatchers?: boolean;
 }
 
@@ -448,11 +479,11 @@ const KeyValueEditor = ({
   <Form.List name={name}>
     {(fields, { add, remove }) => (
       <>
-        {fields.map(({ key, name, fieldKey, ...restField }) => (
+        {fields.map(({ key, name: fieldName, fieldKey, ...restField }) => (
           <Space key={key} style={{ display: "flex" }} align="baseline">
             <Form.Item
               {...restField}
-              name={[name, "key"]}
+              name={[fieldName, "key"]}
               fieldKey={[fieldKey, "key"]}
             >
               <Input placeholder="Key" />
@@ -461,7 +492,7 @@ const KeyValueEditor = ({
             {withMatchers && (
               <Form.Item
                 {...restField}
-                name={[name, "matcher"]}
+                name={[fieldName, "matcher"]}
                 fieldKey={[fieldKey, "matcher"]}
               >
                 <Select>
@@ -510,13 +541,31 @@ const KeyValueEditor = ({
             )}
 
             <Form.Item
-              {...restField}
-              name={[name, "value"]}
-              fieldKey={[fieldKey, "value"]}
+              noStyle
+              shouldUpdate
+              // shouldUpdate={(prevValues, currentValues) =>
+              //   // FIXME: handle matcher change
+              //   // prevValues?.response_type !== currentValues?.response_type
+              //   true
+              // }
             >
-              <Input placeholder="Value" />
+              {({ getFieldValue }) => (
+                <Form.Item
+                  {...restField}
+                  name={[fieldName, "value"]}
+                  fieldKey={[fieldKey, "value"]}
+                  className={classNames({
+                    hidden: unaryMatchers.includes(
+                      getFieldValue([...name, fieldKey, "matcher"])
+                    ),
+                  })}
+                >
+                  <Input placeholder="Value" />
+                </Form.Item>
+              )}
             </Form.Item>
-            <MinusCircleOutlined onClick={() => remove(name)} />
+
+            <MinusCircleOutlined onClick={() => remove(fieldName)} />
           </Space>
         ))}
 
