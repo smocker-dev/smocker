@@ -68,6 +68,22 @@ interface MockEditorForm {
 }
 
 const unaryMatchers = ["ShouldBeEmpty", "ShouldNotBeEmpty"];
+const positiveMatchers = [
+  "ShouldEqual",
+  "ShouldMatch",
+  "ShouldBeEmpty",
+  "ShouldContainSubstring",
+  "ShouldStartWith",
+  "ShouldEndWith",
+];
+const negativeMatchers = [
+  "ShouldNotEqual",
+  "ShouldNotMatch",
+  "ShouldNotBeEmpty",
+  "ShouldNotContainSubstring",
+  "ShouldNotStartWith",
+  "ShouldNotEndWith",
+];
 
 const matcherReducer = (acc = {}, item: KeyValueMatcher) => ({
   ...acc,
@@ -256,6 +272,8 @@ const MockEditor = (): JSX.Element => {
 };
 
 const MockRequestEditor = (): JSX.Element => {
+  const [bodyLanguage, setBodyLanguage] = React.useState<Language>("json");
+
   const methodSelector = (
     <Form.Item name={["request", "method"]} noStyle>
       <Select>
@@ -275,6 +293,13 @@ const MockRequestEditor = (): JSX.Element => {
       </Form.Item>
     </Tooltip>
   );
+
+  const languages = [
+    { label: "JSON", value: "json" },
+    { label: "XML", value: "xml" },
+    { label: "YAML", value: "yaml" },
+    { label: "Plain Text", value: "txt" },
+  ];
 
   return (
     <>
@@ -297,6 +322,19 @@ const MockRequestEditor = (): JSX.Element => {
           <KeyValueEditor name={["request", "headers"]} withMatchers />
         </Col>
       </Row>
+
+      <Form.Item label="Body">
+        <Radio.Group
+          options={languages}
+          value={bodyLanguage}
+          onChange={(e: RadioChangeEvent) => setBodyLanguage(e.target.value)}
+          optionType="button"
+          buttonStyle="solid"
+          size="small"
+          style={{ marginBottom: 5 }}
+        />
+        <BodyMatcherEditor name={["request", "body"]} />
+      </Form.Item>
     </>
   );
 };
@@ -497,44 +535,18 @@ const KeyValueEditor = ({
               >
                 <Select>
                   <Select.OptGroup label="Positive">
-                    <Select.Option value="ShouldEqual">
-                      ShouldEqual
-                    </Select.Option>
-                    <Select.Option value="ShouldMatch">
-                      ShouldMatch
-                    </Select.Option>
-                    <Select.Option value="ShouldBeEmpty">
-                      ShouldBeEmpty
-                    </Select.Option>
-                    <Select.Option value="ShouldContainSubstring">
-                      ShouldContainSubstring
-                    </Select.Option>
-                    <Select.Option value="ShouldStartWith">
-                      ShouldStartWith
-                    </Select.Option>
-                    <Select.Option value="ShouldEndWith">
-                      ShouldEndWith
-                    </Select.Option>
+                    {positiveMatchers.map((matcher) => (
+                      <Select.Option key={matcher} value={matcher}>
+                        {matcher}
+                      </Select.Option>
+                    ))}
                   </Select.OptGroup>
                   <Select.OptGroup label="Negative">
-                    <Select.Option value="ShouldNotEqual">
-                      ShouldNotEqual
-                    </Select.Option>
-                    <Select.Option value="ShouldNotMatch">
-                      ShouldNotMatch
-                    </Select.Option>
-                    <Select.Option value="ShouldNotBeEmpty">
-                      ShouldNotBeEmpty
-                    </Select.Option>
-                    <Select.Option value="ShouldNotContainSubstring">
-                      ShouldNotContainSubstring
-                    </Select.Option>
-                    <Select.Option value="ShouldNotStartWith">
-                      ShouldNotStartWith
-                    </Select.Option>
-                    <Select.Option value="ShouldNotEndWith">
-                      ShouldNotEndWith
-                    </Select.Option>
+                    {negativeMatchers.map((matcher) => (
+                      <Select.Option key={matcher} value={matcher}>
+                        {matcher}
+                      </Select.Option>
+                    ))}
                   </Select.OptGroup>
                 </Select>
               </Form.Item>
@@ -583,5 +595,113 @@ const KeyValueEditor = ({
     )}
   </Form.List>
 );
+
+const BodyMatcherEditor = ({ name }: KeyValueEditorProps): JSX.Element => {
+  const [initialized, setInitialized] = React.useState(false);
+  const [rawJSON, setRawJSON] = React.useState("");
+  return (
+    <Form.List name={name}>
+      {(fields, { add, remove }) =>
+        !initialized ? (
+          <>
+            <Code
+              language="json"
+              value={rawJSON}
+              onChange={(value) => setRawJSON(value)}
+            />
+            <Button
+              onClick={() => {
+                const json = JSON.parse(rawJSON);
+                // TODO: generate objx keys
+                Object.entries(json).map(([key, value]) => {
+                  add({ key, matcher: "ShouldEqual", value });
+                });
+                setInitialized(true);
+              }}
+            >
+              Generate Body Matcher
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* TODO: factorize this with KeyValueEditor */}
+            {fields.map(({ key, name: fieldName, fieldKey, ...restField }) => (
+              <Space key={key} style={{ display: "flex" }} align="baseline">
+                <Form.Item
+                  {...restField}
+                  name={[fieldName, "key"]}
+                  fieldKey={[fieldKey, "key"]}
+                >
+                  <Input placeholder="Key" />
+                </Form.Item>
+
+                <Form.Item
+                  {...restField}
+                  name={[fieldName, "matcher"]}
+                  fieldKey={[fieldKey, "matcher"]}
+                >
+                  <Select>
+                    <Select.OptGroup label="Positive">
+                      {positiveMatchers.map((matcher) => (
+                        <Select.Option key={matcher} value={matcher}>
+                          {matcher}
+                        </Select.Option>
+                      ))}
+                    </Select.OptGroup>
+                    <Select.OptGroup label="Negative">
+                      {negativeMatchers.map((matcher) => (
+                        <Select.Option key={matcher} value={matcher}>
+                          {matcher}
+                        </Select.Option>
+                      ))}
+                    </Select.OptGroup>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
+                  noStyle
+                  shouldUpdate
+                  // shouldUpdate={(prevValues, currentValues) =>
+                  //   // FIXME: handle matcher change
+                  //   // prevValues?.response_type !== currentValues?.response_type
+                  //   true
+                  // }
+                >
+                  {({ getFieldValue }) => (
+                    <Form.Item
+                      {...restField}
+                      name={[fieldName, "value"]}
+                      fieldKey={[fieldKey, "value"]}
+                      className={classNames({
+                        hidden: unaryMatchers.includes(
+                          getFieldValue([...name, fieldKey, "matcher"])
+                        ),
+                      })}
+                    >
+                      <Input placeholder="Value" />
+                    </Form.Item>
+                  )}
+                </Form.Item>
+
+                <MinusCircleOutlined onClick={() => remove(fieldName)} />
+              </Space>
+            ))}
+
+            <Form.Item>
+              <Button
+                type="dashed"
+                onClick={() => add({ matcher: defaultMatcher })}
+                style={{ width: "100%" }}
+                icon={<PlusOutlined />}
+              >
+                Add field
+              </Button>
+            </Form.Item>
+          </>
+        )
+      }
+    </Form.List>
+  );
+};
 
 export default MockEditor;
