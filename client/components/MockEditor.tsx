@@ -336,17 +336,30 @@ const MockRequestEditor = (): JSX.Element => {
         </Col>
       </Row>
 
-      <Form.Item label="Body">
-        <Radio.Group
-          options={languages}
-          value={bodyLanguage}
-          onChange={(e: RadioChangeEvent) => setBodyLanguage(e.target.value)}
-          optionType="button"
-          buttonStyle="solid"
-          size="small"
-          style={{ marginBottom: 5 }}
-        />
-        <BodyMatcherEditor name={["request", "body"]} />
+      <Form.Item
+        noStyle
+        shouldUpdate={(prevValues, currentValues) =>
+          prevValues?.request?.method !== currentValues?.request?.method
+        }
+      >
+        {({ getFieldValue }) =>
+          getFieldValue(["request", "method"]) !== "GET" && (
+            <Form.Item label="Body">
+              <Radio.Group
+                options={languages}
+                value={bodyLanguage}
+                onChange={(e: RadioChangeEvent) =>
+                  setBodyLanguage(e.target.value)
+                }
+                optionType="button"
+                buttonStyle="solid"
+                size="small"
+                style={{ marginBottom: 5 }}
+              />
+              <BodyMatcherEditor name={["request", "body"]} />
+            </Form.Item>
+          )
+        }
       </Form.Item>
     </>
   );
@@ -617,6 +630,11 @@ const BodyMatcherEditor = ({ name }: KeyValueEditorProps): JSX.Element => {
       {(fields, { add, remove }) =>
         !initialized ? (
           <>
+            <p>
+              Please paste a JSON payload below in order to generate the
+              corresponding body matcher. For better results, only keep the JSON
+              fields you want to match upon.
+            </p>
             <Code
               language="json"
               value={rawJSON}
