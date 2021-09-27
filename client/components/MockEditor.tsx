@@ -249,15 +249,28 @@ const MockEditor = (): JSX.Element => {
       >
         {({ getFieldValue }) => (
           <>
-            {getFieldValue("response_type") === "static" && (
+            {/* Use divs with display to make sure the form components render */}
+            <div
+              className={classNames({
+                "display-none": getFieldValue("response_type") !== "static",
+              })}
+            >
               <MockStaticResponseEditor />
-            )}
-            {getFieldValue("response_type") === "dynamic" && (
+            </div>
+            <div
+              className={classNames({
+                "display-none": getFieldValue("response_type") !== "dynamic",
+              })}
+            >
               <MockDynamicResponseEditor />
-            )}
-            {getFieldValue("response_type") === "proxy" && (
+            </div>
+            <div
+              className={classNames({
+                "display-none": getFieldValue("response_type") !== "proxy",
+              })}
+            >
               <MockProxyResponseEditor />
-            )}
+            </div>
           </>
         )}
       </Form.Item>
