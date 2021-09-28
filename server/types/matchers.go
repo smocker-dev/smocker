@@ -1,10 +1,12 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
 
+	"github.com/kinbiko/jsonassert"
 	log "github.com/sirupsen/logrus"
 	"github.com/smartystreets/assertions"
 	"github.com/stretchr/objx"
@@ -23,7 +25,7 @@ var asserts = map[string]Assertion{
 	"ShouldContainSubstring": assertions.ShouldContainSubstring,
 	"ShouldEndWith":          assertions.ShouldEndWith,
 	"ShouldEqual":            assertions.ShouldEqual,
-	"ShouldEqualJSON":        assertions.ShouldEqualJSON,
+	"ShouldEqualJSON":        ShouldEqualJSON,
 	"ShouldStartWith":        assertions.ShouldStartWith,
 	"ShouldBeEmpty":          ShouldBeEmpty,
 	"ShouldMatch":            ShouldMatch,
@@ -36,6 +38,36 @@ var asserts = map[string]Assertion{
 	"ShouldNotStartWith":        assertions.ShouldNotStartWith,
 	"ShouldNotBeEmpty":          ShouldNotBeEmpty,
 	"ShouldNotMatch":            ShouldNotMatch,
+}
+
+type buffer struct {
+	bb bytes.Buffer
+}
+
+func (b *buffer) Errorf(msg string, args ...interface{}) {
+	b.bb.WriteString(fmt.Sprintf(msg, args...))
+}
+
+func (b *buffer) String() string {
+	return b.bb.String()
+}
+
+func ShouldEqualJSON(value interface{}, expected ...interface{}) string {
+	valueString, ok := value.(string)
+	if !ok {
+		return "ShouldEqualJSON works only with strings"
+	}
+	if len(expected) != 1 {
+		return "ShouldEqualJSON requires exactly one comparison value"
+	}
+	expectedString, ok := expected[0].(string)
+	if !ok {
+		return "ShouldEqualJSON works only with strings"
+	}
+	b := buffer{}
+	ja := jsonassert.New(&b)
+	ja.Assertf(valueString, expectedString)
+	return b.String()
 }
 
 func ShouldMatch(value interface{}, patterns ...interface{}) string {

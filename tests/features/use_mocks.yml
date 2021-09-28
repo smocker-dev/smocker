@@ -104,7 +104,7 @@ testcases:
         method: DELETE
         url: http://localhost:8080/test
         body: >
-          {"id": 1}
+          {"id": 1, "array": ["bar", "baz", "foo"]}
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test3

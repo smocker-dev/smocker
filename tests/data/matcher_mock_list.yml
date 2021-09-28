@@ -24,7 +24,7 @@
     body:
       matcher: ShouldEqualJSON
       value: >
-        {"id": 1}
+        {"id": 1, "array": ["<<UNORDERED>>", "foo", "bar", "baz"]}
   response:
     headers:
       Content-Type: application/json
