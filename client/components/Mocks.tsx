@@ -46,7 +46,7 @@ import {
   usePoll,
 } from "../modules/utils";
 import Code from "./Code";
-import MockEditor from "./MockEditor";
+import MockEditor from "./MockEditor/MockEditor";
 import "./Mocks.scss";
 
 const renderTimes = (count: number, expected?: number) => {
