@@ -1,55 +1,50 @@
 package database
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/Thiht/smocker/server/types"
 )
 
 type MockDao struct {
-	ID         string         `json:"id" storm:"id"`
-	SessionID  string         `json:"session_id" storm:"index"`
-	Request    string         `json:"request"`
-	Response   string         `json:"response"`
-	Type       types.MockType `json:"type"`
-	Times      int            `json:"times"`
-	TimesCount int            `json:"times_count"`
-	Locked     bool           `json:"locked"`
-	CreatedAt  time.Time      `json:"created_at"`
+	ID              string                     `json:"id" storm:"id"`
+	SessionID       string                     `json:"session_id" storm:"index"`
+	Request         types.MockRequest          `json:"request"`
+	Response        *types.MockResponse        `json:"response"`
+	DynamicResponse *types.DynamicMockResponse `json:"dynamic_response"`
+	Proxy           *types.MockProxy           `json:"proxy"`
+	Type            types.MockType             `json:"type"`
+	Times           int                        `json:"times"`
+	TimesCount      int                        `json:"times_count"`
+	Locked          bool                       `json:"locked"`
+	CreatedAt       time.Time                  `json:"created_at"`
 }
 
 func NewMockDaoFromMock(mock *types.Mock) *MockDao {
-	request, _ := json.Marshal(mock.Request)
 	kind := types.StaticMockType
-	var response []byte
 	if mock.DynamicResponse != nil {
 		kind = types.DynamicMockType
-		response, _ = json.Marshal(mock.DynamicResponse)
 	} else if mock.Proxy != nil {
 		kind = types.ProxyMockType
-		response, _ = json.Marshal(mock.Proxy)
-	} else {
-		response, _ = json.Marshal(mock.Response)
 	}
 	return &MockDao{
-		ID:         mock.State.ID,
-		SessionID:  mock.State.SessionID,
-		Request:    string(request),
-		Response:   string(response),
-		Type:       kind,
-		Times:      mock.Context.Times,
-		TimesCount: mock.State.TimesCount,
-		Locked:     mock.State.Locked,
-		CreatedAt:  mock.State.CreationDate,
+		ID:              mock.State.ID,
+		SessionID:       mock.State.SessionID,
+		Request:         mock.Request,
+		Response:        mock.Response,
+		DynamicResponse: mock.DynamicResponse,
+		Proxy:           mock.Proxy,
+		Type:            kind,
+		Times:           mock.Context.Times,
+		TimesCount:      mock.State.TimesCount,
+		Locked:          mock.State.Locked,
+		CreatedAt:       mock.State.CreationDate,
 	}
 }
 
 func (md *MockDao) ToMock() *types.Mock {
-	var request types.MockRequest
-	_ = json.Unmarshal([]byte(md.Request), &request)
 	mock := types.Mock{
-		Request: request,
+		Request: md.Request,
 		State: &types.MockState{
 			ID:           md.ID,
 			SessionID:    md.SessionID,
@@ -60,20 +55,9 @@ func (md *MockDao) ToMock() *types.Mock {
 		Context: &types.MockContext{
 			Times: md.Times,
 		},
-	}
-	switch md.Type {
-	case types.StaticMockType:
-		var response types.MockResponse
-		_ = json.Unmarshal([]byte(md.Response), &response)
-		mock.Response = &response
-	case types.DynamicMockType:
-		var response types.DynamicMockResponse
-		_ = json.Unmarshal([]byte(md.Response), &response)
-		mock.DynamicResponse = &response
-	case types.ProxyMockType:
-		var response types.MockProxy
-		_ = json.Unmarshal([]byte(md.Response), &response)
-		mock.Proxy = &response
+		Response:        md.Response,
+		DynamicResponse: md.DynamicResponse,
+		Proxy:           md.Proxy,
 	}
 	return &mock
 }
@@ -102,37 +86,31 @@ type EntryDao struct {
 	MockID      string         `json:"mock_id" storm:"index"`
 	MockType    types.MockType `json:"mock_type"`
 	Delay       string         `json:"delay"`
-	Request     string         `json:"request"`
-	Response    string         `json:"response"`
+	Request     types.Request  `json:"request"`
+	Response    types.Response `json:"response"`
 	ReceivedAt  time.Time      `json:"received_at"`
 	RespondedAt time.Time      `json:"responded_at"`
 }
 
 func NewEntryDaoFromEntry(entry *types.Entry) *EntryDao {
-	request, _ := json.Marshal(entry.Request)
-	response, _ := json.Marshal(entry.Response)
 	return &EntryDao{
 		ID:          entry.ID,
 		SessionID:   entry.Context.SessionID,
 		MockID:      entry.Context.MockID,
 		MockType:    entry.Context.MockType,
 		Delay:       entry.Context.Delay,
-		Request:     string(request),
-		Response:    string(response),
+		Request:     entry.Request,
+		Response:    entry.Response,
 		ReceivedAt:  entry.Request.Date,
 		RespondedAt: entry.Response.Date,
 	}
 }
 
 func (ed *EntryDao) ToEntry() *types.Entry {
-	var request types.Request
-	_ = json.Unmarshal([]byte(ed.Request), &request)
-	var response types.Response
-	_ = json.Unmarshal([]byte(ed.Response), &response)
 	entry := types.Entry{
 		ID:       ed.ID,
-		Request:  request,
-		Response: response,
+		Request:  ed.Request,
+		Response: ed.Response,
 		Context: types.Context{
 			SessionID: ed.SessionID,
 			MockID:    ed.MockID,

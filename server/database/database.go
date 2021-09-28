@@ -62,7 +62,7 @@ func (c *client) Commit() error {
 }
 
 func (c *client) Rollback() {
-	if err := c.db.Rollback(); err != nil {
+	if err := c.db.Rollback(); err != nil && err != storm.ErrNotInTransaction {
 		log.WithField("error", err).Error("Unable to rollback transaction")
 	}
 }
