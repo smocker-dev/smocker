@@ -26,8 +26,8 @@ export const MockStaticResponseEditor = (): JSX.Element => {
 
   const languages = [
     { label: "JSON", value: "json" },
-    { label: "XML", value: "xml" },
     { label: "YAML", value: "yaml" },
+    { label: "XML", value: "xml" },
     { label: "Plain Text", value: "txt" },
   ];
 
