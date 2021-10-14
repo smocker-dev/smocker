@@ -1,7 +1,7 @@
-APPNAME:=$(shell basename $(shell go list))
+APPNAME=$(shell basename $(shell go list))
 VERSION?=snapshot
-COMMIT?=$(shell git rev-parse --verify HEAD)
-DATE:=$(shell date +%FT%T%z)
+COMMIT=$(shell git rev-parse --verify HEAD)
+DATE?=$(shell date +%FT%T%z)
 RELEASE?=0
 
 GOPATH?=$(shell go env GOPATH)
@@ -15,10 +15,8 @@ ifeq ($(RELEASE), 1)
 endif
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
-PID_FILE:=/tmp/$(APPNAME).test.pid
-
-DOCKER_ACCOUNT:=thiht
-DOCKER_IMAGE:=$(DOCKER_ACCOUNT)/$(APPNAME)
+DOCKER_ACCOUNT?=thiht
+DOCKER_IMAGE=$(DOCKER_ACCOUNT)/$(APPNAME)
 
 # See: https://docs.docker.com/engine/reference/commandline/tag/#extended-description
 # A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
@@ -80,6 +78,7 @@ test:
 	mkdir -p coverage
 	go test -v -race -coverprofile=coverage/test-cover.out ./server/...
 
+PID_FILE=/tmp/$(APPNAME).test.pid
 .PHONY: test-integration
 test-integration: $(VENOM) check-default-ports
 	mkdir -p coverage

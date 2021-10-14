@@ -19,10 +19,10 @@ import {
 import * as React from "react";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
-import { AppState } from "~modules/reducers";
-import { Session, Sessions } from "~modules/types";
-import { usePoll, useQueryParams } from "~modules/utils";
+import { Actions, actions } from "../modules/actions";
+import { AppState } from "../modules/reducers";
+import { Session, Sessions } from "../modules/types";
+import { usePoll, useQueryParams } from "../modules/utils";
 import "./Sidebar.scss";
 
 const EditableItem = ({

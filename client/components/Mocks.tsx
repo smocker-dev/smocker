@@ -23,8 +23,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
-import { AppState } from "~modules/reducers";
+import { Actions, actions } from "../modules/actions";
+import { AppState } from "../modules/reducers";
 import {
   dateFormat,
   defaultMatcher,
@@ -36,14 +36,14 @@ import {
   SmockerError,
   StringMatcher,
   StringMatcherMap,
-} from "~modules/types";
+} from "../modules/types";
 import {
   bodyToString,
   formatHeaderValue,
   formatQueryParams,
   isStringMatcher,
   usePoll,
-} from "~modules/utils";
+} from "../modules/utils";
 import Code from "./Code";
 import "./Mocks.scss";
 

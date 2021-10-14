@@ -17,10 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "paths": {
-      "~*": ["./*"]
-    }
+    "esModuleInterop": true
   },
   "include": ["client/**/*"],
   "exclude": ["node_modules", "build"]
