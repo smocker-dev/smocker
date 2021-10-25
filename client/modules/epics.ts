@@ -34,13 +34,12 @@ const ContentTypeYAML = "application/x-yaml";
 
 const extractError = (error: AjaxResponse | AjaxError | SmockerError) => {
   const ajaxError = error as AjaxResponse | AjaxError;
-  return {
-    message:
-      (ajaxError.xhr &&
-        ajaxError.xhr.response &&
-        ajaxError.xhr.response.message) ||
-      error["message"],
-  };
+  let message = ajaxError?.xhr?.response?.message || error["message"];
+  if (message === "ajax error") {
+    message =
+      "Failed to connect to the server, please make sure it's still running";
+  }
+  return { message };
 };
 
 const fetchSessionsEpic: Epic<Actions> = (action$) =>

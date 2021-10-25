@@ -340,7 +340,7 @@ const HistoryComponent = ({
         <p>
           This is the history of the requests made during the selected session.
         </p>
-        <p>
+        <div>
           Entries are sorted by
           <Button onClick={onSort} type="link">
             {entryField}
@@ -367,7 +367,7 @@ const HistoryComponent = ({
             </Select.Option>
           </Select>
           .
-        </p>
+        </div>
         <Spin delay={300} spinning={loading && historyEntries.length === 0}>
           {body}
         </Spin>
