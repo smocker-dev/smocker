@@ -103,6 +103,10 @@ const MockEditor = (): JSX.Element => {
       <MockContextEditor />
 
       <Divider>Preview</Divider>
+      <p>
+        This preview is <u>readonly</u>. To modify it manually, you can
+        copy-paste it to the Raw YAML Editor.
+      </p>
       <Code language="yaml" value={mockString} />
     </Form>
   );
@@ -188,6 +192,19 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
           : item
       ) || [];
 
+  console.log("Body", mockEditorForm.request?.body);
+
+  const requestBody =
+    mockEditorForm.request?.body
+      ?.filter((item) =>
+        unaryMatchers.includes(item.matcher) ? item.key : item.key && item.value
+      )
+      .map((item) =>
+        unaryMatchers.includes(item.matcher)
+          ? { ...item, value: undefined }
+          : item
+      ) || [];
+
   return {
     request: {
       method: mockEditorForm.request.method,
@@ -204,6 +221,10 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
       headers:
         requestHeaders.length > 0
           ? requestHeaders.reduce(matcherReducer, {})
+          : undefined,
+      body:
+        requestBody.length > 0
+          ? requestBody.reduce(matcherReducer, {})
           : undefined,
     },
 

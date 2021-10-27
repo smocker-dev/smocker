@@ -1,12 +1,15 @@
 import * as React from "react";
 import {
-  Col, Form,
-  Input, Radio,
+  Col,
+  Form,
+  Input,
+  Radio,
   RadioChangeEvent,
   Row,
-  Select, Switch
+  Select,
+  Switch,
 } from "antd";
-import { Language } from "../Code";
+import Code, { Language } from "../Code";
 import { BodyMatcherEditor } from "./BodyMatcherEditor";
 import { KeyValueEditor } from "./KeyValueEditor";
 
@@ -31,11 +34,16 @@ export const MockRequestEditor = (): JSX.Element => {
     </Form.Item>
   );
 
+  // TODO: handle YAML and XML
   const languages = [
     { label: "JSON", value: "json" },
-    { label: "YAML", value: "yaml" },
-    { label: "XML", value: "xml" },
-    { label: "Plain Text", value: "txt" },
+    { label: "Default", value: "txt" },
+  ];
+
+  const fallbackMatchers = [
+    { label: "ShouldEqual", value: "ShouldEqual" },
+    { label: "ShouldEqualJSON", value: "ShouldEqualJSON" },
+    { label: "ShouldContainSubstring", value: "ShouldContainSubstring" },
   ];
 
   return (
@@ -44,7 +52,8 @@ export const MockRequestEditor = (): JSX.Element => {
         <Input
           addonBefore={methodSelector}
           addonAfter={regexToggle}
-          placeholder="/example" />
+          placeholder="/example"
+        />
       </Form.Item>
 
       <Row gutter={24}>
@@ -61,21 +70,52 @@ export const MockRequestEditor = (): JSX.Element => {
 
       <Form.Item
         noStyle
-        shouldUpdate={(prevValues, currentValues) => prevValues?.request?.method !== currentValues?.request?.method}
+        shouldUpdate={(prevValues, currentValues) =>
+          prevValues?.request?.method !== currentValues?.request?.method
+        }
       >
-        {({ getFieldValue }) => getFieldValue(["request", "method"]) !== "GET" && (
-          <Form.Item label="Body">
-            <Radio.Group
-              options={languages}
-              value={bodyLanguage}
-              onChange={(e: RadioChangeEvent) => setBodyLanguage(e.target.value)}
-              optionType="button"
-              buttonStyle="solid"
-              size="small"
-              style={{ marginBottom: 5 }} />
-            <BodyMatcherEditor name={["request", "body"]} />
-          </Form.Item>
-        )}
+        {({ getFieldValue }) =>
+          getFieldValue(["request", "method"]) !== "GET" && (
+            <Form.Item label="Body">
+              <Radio.Group
+                options={languages}
+                value={bodyLanguage}
+                onChange={(e: RadioChangeEvent) =>
+                  setBodyLanguage(e.target.value)
+                }
+                optionType="button"
+                buttonStyle="solid"
+                size="small"
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  marginBottom: 5,
+                }}
+              />
+              {bodyLanguage === "json" && (
+                <BodyMatcherEditor name={["request", "body"]} />
+              )}
+              {bodyLanguage === "txt" && (
+                <div>
+                  <Radio.Group
+                    options={fallbackMatchers}
+                    optionType="button"
+                    defaultValue="ShouldEqual"
+                    size="small"
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      marginBottom: 5,
+                    }}
+                  />
+                  <Form.Item noStyle>
+                    <Code language={bodyLanguage} />
+                  </Form.Item>
+                </div>
+              )}
+            </Form.Item>
+          )
+        }
       </Form.Item>
     </>
   );
