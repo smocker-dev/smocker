@@ -1,6 +1,5 @@
-.cache/
+.parcel-cache/
 .vscode/
 build/
-client/dist/
 docs/.vuepress/dist/
 node_modules/

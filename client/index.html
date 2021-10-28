@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Smocker</title>
     <base href="{{.basePath}}" />
+    <link rel="stylesheet" href="npm:antd/dist/antd.css" />
     <script>
       window.basePath = "{{.basePath}}";
       window.version = "{{.version}}";
@@ -15,6 +16,6 @@
 
   <body>
     <div id="root"></div>
-    <script src="./index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

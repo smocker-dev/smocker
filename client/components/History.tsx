@@ -24,16 +24,16 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import useLocalStorage from "react-use-localstorage";
 import { Dispatch } from "redux";
-import { Actions, actions } from "~modules/actions";
-import { AppState } from "~modules/reducers";
-import { dateFormat, Entry, History, SmockerError } from "~modules/types";
+import { Actions, actions } from "../modules/actions";
+import { AppState } from "../modules/reducers";
+import { dateFormat, Entry, History, SmockerError } from "../modules/types";
 import {
   cleanupRequest,
   cleanupResponse,
   entryToCurl,
   formatQueryParams,
   usePoll,
-} from "~modules/utils";
+} from "../modules/utils";
 import Code from "./Code";
 import "./History.scss";
 

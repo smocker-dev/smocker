@@ -1,8 +1,7 @@
-.cache/
 .DS_Store
+.parcel-cache/
 .vscode/
 build/
-client/dist/
 coverage/
 docs/.vuepress/dist/
 node_modules/

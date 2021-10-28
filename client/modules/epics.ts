@@ -3,7 +3,7 @@ import { of } from "rxjs";
 import { ajax, AjaxError, AjaxResponse } from "rxjs/ajax";
 import { catchError, exhaustMap, filter, map, mergeMap } from "rxjs/operators";
 import { isActionOf } from "typesafe-actions";
-import { trimedPath } from "~modules/utils";
+import { trimedPath } from "../modules/utils";
 import { Actions, actions } from "./actions";
 import {
   decode,

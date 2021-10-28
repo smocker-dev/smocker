@@ -1,8 +1,8 @@
 import { Layout, Menu, Row } from "antd";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
-import Logo from "~assets/logo.png";
-import { cleanQueryParams } from "~modules/utils";
+import Logo from "../assets/logo.png";
+import { cleanQueryParams } from "../modules/utils";
 import "./Navbar.scss";
 
 const Navbar = (): JSX.Element => {
