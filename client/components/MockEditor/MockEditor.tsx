@@ -12,12 +12,18 @@ import { MockProxyResponseEditor } from "./MockProxyResponseEditor";
 import { MockContextEditor } from "./MockContextEditor";
 import { defaultResponseStatus, unaryMatchers } from "./utils";
 
-const MockEditor = (): JSX.Element => {
+interface MockEditorProps {
+  onChange?: (value: string) => unknown;
+}
+
+const MockEditor = ({ onChange }: MockEditorProps): JSX.Element => {
   const initialValues: MockEditorForm = {
     request: {
       method: "GET",
       path_regex: false,
       path: "",
+      body_type: "json",
+      body_txt_matcher: "ShouldEqual",
     },
     response_type: "static",
     response: {
@@ -51,6 +57,11 @@ const MockEditor = (): JSX.Element => {
         setMockString(
           yaml.safeDump(MockEditorFormToMock(values), { skipInvalid: true })
         );
+        if (onChange) {
+          onChange(
+            yaml.safeDump([MockEditorFormToMock(values)], { skipInvalid: true })
+          );
+        }
       }}
     >
       <Divider>Request</Divider>
@@ -131,7 +142,10 @@ interface MockEditorForm {
     path: string;
     query_parameters?: KeyValueMatcher[];
     headers?: KeyValueMatcher[];
-    body?: KeyValueMatcher[];
+    body_type: "json" | "txt";
+    body_json?: KeyValueMatcher[];
+    body_txt_matcher: string;
+    body_txt_value?: string;
   };
   response_type: "static" | "dynamic" | "proxy";
   response?: {
@@ -192,18 +206,39 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
           : item
       ) || [];
 
-  console.log("Body", mockEditorForm.request?.body);
+  let requestBody;
+  if (mockEditorForm.request?.body_type) {
+    switch (mockEditorForm.request.body_type) {
+      case "json":
+        requestBody =
+          mockEditorForm.request?.body_json
+            ?.filter((item) =>
+              unaryMatchers.includes(item.matcher)
+                ? item.key
+                : item.key && item.value
+            )
+            .map((item) =>
+              unaryMatchers.includes(item.matcher)
+                ? { ...item, value: undefined }
+                : item
+            ) || [];
 
-  const requestBody =
-    mockEditorForm.request?.body
-      ?.filter((item) =>
-        unaryMatchers.includes(item.matcher) ? item.key : item.key && item.value
-      )
-      .map((item) =>
-        unaryMatchers.includes(item.matcher)
-          ? { ...item, value: undefined }
-          : item
-      ) || [];
+        requestBody =
+          requestBody.length > 0
+            ? requestBody.reduce(matcherReducer, {})
+            : undefined;
+        break;
+      case "txt":
+        requestBody =
+          mockEditorForm.request.body_txt_matcher === "ShouldEqual"
+            ? mockEditorForm.request.body_txt_value
+            : {
+                matcher: mockEditorForm.request.body_txt_matcher,
+                value: mockEditorForm.request.body_txt_value,
+              };
+        break;
+    }
+  }
 
   return {
     request: {
@@ -222,10 +257,7 @@ const MockEditorFormToMock = (mockEditorForm: MockEditorForm): unknown => {
         requestHeaders.length > 0
           ? requestHeaders.reduce(matcherReducer, {})
           : undefined,
-      body:
-        requestBody.length > 0
-          ? requestBody.reduce(matcherReducer, {})
-          : undefined,
+      body: requestBody,
     },
 
     context: mockEditorForm.context?.times_enabled

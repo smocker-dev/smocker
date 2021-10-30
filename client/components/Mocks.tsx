@@ -291,7 +291,7 @@ const NewMockComponent = ({
     >
       <Tabs defaultActiveKey="1">
         <Tabs.TabPane tab="Visual Editor" key="1">
-          <MockEditor />
+          <MockEditor onChange={changeMock} />
         </Tabs.TabPane>
         <Tabs.TabPane tab="Raw YAML Editor" key="2">
           <Form className="form">
@@ -362,7 +362,7 @@ const MocksComponent = ({
   let filteredMocks = mocks;
   let body = null;
   if (error) {
-    body = <Alert message={error.message} type="error" />;
+    body = <Alert message={error.message} type="error" showIcon />;
   } else if (isEmpty) {
     body = <Empty description="No mocks found." />;
   } else {

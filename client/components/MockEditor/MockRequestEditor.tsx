@@ -1,21 +1,11 @@
 import * as React from "react";
-import {
-  Col,
-  Form,
-  Input,
-  Radio,
-  RadioChangeEvent,
-  Row,
-  Select,
-  Switch,
-} from "antd";
-import Code, { Language } from "../Code";
+import { Col, Form, Input, Radio, Row, Select, Switch } from "antd";
+import Code from "../Code";
 import { BodyMatcherEditor } from "./BodyMatcherEditor";
 import { KeyValueEditor } from "./KeyValueEditor";
+import classNames from "classnames";
 
 export const MockRequestEditor = (): JSX.Element => {
-  const [bodyLanguage, setBodyLanguage] = React.useState<Language>("json");
-
   const methodSelector = (
     <Form.Item name={["request", "method"]} noStyle>
       <Select>
@@ -42,6 +32,7 @@ export const MockRequestEditor = (): JSX.Element => {
 
   const fallbackMatchers = [
     { label: "ShouldEqual", value: "ShouldEqual" },
+    { label: "ShouldMatch", value: "ShouldMatch" },
     { label: "ShouldEqualJSON", value: "ShouldEqualJSON" },
     { label: "ShouldContainSubstring", value: "ShouldContainSubstring" },
   ];
@@ -76,44 +67,65 @@ export const MockRequestEditor = (): JSX.Element => {
       >
         {({ getFieldValue }) =>
           getFieldValue(["request", "method"]) !== "GET" && (
-            <Form.Item label="Body">
-              <Radio.Group
-                options={languages}
-                value={bodyLanguage}
-                onChange={(e: RadioChangeEvent) =>
-                  setBodyLanguage(e.target.value)
+            <div style={{ width: "80%", margin: "auto" }}>
+              Body:
+              <Form.Item name={["request", "body_type"]}>
+                <Radio.Group
+                  options={languages}
+                  optionType="button"
+                  buttonStyle="solid"
+                  size="small"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    marginBottom: 5,
+                  }}
+                />
+              </Form.Item>
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues?.request?.body_type !==
+                  currentValues?.request?.body_type
                 }
-                optionType="button"
-                buttonStyle="solid"
-                size="small"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  marginBottom: 5,
-                }}
-              />
-              {bodyLanguage === "json" && (
-                <BodyMatcherEditor name={["request", "body"]} />
-              )}
-              {bodyLanguage === "txt" && (
-                <div>
-                  <Radio.Group
-                    options={fallbackMatchers}
-                    optionType="button"
-                    defaultValue="ShouldEqual"
-                    size="small"
-                    style={{
-                      display: "block",
-                      textAlign: "center",
-                      marginBottom: 5,
-                    }}
-                  />
-                  <Form.Item noStyle>
-                    <Code language={bodyLanguage} />
-                  </Form.Item>
-                </div>
-              )}
-            </Form.Item>
+              >
+                {({ getFieldValue }) => (
+                  <>
+                    {/* Use divs with display to make sure the form components render */}
+                    <div
+                      className={classNames({
+                        "display-none":
+                          getFieldValue(["request", "body_type"]) !== "json",
+                      })}
+                    >
+                      <BodyMatcherEditor name={["request", "body_json"]} />
+                    </div>
+                    <div
+                      className={classNames({
+                        "display-none":
+                          getFieldValue(["request", "body_type"]) !== "txt",
+                      })}
+                    >
+                      <Form.Item name={["request", "body_txt_matcher"]} noStyle>
+                        <Radio.Group
+                          options={fallbackMatchers}
+                          optionType="button"
+                          size="small"
+                          style={{
+                            display: "block",
+                            textAlign: "center",
+                            marginBottom: 5,
+                          }}
+                        />
+                      </Form.Item>
+                      <Form.Item name={["request", "body_txt_value"]} noStyle>
+                        <Code language="txt" />
+                      </Form.Item>
+                    </div>
+                  </>
+                )}
+              </Form.Item>
+            </div>
           )
         }
       </Form.Item>

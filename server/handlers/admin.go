@@ -60,7 +60,7 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	}
 
 	sessionID := a.mocksServices.GetLastSession().ID
-	var mocks []*types.Mock
+	var mocks types.Mocks
 	if err := bindAccordingAccept(c, &mocks); err != nil {
 		return err
 	}

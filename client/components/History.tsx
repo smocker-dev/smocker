@@ -214,7 +214,7 @@ const HistoryComponent = ({
 
   let body = null;
   if (error) {
-    body = <Alert message={error.message} type="error" />;
+    body = <Alert message={error.message} type="error" showIcon />;
   } else {
     const filteredEntries = orderBy(
       historyEntries,
