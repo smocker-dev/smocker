@@ -1,7 +1,7 @@
 import * as React from "react";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Select, Space } from "antd";
-import { defaultMatcher } from "~modules/types";
+import { defaultMatcher } from "../../modules/types";
 import { positiveMatchers, negativeMatchers, unaryMatchers } from "./utils";
 import { FormListFieldData, FormListOperation } from "antd/lib/form/FormList";
 

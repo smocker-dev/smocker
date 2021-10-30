@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Col, Form, Row } from "antd";
 import Code from "../Code";
-import { bodyMatcherToPaths } from "~modules/utils";
+import { bodyMatcherToPaths } from "../../modules/utils";
 import { KeyValueEditorEngine } from "./KeyValueEditor";
 
 interface BodyMatcherEditorProps {

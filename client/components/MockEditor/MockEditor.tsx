@@ -2,7 +2,7 @@ import * as React from "react";
 import { Divider, Form, Radio } from "antd";
 import Code from "../Code";
 import yaml from "js-yaml";
-import { defaultMatcher } from "~modules/types";
+import { defaultMatcher } from "../../modules/types";
 import "./MockEditor.scss";
 import classNames from "classnames";
 import { MockRequestEditor } from "./MockRequestEditor";
