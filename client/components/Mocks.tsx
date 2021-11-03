@@ -289,7 +289,7 @@ const NewMockComponent = ({
         </div>
       }
     >
-      <Tabs defaultActiveKey="1">
+      <Tabs defaultActiveKey={defaultValue.trim() === "" ? "1" : "2"}>
         <Tabs.TabPane tab="Visual Editor" key="1">
           <MockEditor onChange={changeMock} />
         </Tabs.TabPane>
