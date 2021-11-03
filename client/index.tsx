@@ -4,7 +4,6 @@ import App from "./components/App";
 
 render(<App />, document.getElementById("root"));
 
-const m = module;
-if (m.hot) {
-  m.hot.accept();
+if (module.hot) {
+  module.hot.accept();
 }

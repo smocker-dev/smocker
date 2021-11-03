@@ -12,6 +12,7 @@ import "codemirror/addon/lint/yaml-lint";
 import "codemirror/lib/codemirror.css";
 import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/ruby/ruby";
+import "codemirror/mode/xml/xml";
 import "codemirror/mode/yaml/yaml";
 import "codemirror/theme/material.css";
 import jsyaml from "js-yaml";
@@ -23,18 +24,21 @@ window.jsyaml = jsyaml;
 
 const largeBodyLength = 5000;
 
+export type Language =
+  | "go_template"
+  | "go_template_yaml"
+  | "yaml"
+  | "go_template_json"
+  | "json"
+  | "lua"
+  | "xml"
+  | "txt";
+
 interface Props {
-  value: string;
-  language:
-    | "go_template"
-    | "go_template_yaml"
-    | "yaml"
-    | "go_template_json"
-    | "json"
-    | "lua"
-    | "txt";
+  value?: string;
+  language: Language;
   collapsible?: boolean;
-  onBeforeChange?: (value: string) => unknown;
+  onChange?: (value: string) => unknown;
 }
 
 const codeMirrorOptions: EditorConfiguration = {
@@ -56,7 +60,7 @@ const codeMirrorOptions: EditorConfiguration = {
 const Code = ({
   value,
   language,
-  onBeforeChange,
+  onChange: onBeforeChange,
   collapsible = true,
 }: Props): JSX.Element => {
   let mode: string = language;
@@ -73,6 +77,10 @@ const Code = ({
     case "go_template":
     case "go_template_yaml":
       mode = "yaml";
+      break;
+
+    case "xml":
+      mode = "application/xml";
       break;
   }
 
@@ -98,7 +106,7 @@ const Code = ({
   body = (
     <Controlled
       className="code-editor"
-      value={value}
+      value={value || ""}
       options={{
         ...codeMirrorOptions,
         mode,
@@ -115,7 +123,7 @@ const Code = ({
     />
   );
 
-  if (collapsible && value.length > largeBodyLength) {
+  if (collapsible && value && value.length > largeBodyLength) {
     return (
       <Collapse>
         <Collapse.Panel

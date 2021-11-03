@@ -54,7 +54,7 @@ const EditGraph = ({
         <Code
           language="txt"
           value={value}
-          onBeforeChange={onChange}
+          onChange={onChange}
           collapsible={false}
         />
       </Form>

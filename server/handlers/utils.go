@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const MIMEApplicationXYaml = "application/x-yaml"
+
 func bindAccordingAccept(c echo.Context, res interface{}) error {
 	if err := c.Bind(res); err != nil {
 		if err != echo.ErrUnsupportedMediaType {

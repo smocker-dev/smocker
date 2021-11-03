@@ -15,6 +15,7 @@ import {
   Pagination,
   Row,
   Spin,
+  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -45,6 +46,7 @@ import {
   usePoll,
 } from "../modules/utils";
 import Code from "./Code";
+import MockEditor from "./MockEditor/MockEditor";
 import "./Mocks.scss";
 
 const renderTimes = (count: number, expected?: number) => {
@@ -287,14 +289,21 @@ const NewMockComponent = ({
         </div>
       }
     >
-      <Form className="form">
-        <Code
-          value={mock}
-          language="yaml"
-          onBeforeChange={changeMock}
-          collapsible={false}
-        />
-      </Form>
+      <Tabs defaultActiveKey={defaultValue.trim() === "" ? "1" : "2"}>
+        <Tabs.TabPane tab="Visual Editor" key="1">
+          <MockEditor onChange={changeMock} />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Raw YAML Editor" key="2">
+          <Form className="form">
+            <Code
+              value={mock}
+              language="yaml"
+              onChange={changeMock}
+              collapsible={false}
+            />
+          </Form>
+        </Tabs.TabPane>
+      </Tabs>
     </Drawer>
   );
 };
@@ -353,7 +362,7 @@ const MocksComponent = ({
   let filteredMocks = mocks;
   let body = null;
   if (error) {
-    body = <Alert message={error.message} type="error" />;
+    body = <Alert message={error.message} type="error" showIcon />;
   } else if (isEmpty) {
     body = <Empty description="No mocks found." />;
   } else {

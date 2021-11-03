@@ -41,7 +41,7 @@ const Navbar = (): JSX.Element => {
               Mocks
             </Link>
           </Menu.Item>
-          <Menu.Item>
+          <Menu.Item key="documentation">
             <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
               Documentation
             </a>
