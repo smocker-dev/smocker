@@ -17,6 +17,7 @@ import {
   Typography,
 } from "antd";
 import dayjs from "dayjs";
+import { getReasonPhrase } from "http-status-codes";
 import yaml from "js-yaml";
 import orderBy from "lodash/orderBy";
 import * as React from "react";
@@ -65,6 +66,16 @@ const EntryComponent = React.memo(
         responseStatusColor = "orange";
       }
     }
+
+    let responseStatusTitle = "Unknown HTTP status code";
+    try {
+      responseStatusTitle = getReasonPhrase(value.response.status);
+    } catch {
+      if (value.response.status >= 600) {
+        responseStatusTitle = "Smocker error";
+      }
+    }
+
     return (
       <div className="entry">
         <div className="request">
@@ -104,7 +115,9 @@ const EntryComponent = React.memo(
         <div className="response">
           <div className="details">
             {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
-            <Tag color={responseStatusColor}>{value.response.status}</Tag>
+            <Tag color={responseStatusColor} title={responseStatusTitle}>
+              {value.response.status}
+            </Tag>
             {value.response.status > 600 && (
               <Typography.Text
                 className="error"
