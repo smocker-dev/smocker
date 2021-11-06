@@ -26,7 +26,6 @@
     "antd": "^4.16.9",
     "classnames": "^2.2.6",
     "codemirror": "^5.55.0",
-    "core-js": "^3.6.4",
     "dayjs": "^1.8.28",
     "fp-ts": "^2.6.7",
     "http-status-codes": "^2.1.4",
