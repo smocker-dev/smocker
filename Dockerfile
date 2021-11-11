@@ -13,7 +13,7 @@ FROM node:16-alpine AS build-frontend
 WORKDIR /wd
 ENV PARCEL_WORKERS 1
 # node-gyp dependencies: https://github.com/nodejs/node-gyp#on-unix
-RUN apk add --no-cache g++ make python
+RUN apk add --no-cache g++ make python3
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY tsconfig.json ./
