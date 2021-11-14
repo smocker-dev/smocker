@@ -1,7 +1,7 @@
 import { Layout, Menu, Row } from "antd";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
-import Logo from "../assets/logo.png";
+import Logo from "../assets/logo180.png";
 import { cleanQueryParams } from "../modules/utils";
 import "./Navbar.scss";
 
