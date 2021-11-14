@@ -118,7 +118,7 @@ const EntryComponent = React.memo(
             <Tag color={responseStatusColor} title={responseStatusTitle}>
               {value.response.status}
             </Tag>
-            {value.response.status > 600 && (
+            {value.response.status >= 600 && (
               <Typography.Text
                 className="error"
                 ellipsis
@@ -142,7 +142,7 @@ const EntryComponent = React.memo(
             <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
               <Button block type="dashed">
                 <PlusCircleOutlined />
-                {value.response.status > 600
+                {value.response.status >= 600
                   ? "Create a new mock from request"
                   : "Create a new mock from entry"}
               </Button>
