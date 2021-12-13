@@ -78,7 +78,7 @@ func HTTPRequestToRequest(req *http.Request) Request {
 	}
 	headers.Add("Host", req.Host)
 	return Request{
-		Path:        req.URL.Path,
+		Path:        req.URL.EscapedPath(),
 		Method:      req.Method,
 		Origin:      getOrigin(req),
 		Body:        body,
