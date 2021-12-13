@@ -5,6 +5,15 @@
       Content-Type: application/json
     body: >
       {"message": "test"}
+
+- request:
+    path: /encoded%2Fpath
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "encoded path"}
+
 - request:
     path: /test
     method: POST
@@ -14,6 +23,7 @@
     body: >
       {"message": "test2"}
     delay: 10ms
+
 - request:
     path: /test
     method: DELETE
@@ -25,6 +35,7 @@
     delay:
       min: 0ms
       max: 10ms
+
 - request:
     path: /test
     query_params:
@@ -34,6 +45,7 @@
       Content-Type: application/json
     body: >
       {"message": "test4"}
+
 - request:
     path: /test
     headers:
@@ -43,6 +55,7 @@
       Content-Type: application/json
     body: >
       {"message": "test5"}
+
 - request:
     path: /test
     headers:

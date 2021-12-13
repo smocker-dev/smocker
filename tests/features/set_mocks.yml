@@ -5,16 +5,14 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         headers:
           Content-Type: "application/x-yaml"
         bodyFile: ../data/basic_mock.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
@@ -26,6 +24,7 @@ testcases:
         vars:
           mock_id:
             from: result.bodyjson.bodyjson0.state.id
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks?id={{.AddBasicMock.mock_id}}
@@ -38,22 +37,20 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         headers:
           Content-Type: "application/x-yaml"
         bodyFile: ../data/basic_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 6
+          - result.bodyjson.__len__ ShouldEqual 7
 
           # Mocks are stored as a stack
           - result.bodyjson.bodyjson5.request.method.value ShouldEqual .*
@@ -67,24 +64,24 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/basic_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
         assertions:
-          - result.bodyjson.__len__ ShouldEqual 6
+          - result.bodyjson.__len__ ShouldEqual 7
+
       - type: http
         method: POST
         url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/basic_mock.yml
         assertions:
           - result.statuscode ShouldEqual 200
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
@@ -95,16 +92,14 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         headers:
           Content-Type: "application/x-yaml"
         bodyFile: ../data/matcher_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
@@ -128,16 +123,14 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         headers:
           Content-Type: "application/x-yaml"
         bodyFile: ../data/dynamic_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks
@@ -155,16 +148,14 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         headers:
           Content-Type: "application/x-yaml"
         bodyFile: ../data/proxy_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8081/mocks

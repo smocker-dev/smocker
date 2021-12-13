@@ -16,14 +16,12 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/basic_mock.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8080/test
@@ -35,38 +33,47 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/basic_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test
+
+      - type: http
+        method: GET
+        url: http://localhost:8080/encoded%2Fpath
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual "encoded path"
+
       - type: http
         method: POST
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test2
+
       - type: http
         method: DELETE
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test3
+
       - type: http
         method: GET
         url: http://localhost:8080/test?foo=bar&foo=baz
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test4
+
       - type: http
         method: GET
         url: http://localhost:8080/test
@@ -80,26 +87,26 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/matcher_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8080/any
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test
+
       - type: http
         method: POST
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test2
+
       - type: http
         method: DELETE
         url: http://localhost:8080/test
@@ -108,6 +115,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test3
+
       - type: http
         method: PUT
         url: http://localhost:8080/test
@@ -116,12 +124,14 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test4
+
       - type: http
         method: PATCH
         url: http://localhost:8080/test?test=true&test2=test3
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test5
+
       - type: http
         method: GET
         url: http://localhost:8080/test6
@@ -129,6 +139,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test7
+
       - type: http
         method: GET
         url: http://localhost:8080/test8?test=trueeeeee
@@ -136,14 +147,17 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test9
+
       - type: http
         method: POST
         url: http://localhost:8080/test10
         body: >
           { "key1": "test" }
+
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test11
+
       - type: http
         method: POST
         url: http://localhost:8080/test10
@@ -156,44 +170,47 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/dynamic_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8080/test
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test"
+
       - type: http
         method: GET
         url: http://localhost:8080/test2
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test2"
+
       - type: http
         method: GET
         url: http://localhost:8080/test3
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test3"
+
       - type: http
         method: GET
         url: http://localhost:8080/test4
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test4"
+
       - type: http
         method: GET
         url: http://localhost:8080/test5
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test5"
+
       - type: http
         method: GET
         url: http://localhost:8080/test6
@@ -205,14 +222,12 @@ testcases:
     steps:
       - type: http
         method: POST
-        url: http://localhost:8081/reset
-      - type: http
-        method: POST
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?reset=true
         bodyFile: ../data/proxy_mock_list.yml
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+
       - type: http
         method: GET
         url: http://localhost:8080/posts/1
@@ -221,12 +236,14 @@ testcases:
           - result.bodyjson.id ShouldEqual 1
           - result.bodyjson.body ShouldNotBeBlank
           - result.bodyjson.title ShouldNotBeBlank
+
       - type: http
         method: GET
         url: http://localhost:8080/todos?userId=1
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 20
+
       # - type: http
       #   method: GET
       #   url: http://localhost:8080/redirect-to?url=https%3A%2F%2Fsmocker.dev%2F&status_code=302
@@ -244,12 +261,14 @@ testcases:
       #   assertions:
       #     - result.statuscode ShouldEqual 200
       #     - result.bodyjson.url ShouldEqual https://httpbin.org/get
+
       - type: http
         method: GET
         url: http://localhost:8080/get
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.headers.host ShouldEqual httpbin.org
+
       - type: http
         method: GET
         url: http://localhost:8080/get
@@ -258,6 +277,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.headers.host ShouldEqual localhost
+
       - type: http
         method: GET
         url: http://localhost:8080/headers
@@ -268,6 +288,7 @@ testcases:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.headers.custom ShouldEqual foobar
           - result.bodyjson.headers.multi ShouldEqual foo,baz
+
       - type: http
         method: GET
         url: http://localhost:8080/
@@ -276,6 +297,7 @@ testcases:
           X-Value: insecure
         assertions:
           - result.statuscode ShouldEqual 200
+
       - type: http
         method: GET
         url: http://localhost:8080/
