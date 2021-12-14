@@ -8,6 +8,7 @@ type Config struct {
 	StaticFiles          string
 	HistoryMaxRetention  int
 	PersistenceDirectory string
+	MocksDirectory       string
 	Build                Build
 }
 

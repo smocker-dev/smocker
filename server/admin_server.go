@@ -35,6 +35,15 @@ func Serve(config config.Config) {
 	adminServerEngine.Use(recoverMiddleware(), loggerMiddleware(), middleware.Gzip())
 
 	mockServerEngine, mockServices := NewMockServer(config)
+
+	// Autoload mocks at start
+	if config.MocksDirectory != "" {
+		log.WithField("port", config.ConfigListenPort).Infof("Loading mocks from %s", config.MocksDirectory)
+		if err := mockServices.Load(config.MocksDirectory); err != nil {
+			log.WithField("port", config.ConfigListenPort).Fatal(err)
+		}
+	}
+
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 

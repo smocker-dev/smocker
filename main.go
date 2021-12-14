@@ -31,6 +31,7 @@ func parseConfig() (c config.Config) {
 	flag.StringVar(&c.StaticFiles, "static-files", ".", "The location of the static files to serve (index.html, etc.)")
 	flag.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "The maximum number of calls to keep in the history by sessions (0 = infinity)")
 	flag.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
+	flag.StringVar(&c.MocksDirectory, "mocks-directory", "", "If defined, the directory use to load the mocks at server start")
 	flag.Parse()
 	return
 }
