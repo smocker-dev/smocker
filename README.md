@@ -22,6 +22,8 @@ The documentation is available on [smocker.dev](https://smocker.dev).
   - [User Interface](#user-interface)
 - [Usage](#usage)
   - [Hello, World!](#hello-world)
+  - [Initializing Smocker in Docker](#initializing-smocker-in-docker)
+    - [Example](#example)
 - [Development](#development)
   - [Backend](#backend)
   - [Frontend](#frontend)
@@ -133,6 +135,43 @@ curl -XPOST localhost:8081/reset
 ```
 
 For more advanced usage, please read the [project's documentation](https://smocker.dev).
+
+### Initializing Smocker in Docker
+
+By placing files in `/docker-entrypoint-init.d` (or an alternate path defined in `SMOCKER_INIT_SCRIPTS_PATH`), you can configure the fresh instance on startup.
+
+- Any files with extension `yml` or `yaml` will be loaded as mocks
+- Any files with extension `sh` will be executed
+
+You can include more than one file and these files should be executed in alphabetical order.
+
+#### Example
+
+Lets say we have a project structured like this:
+
+```
+.
+├── docker-compose.yml
+└── mocks
+    └── helloworld.yml
+```
+
+```yaml
+# docker-compose.yml
+version: '3'
+
+services:
+  smocker:
+    image: thiht/smocker
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    volumes:
+      - './mocks:/docker-entrypoint-init.d'
+```
+
+This would load the mocks in `mocks/helloworld.yml` automatically on startup.
+
 
 ## Development
 

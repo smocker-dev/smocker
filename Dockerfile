@@ -21,8 +21,13 @@ COPY client/ ./client/
 RUN yarn build
 
 FROM alpine
+RUN apk add --no-cache bash curl
 WORKDIR /opt
 EXPOSE 8080 8081
 COPY --from=build-backend /go/src/github.com/Thiht/smocker/build/* /opt/
 COPY --from=build-frontend /wd/build/* /opt/
+
+COPY docker-entrypoint.sh /opt/docker-entrypoint.sh
+
+ENTRYPOINT ["/opt/docker-entrypoint.sh"]
 CMD ["/opt/smocker"]
