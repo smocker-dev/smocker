@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"html/template"
 	"io"
 	"net/http"
@@ -71,6 +72,26 @@ func Serve(config config.Config) {
 	log.WithField("port", config.ConfigListenPort).Info("Starting admin server")
 	log.WithField("port", config.MockServerListenPort).Info("Starting mock server")
 	adminServerEngine.Server.Addr = ":" + strconv.Itoa(config.ConfigListenPort)
+
+	if config.TLSEnable {
+		certificate, err := tls.LoadX509KeyPair(config.TLSCertFile, config.TLSKeyFile)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"tls-cert-file": config.TLSCertFile,
+				"tls-key-file":  config.TLSKeyFile,
+			}).Fatalf("Invalid certificate: %v", err)
+		}
+
+		adminServerEngine.Server.TLSConfig = &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{certificate},
+		}
+		mockServerEngine.TLSConfig = &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{certificate},
+		}
+	}
+
 	if err := gracehttp.Serve(adminServerEngine.Server, mockServerEngine); err != nil {
 		log.Fatal(err)
 	}
