@@ -28,6 +28,7 @@ The documentation is available on [smocker.dev](https://smocker.dev).
   - [Documentation](#documentation)
   - [Docker](#docker)
   - [Caddy](#caddy)
+  - [HTTPS](#https)
 - [Authors](#authors)
 - [Contributors](#contributors)
 
@@ -181,6 +182,24 @@ If you need to test Smocker with a base path, you can use the Caddyfile provided
 
 - `make start-release`, `make VERSION=xxx start-release`: create a released version of Smocker and launch it with `/smocker/` as base path
 - `make start-caddy`: start Caddy to make Smocker accessible at http://localhost:8082/smocker/
+
+### HTTPS
+
+If you need to test Smocker with HTTPS enabled, the easiest way is to generate a locally signed certificate with [mkcert](https://github.com/FiloSottile/mkcert):
+
+```sh
+# Install the local certificate authority
+mkcert -install
+
+# Create a certificate for localhost
+mkcert -cert-file /tmp/cert.pem -key-file /tmp/key.pem localhost
+```
+
+Then, start Smocker with TLS enabled, using your generated certificate:
+
+```sh
+./smocker -mock-server-listen-port=44300 -config-listen-port=44301 -tls-enable -tls-cert-file=/tmp/cert.pem -tls-private-key-file=/tmp/key.pm
+```
 
 ## Authors
 
