@@ -8,6 +8,9 @@ type Config struct {
 	StaticFiles          string
 	HistoryMaxRetention  int
 	PersistenceDirectory string
+	TLSEnable            bool
+	TLSCertFile          string
+	TLSKeyFile           string
 	Build                Build
 }
 

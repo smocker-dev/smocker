@@ -13,6 +13,20 @@ docker run -d \
   thiht/smocker
 ```
 
+or with TLS enabled:
+
+```sh
+docker run -d \
+  --restart=always \
+  -p 44300:8080 \
+  -p 44301:8081 \
+  -e SMOCKER_TLS_ENABLE=true \
+  -v /path/to/your/cert.pem:/etc/smocker/tls/certs/cert.pem:ro \
+  -v /path/to/your/key.pem:/etc/smocker/tls/private/key.pem:ro \
+  --name smocker \
+  thiht/smocker
+```
+
 ## Manual Deployment
 
 ::: tip Note
@@ -25,7 +39,14 @@ mkdir -p /opt/smocker && cd /opt/smocker
 wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz
 rm /tmp/smocker.tar.gz
+
 nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
+
+# Or with TLS
+
+# The certificate is expected in /etc/smocker/tls/certs/ by default
+# You can override it with -tls-cert-file and -tls-private-key-file
+nohup ./smocker -mock-server-listen-port=44300 -config-listen-port=44301 -tls-enable &
 ```
 
 ## Healthcheck
@@ -34,4 +55,13 @@ To check that Smocker started successfully, just run the following command:
 
 ```sh
 curl localhost:8081/version
+```
+
+or with TLS enabled:
+
+```sh
+curl https://localhost:44301/version
+
+# Or if you use a self signed certificate
+curl -k https://localhost:44301/version
 ```
