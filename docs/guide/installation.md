@@ -21,8 +21,8 @@ docker run -d \
   -p 44300:8080 \
   -p 44301:8081 \
   -e SMOCKER_TLS_ENABLE=true \
-  -v /path/to/your/cert.pem:/etc/smocker/tls/certs/cert.pem:ro
-  -v /path/to/your/key.pem:/etc/smocker/tls/private/key.pem:ro
+  -v /path/to/your/cert.pem:/etc/smocker/tls/certs/cert.pem:ro \
+  -v /path/to/your/key.pem:/etc/smocker/tls/private/key.pem:ro \
   --name smocker \
   thiht/smocker
 ```
