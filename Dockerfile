@@ -14,8 +14,12 @@ WORKDIR /wd
 ENV PARCEL_WORKERS 1
 # node-gyp dependencies: https://github.com/nodejs/node-gyp#on-unix
 RUN apk add --no-cache g++ make python3
-COPY package.json yarn.lock ./
+
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn/
+
 RUN yarn install --immutable
+
 COPY tsconfig.json ./
 COPY client/ ./client/
 RUN yarn build
