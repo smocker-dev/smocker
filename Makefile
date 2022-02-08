@@ -129,7 +129,7 @@ optimize:
 
 build/smocker.tar.gz:
 	$(MAKE) build
-	yarn install --frozen-lockfile
+	yarn install --immutable
 	yarn build
 	cd build/; tar cvf smocker.tar.gz *
 

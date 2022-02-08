@@ -12,7 +12,7 @@
     "test:watch": "jest --watch",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "docs:generate": "node docs/refresh-screenshots.js",
+    "docs:generate": "yarn predocs:generate && node docs/refresh-screenshots.js",
     "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
   },
   "targets": {
@@ -109,5 +109,6 @@
   },
   "jest": {
     "preset": "ts-jest"
-  }
+  },
+  "packageManager": "yarn@3.1.1"
 }
