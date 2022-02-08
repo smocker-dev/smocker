@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@hot-loader/react-dom": "^16.10.2",
-    "@parcel/transformer-sass": "^2.0.0",
+    "@parcel/transformer-sass": "^2.2.1",
     "@types/classnames": "^2.2.9",
     "@types/codemirror": "0.0.96",
     "@types/jest": "^26.0.3",
@@ -72,7 +72,7 @@
     "husky": ">=1",
     "jest": "^26.1.0",
     "lint-staged": ">=10.2.11",
-    "parcel": "^2.0.0",
+    "parcel": "^2.2.1",
     "prettier": "2.0.5",
     "react-hot-loader": "^4.12.15",
     "redux-devtools-extension": "^2.13.8",
