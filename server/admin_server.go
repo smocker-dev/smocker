@@ -11,8 +11,8 @@ import (
 	"github.com/Thiht/smocker/server/handlers"
 	"github.com/Thiht/smocker/server/services"
 	"github.com/facebookgo/grace/gracehttp"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
 )
 

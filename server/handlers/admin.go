@@ -6,7 +6,7 @@ import (
 
 	"github.com/Thiht/smocker/server/services"
 	"github.com/Thiht/smocker/server/types"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
 
