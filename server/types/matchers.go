@@ -8,7 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/smartystreets/assertions"
 	"github.com/stretchr/objx"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -300,12 +299,9 @@ func (bm *BodyMatcher) UnmarshalJSON(data []byte) error {
 
 func (bm BodyMatcher) MarshalYAML() (interface{}, error) {
 	if bm.bodyString != nil {
-		value, err := yaml.Marshal(bm.bodyString)
-		return string(value), err
+		return bm.bodyString, nil
 	}
-
-	value, err := yaml.Marshal(bm.bodyJson)
-	return string(value), err
+	return bm.bodyJson, nil
 }
 
 func (bm *BodyMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
