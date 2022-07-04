@@ -1,11 +1,12 @@
 package templates
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/Thiht/smocker/server/types"
-	json "github.com/layeh/gopher-json"
+	goJson "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
@@ -51,7 +52,15 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 		return nil, fmt.Errorf("failed to sandbox Lua environment: %w", err)
 	}
 
-	luaState.SetGlobal("request", luar.New(luaState, request))
+	b, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+	m := map[string]interface{}{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal request as Lua value: %w", err)
+	}
+	luaState.SetGlobal("request", luar.New(luaState, m))
 	if err := luaState.DoString(script); err != nil {
 		log.WithError(err).Error("Failed to execute Lua script")
 		return nil, fmt.Errorf("failed to execute Lua script: %w", err)
@@ -61,7 +70,7 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 	body := luaResult.RawGetString("body")
 	if body.Type() == lua.LTTable {
 		// FIXME: this should depend on the Content-Type of the luaResult
-		b, _ := json.Encode(body)
+		b, _ := goJson.Encode(body)
 		luaResult.RawSetString("body", lua.LString(string(b)))
 	}
 
