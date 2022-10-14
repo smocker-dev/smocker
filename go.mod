@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/facebookgo/grace v0.0.0-20180706040059-75cf19382434
-	github.com/labstack/echo/v4 v4.7.0
+	github.com/labstack/echo/v4 v4.9.1
 	github.com/layeh/gopher-json v0.0.0-20190114024228-97fed8db8427
 	github.com/namsral/flag v1.7.4-pre
 	github.com/sirupsen/logrus v1.4.2
@@ -35,7 +35,7 @@ require (
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/labstack/gommon v0.3.1 // indirect
+	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
