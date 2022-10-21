@@ -330,7 +330,7 @@ testcases:
       - type: http
         method: POST
         url: http://{{.mockserver}}/mocks
-        body: ./mocks.yml
+        bodyFile: ./mocks.yml
         assertions:
           - result.statuscode ShouldEqual 200
 
