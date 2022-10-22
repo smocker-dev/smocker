@@ -307,8 +307,8 @@ And finally, the Venom test.
 name: Retrieve Reservation
 
 vars:
-  gw: http://localhost:8080
-  mockserver: http://localhost:8081
+  gw: localhost:8080
+  mockserver: localhost:8081
   dsn: user:password@(localhost:8082)/database
 
 testcases:
@@ -330,7 +330,7 @@ testcases:
       - type: http
         method: POST
         url: http://{{.mockserver}}/mocks
-        body: ./mocks.yml
+        bodyFile: ./mocks.yml
         assertions:
           - result.statuscode ShouldEqual 200
 
