@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -52,14 +51,11 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 		return nil, fmt.Errorf("failed to sandbox Lua environment: %w", err)
 	}
 
-	b, err := json.Marshal(request)
+	m, err := StructToMSI(request)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, fmt.Errorf("failed to convert request as map[string]any: %w", err)
 	}
-	m := map[string]interface{}{}
-	if err := json.Unmarshal(b, &m); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal request as Lua value: %w", err)
-	}
+
 	luaState.SetGlobal("request", luar.New(luaState, m))
 	if err := luaState.DoString(script); err != nil {
 		log.WithError(err).Error("Failed to execute Lua script")
