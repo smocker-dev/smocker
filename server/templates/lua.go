@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Thiht/smocker/server/types"
-	json "github.com/layeh/gopher-json"
+	goJson "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
@@ -51,7 +51,12 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 		return nil, fmt.Errorf("failed to sandbox Lua environment: %w", err)
 	}
 
-	luaState.SetGlobal("request", luar.New(luaState, request))
+	m, err := StructToMSI(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert request as map[string]any: %w", err)
+	}
+
+	luaState.SetGlobal("request", luar.New(luaState, m))
 	if err := luaState.DoString(script); err != nil {
 		log.WithError(err).Error("Failed to execute Lua script")
 		return nil, fmt.Errorf("failed to execute Lua script: %w", err)
@@ -61,7 +66,7 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 	body := luaResult.RawGetString("body")
 	if body.Type() == lua.LTTable {
 		// FIXME: this should depend on the Content-Type of the luaResult
-		b, _ := json.Encode(body)
+		b, _ := goJson.Encode(body)
 		luaResult.RawSetString("body", lua.LString(string(b)))
 	}
 

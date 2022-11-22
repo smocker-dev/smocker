@@ -21,9 +21,14 @@
   dynamic_response:
     engine: lua
     script: >
+      local name;
+      if request.query_params ~= nil then
+        name = request.query_params.name[1]
+      end
       return {
         body = {
-          message = "request path "..request.path
+          message = "request path "..request.path,
+          name = name,
         },
         headers = {
           ["Content-Type"] = "application/json"

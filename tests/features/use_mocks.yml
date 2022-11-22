@@ -185,10 +185,11 @@ testcases:
 
       - type: http
         method: GET
-        url: http://localhost:8080/test2
+        url: http://localhost:8080/test2?name=test2
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "request path /test2"
+          - result.bodyjson.name ShouldEqual test2
 
       - type: http
         method: GET
