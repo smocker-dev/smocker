@@ -1,55 +1,93 @@
-import { Layout, Menu, Row } from "antd";
-import * as React from "react";
-import { Link, useLocation } from "react-router-dom";
-import Logo from "../assets/logo180.png";
-import { cleanQueryParams } from "../modules/utils";
-import "./Navbar.scss";
+import { HStack, Icon, Image, Link, Text, useToken } from "@chakra-ui/react";
+import { RiExternalLinkFill } from "react-icons/ri";
+import { NavLink, useSearchParams } from "react-router-dom";
+import logo from "../assets/logo180.png";
 
-const Navbar = (): JSX.Element => {
-  const location = useLocation();
+const Logo = () => (
+  <HStack align="center" pl="4em" pr="2">
+    <Image boxSize="32px" src={logo} />
+    <NavLink to="/">
+      <Text
+        fontWeight="900"
+        color="white"
+        style={{
+          fontVariant: "small-caps"
+        }}
+      >
+        Smocker
+      </Text>
+    </NavLink>
+  </HStack>
+);
+
+const Item = (props: { to?: string; label: string; href?: string }) => {
+  const [searchParams] = useSearchParams();
+  const [primary, whiteLight, greyDark] = useToken(
+    // the key within the theme, in this case `theme.colors`
+    "colors",
+    // the subkey(s), resolving to `theme.colors.red.100`
+    ["primary", "white.light", "grey.dark"]
+  );
+
+  if (props.href) {
+    return (
+      <Link
+        href={props.href}
+        isExternal
+        display="flex"
+        alignItems="center"
+        color="grey.dark"
+        _hover={{
+          color: "white.light",
+          textDecoration: "underline"
+        }}
+      >
+        <Text pl="5" fontWeight="600">
+          {props.label}
+        </Text>
+        <Icon as={RiExternalLinkFill} mx="2px" />
+      </Link>
+    );
+  }
+  const params = searchParams.toString();
+  const to = (props.to || "") + (params ? `?${params}` : "");
   return (
-    <Layout.Header className="navbar">
-      <Row justify="start" align="middle">
-        <Link className="logo" to="/">
-          <img height={42} src={Logo} />
-          Smocker
-        </Link>
-        <Menu
-          selectedKeys={[location.pathname]}
-          defaultSelectedKeys={["/pages/history"]}
-          className="menu"
-          theme="dark"
-          mode="horizontal"
+    <NavLink
+      to={to}
+      style={{
+        display: "flex",
+        alignItems: "stretch"
+      }}
+    >
+      {({ isActive }) => (
+        <Link
+          display="flex"
+          alignItems="center"
+          backgroundColor={isActive ? "primary" : undefined}
+          color={isActive ? "white.light" : "grey.dark"}
+          _hover={{
+            color: "white.light"
+          }}
+          as="div"
         >
-          <Menu.Item key="/pages/history">
-            <Link
-              to={(loc) => ({
-                ...cleanQueryParams(loc),
-                pathname: "/pages/history",
-              })}
-            >
-              History
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/pages/mocks">
-            <Link
-              to={(loc) => ({
-                ...cleanQueryParams(loc),
-                pathname: "/pages/mocks",
-              })}
-            >
-              Mocks
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="documentation">
-            <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
-              Documentation
-            </a>
-          </Menu.Item>
-        </Menu>
-      </Row>
-    </Layout.Header>
+          <Text pl="5" pr="5" fontWeight="600">
+            {props.label}
+          </Text>
+        </Link>
+      )}
+    </NavLink>
   );
 };
 
-export default Navbar;
+export const Navbar = () => {
+  return (
+    <HStack align="stretch" minHeight="100%" bg="navy.dark">
+      <Logo />
+      <HStack align="stretch" spacing={0}>
+        <Item label="History" to="/pages/history" />
+        <Item label="Mocks" to="/pages/mocks" />
+        <Item label="Documentation" href="https://smocker.dev/" />
+      </HStack>
+    </HStack>
+  );
+};

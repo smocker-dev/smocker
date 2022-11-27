@@ -1,9 +1,24 @@
-import * as React from "react";
-import { render } from "react-dom";
-import App from "./components/App";
+import { ChakraProvider } from "@chakra-ui/react";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { BrowserRouter } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { GlobalStateProvider } from "./modules/state";
+import { theme } from "./theme";
 
-render(<App />, document.getElementById("root"));
+const queryClient = new QueryClient();
 
-if (module.hot) {
-  module.hot.accept();
-}
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider theme={theme}>
+        <BrowserRouter>
+          <GlobalStateProvider>
+            <Layout />
+          </GlobalStateProvider>
+        </BrowserRouter>
+      </ChakraProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
+);

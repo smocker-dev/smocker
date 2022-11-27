@@ -5,6 +5,7 @@
     <link rel="icon" href="./assets/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="referrer" content="no-referrer" />
     <meta
       name="description"
       content="Smocker is a simple and efficient HTTP mock server"
@@ -12,15 +13,20 @@
     <link rel="apple-touch-icon" href="./assets/logo180.png" />
     <title>Smocker</title>
     <base href="{{.basePath}}" />
-    <link rel="stylesheet" href="npm:antd/dist/antd.css" />
-    <script>
-      window.basePath = "{{.basePath}}";
-      window.version = "{{.version}}";
-    </script>
   </head>
 
   <body>
     <div id="root"></div>
+    <script type="module">
+      window.dev = import.meta.env.DEV;
+      window.init();
+    </script>
+    <script type="text/javascript">
+      window.init = function () {
+        window.basePath = window.dev ? '/' : '{{.basePath}}';
+        window.version = window.dev ? 'Develop' : '{{.version}}';
+      };
+    </script>
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>

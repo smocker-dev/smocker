@@ -1,24 +1,20 @@
 {
   "compilerOptions": {
-    "baseUrl": "./client",
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "module": "ESNext",
-    "target": "ES5",
-    "lib": ["ES6", "DOM", "ES2019.Array"],
-    "sourceMap": true,
-    "allowJs": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "removeComments": true,
+    "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true,
-    "esModuleInterop": true
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext",
+    "useDefineForClassFields": true,
   },
-  "include": ["client/**/*"],
-  "exclude": ["node_modules", "build", "client/coverage"]
+  "include": ["client"]
 }

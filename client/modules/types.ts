@@ -1,164 +1,145 @@
-import { fold, left } from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/pipeable";
-import * as t from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
-import { Observable, of, throwError } from "rxjs";
+import { z } from "zod";
 
 export const dateFormat = "ddd, D MMM YYYY HH:mm:ss.SSS";
 export const defaultMatcher = "ShouldEqual";
 
-export const ErrorCodec = t.type({
-  message: t.union([t.string, t.undefined]),
+export const ErrorCodec = z.object({
+  message: z.string().optional()
 });
-export type SmockerError = t.TypeOf<typeof ErrorCodec>;
+export type ErrorType = z.infer<typeof ErrorCodec>;
 
-export const SessionCodec = t.type({
-  id: t.string,
-  name: t.string,
-  date: t.string,
+export const SessionCodec = z.object({
+  id: z.string(),
+  name: z.string(),
+  date: z.string()
 });
-export type Session = t.TypeOf<typeof SessionCodec>;
+export type SessionType = z.infer<typeof SessionCodec>;
 
-export const SessionsCodec = t.array(SessionCodec);
-export type Sessions = t.TypeOf<typeof SessionsCodec>;
+export const SessionsCodec = SessionCodec.array();
+export type SessionsType = z.infer<typeof SessionsCodec>;
 
-const MultimapCodec = t.record(t.string, t.array(t.string));
-export type Multimap = t.TypeOf<typeof MultimapCodec>;
+const MultimapCodec = z.record(z.string(), z.string().array());
+export type MultimapType = z.infer<typeof MultimapCodec>;
 
-const StringMatcherCodec = t.type({
-  matcher: t.string,
-  value: t.string,
+const StringMatcherCodec = z.object({
+  matcher: z.string(),
+  value: z.string()
 });
-export type StringMatcher = t.TypeOf<typeof StringMatcherCodec>;
+export type StringMatcherType = z.infer<typeof StringMatcherCodec>;
 
-const StringMatcherSliceCodec = t.array(StringMatcherCodec);
-export type StringMatcherSlice = t.TypeOf<typeof StringMatcherSliceCodec>;
+const StringMatcherSliceCodec = StringMatcherCodec.array();
+export type StringMatcherSliceType = z.infer<typeof StringMatcherSliceCodec>;
 
-const StringMatcherMapCodec = t.record(t.string, StringMatcherCodec);
-export type StringMatcherMap = t.TypeOf<typeof StringMatcherMapCodec>;
+const StringMatcherMapCodec = z.record(z.string(), StringMatcherCodec);
+export type StringMatcherMapType = z.infer<typeof StringMatcherMapCodec>;
 
-const MultimapMatcherCodec = t.record(t.string, StringMatcherSliceCodec);
-export type MultimapMatcher = t.TypeOf<typeof MultimapMatcherCodec>;
+const MultimapMatcherCodec = z.record(z.string(), StringMatcherSliceCodec);
+export type MultimapMatcherType = z.infer<typeof MultimapMatcherCodec>;
 
-const BodyMatcherCodec = t.union([StringMatcherCodec, StringMatcherMapCodec]);
-export type BodyMatcher = t.TypeOf<typeof BodyMatcherCodec>;
+const BodyMatcherCodec = z.union([StringMatcherCodec, StringMatcherMapCodec]);
+export type BodyMatcherType = z.infer<typeof BodyMatcherCodec>;
 
-const EntryContextCodec = t.type({
-  mock_id: t.union([t.string, t.undefined]),
-  mock_type: t.union([t.string, t.undefined]),
-  delay: t.union([t.string, t.undefined]),
+const EntryContextCodec = z.object({
+  mock_id: z.string().optional(),
+  mock_type: z.string().optional(),
+  delay: z.string().optional()
 });
-export type EntryContext = t.TypeOf<typeof EntryContextCodec>;
+export type EntryContextType = z.infer<typeof EntryContextCodec>;
 
-const EntryRequestCodec = t.type({
-  path: t.string,
-  method: t.string,
-  body: t.union([t.unknown, t.undefined]),
-  query_params: t.union([MultimapCodec, t.undefined]),
-  headers: t.union([MultimapCodec, t.undefined]),
-  date: t.string,
+const EntryRequestCodec = z.object({
+  path: z.string(),
+  method: z.string(),
+  body: z.unknown().optional(),
+  query_params: MultimapCodec.optional(),
+  headers: MultimapCodec.optional(),
+  date: z.string()
 });
-export type EntryRequest = t.TypeOf<typeof EntryRequestCodec>;
+export type EntryRequestType = z.infer<typeof EntryRequestCodec>;
 
-const EntryResponseCodec = t.type({
-  status: t.number,
-  body: t.union([t.unknown, t.undefined]),
-  headers: t.union([MultimapCodec, t.undefined]),
-  date: t.string,
+const EntryResponseCodec = z.object({
+  status: z.number(),
+  body: z.unknown(),
+  headers: MultimapCodec.optional(),
+  date: z.string()
 });
-export type EntryResponse = t.TypeOf<typeof EntryResponseCodec>;
+export type EntryResponseType = z.infer<typeof EntryResponseCodec>;
 
-const EntryCodec = t.type({
+const EntryCodec = z.object({
   context: EntryContextCodec,
   request: EntryRequestCodec,
-  response: EntryResponseCodec,
+  response: EntryResponseCodec
 });
-export type Entry = t.TypeOf<typeof EntryCodec>;
+export type EntryType = z.infer<typeof EntryCodec>;
 
-export const HistoryCodec = t.array(EntryCodec);
-export type History = t.TypeOf<typeof HistoryCodec>;
+export const HistoryCodec = EntryCodec.array();
+export type HistoryType = z.infer<typeof HistoryCodec>;
 
-const MockRequestCodec = t.type({
+const MockRequestCodec = z.object({
   path: StringMatcherCodec,
   method: StringMatcherCodec,
-  body: t.union([BodyMatcherCodec, t.undefined]),
-  query_params: t.union([MultimapMatcherCodec, t.undefined]),
-  headers: t.union([MultimapMatcherCodec, t.undefined]),
+  body: BodyMatcherCodec.optional(),
+  query_params: MultimapMatcherCodec.optional(),
+  headers: MultimapMatcherCodec.optional()
 });
-export type MockRequest = t.TypeOf<typeof MockRequestCodec>;
+export type MockRequestType = z.infer<typeof MockRequestCodec>;
 
-const MockResponseCodec = t.type({
-  status: t.number,
-  body: t.union([t.undefined, t.unknown]),
-  headers: t.union([MultimapCodec, t.undefined]),
+const MockResponseCodec = z.object({
+  status: z.number(),
+  body: z.unknown().optional(),
+  headers: MultimapCodec.optional()
 });
-export type MockResponse = t.TypeOf<typeof MockResponseCodec>;
+export type MockResponseType = z.infer<typeof MockResponseCodec>;
 
-const MockDynamicResponseCodec = t.type({
-  engine: t.union([
-    t.literal("go_template"),
-    t.literal("go_template_yaml"),
-    t.literal("go_template_json"),
-    t.literal("lua"),
+const MockDynamicResponseCodec = z.object({
+  engine: z.union([
+    z.literal("go_template"),
+    z.literal("go_template_yaml"),
+    z.literal("go_template_json"),
+    z.literal("lua")
   ]),
-  script: t.string,
+  script: z.string()
 });
-export type MockDynamicResponse = t.TypeOf<typeof MockDynamicResponseCodec>;
+export type MockDynamicResponseType = z.infer<typeof MockDynamicResponseCodec>;
 
-const MockProxyCodec = t.type({
-  host: t.string,
+const MockProxyCodec = z.object({
+  host: z.string()
 });
-export type MockProxy = t.TypeOf<typeof MockProxyCodec>;
+export type MockProxy = z.infer<typeof MockProxyCodec>;
 
-const MockContextCodec = t.type({
-  times: t.union([t.number, t.undefined]),
+const MockContextCodec = z.object({
+  times: z.number().optional()
 });
-export type MockContext = t.TypeOf<typeof MockContextCodec>;
+export type MockContextType = z.infer<typeof MockContextCodec>;
 
-const MockStateCodec = t.type({
-  times_count: t.number,
-  creation_date: t.string,
-  id: t.string,
-  locked: t.boolean,
+const MockStateCodec = z.object({
+  times_count: z.number(),
+  creation_date: z.string(),
+  id: z.string(),
+  locked: z.boolean()
 });
-export type MockState = t.TypeOf<typeof MockStateCodec>;
+export type MockStateType = z.infer<typeof MockStateCodec>;
 
-const MockCodec = t.type({
+const MockCodec = z.object({
   request: MockRequestCodec,
-  response: t.union([MockResponseCodec, t.undefined]),
-  dynamic_response: t.union([MockDynamicResponseCodec, t.undefined]),
-  proxy: t.union([MockProxyCodec, t.undefined]),
+  response: MockResponseCodec.optional(),
+  dynamic_response: MockDynamicResponseCodec.optional(),
+  proxy: MockProxyCodec.optional(),
   context: MockContextCodec,
-  state: MockStateCodec,
+  state: MockStateCodec
 });
-export type Mock = t.TypeOf<typeof MockCodec>;
+export type MockType = z.infer<typeof MockCodec>;
 
-export const MocksCodec = t.array(MockCodec);
-export type Mocks = t.TypeOf<typeof MocksCodec>;
+export const MocksCodec = MockCodec.array();
+export type MocksType = z.infer<typeof MocksCodec>;
 
-const GraphEntryCodec = t.type({
-  type: t.string,
-  message: t.string,
-  from: t.string,
-  to: t.string,
-  date: t.string,
+const GraphEntryCodec = z.object({
+  type: z.string(),
+  message: z.string(),
+  from: z.string(),
+  to: z.string(),
+  date: z.string()
 });
-export type GraphEntry = t.TypeOf<typeof GraphEntryCodec>;
+export type GraphEntryType = z.infer<typeof GraphEntryCodec>;
 
-export const GraphHistoryCodec = t.array(GraphEntryCodec);
-export type GraphHistory = t.TypeOf<typeof GraphHistoryCodec>;
-
-export function decode<C extends t.Mixed>(
-  codec: C
-): (json: unknown) => Observable<t.TypeOf<C>> {
-  return (json) => {
-    return pipe(
-      codec.decode(json),
-      fold(
-        (error) =>
-          throwError(new Error(PathReporter.report(left(error)).join("\n"))),
-        (data) => of(data)
-      )
-    );
-  };
-}
+export const GraphHistoryCodec = z.array(GraphEntryCodec);
+export type GraphHistoryType = z.infer<typeof GraphHistoryCodec>;

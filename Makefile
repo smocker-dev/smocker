@@ -63,7 +63,7 @@ start: $(REFLEX) persistence
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./sessions
+		-- go run $(GO_LDFLAGS) -race main.go --log-level=$(LEVEL) --static-files ./build --persistence-directory ./sessions
 
 .PHONY: build
 build:

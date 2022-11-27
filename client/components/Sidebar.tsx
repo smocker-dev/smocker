@@ -1,262 +1,209 @@
 import {
-  DeleteOutlined,
-  EditOutlined,
-  LoadingOutlined,
-  PlusOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
-import {
+  Box,
   Button,
-  Form,
-  Input,
-  Layout,
-  Menu,
-  Popover,
-  Row,
+  CircularProgress,
+  Flex,
+  Heading,
+  HStack,
+  Icon,
+  Link,
+  Portal,
+  Spacer,
+  Text,
   Tooltip,
-  Typography,
-} from "antd";
-import * as React from "react";
-import { connect } from "react-redux";
-import { Dispatch } from "redux";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
-import { Session, Sessions } from "../modules/types";
-import { usePoll, useQueryParams } from "../modules/utils";
-import "./Sidebar.scss";
+  VStack
+} from "@chakra-ui/react";
+import React, { useContext } from "react";
+import {
+  RiAddFill,
+  RiDeleteBinLine,
+  RiEditLine,
+  RiMenuFoldFill,
+  RiMenuUnfoldFill,
+  RiSortAsc,
+  RiSortDesc
+} from "react-icons/ri";
+import {
+  useAddSession,
+  useResetSessions,
+  useSessions
+} from "../modules/queries";
+import { GlobalStateContext } from "../modules/state";
+import { SessionsType, SessionType } from "../modules/types";
+import { FileUploader } from "./Uploader";
 
-const EditableItem = ({
-  value,
-  onValidate,
-}: {
-  value?: string;
-  onValidate: (name: string) => unknown;
-}) => {
-  const [visible, setVisible] = React.useState(false);
-  const [name, setName] = React.useState(value || "");
-  const onSubmit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    event.preventDefault();
-    onValidate(name.trim());
-    setVisible(false);
-  };
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-  };
+const BurgerIcon = () => {
+  const { isSidebarOpen, toggleSidebar } = React.useContext(GlobalStateContext);
   return (
-    <Popover
-      placement="right"
-      visible={visible}
-      onVisibleChange={setVisible}
-      content={
-        <Form layout="inline">
-          <Form.Item>
-            <Input value={name} onChange={onChange} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" onClick={onSubmit}>
-              Save
-            </Button>
-          </Form.Item>
-        </Form>
-      }
-      title="Rename session"
-      trigger="click"
+    <VStack
+      position="fixed"
+      top="46"
+      left={isSidebarOpen ? "199px" : "0px"}
+      width="36px"
+      height="42px"
+      bg="white"
+      paddingTop=".5rem"
+      align="center"
+      justify="center"
+      borderRadius="0 0 2px 0"
+      borderBottom="1px solid sidebar.border"
+      borderRight="1px solid sidebar.border"
+      transition="all .2s"
     >
-      <EditOutlined />
-    </Popover>
-  );
-};
-
-interface Props {
-  sessions: Sessions;
-  loading: boolean;
-  uploading: boolean;
-  selected: string;
-  fetch: () => unknown;
-  selectSession: (sessionID: string) => unknown;
-  newSession: () => unknown;
-  updateSession: (session: Session) => unknown;
-  uploadSessions: (sessions: Session[]) => unknown;
-  resetSessions: () => unknown;
-}
-
-const SideBar = ({
-  fetch,
-  selected,
-  sessions,
-  loading,
-  uploading,
-  selectSession,
-  updateSession,
-  newSession,
-  uploadSessions,
-  resetSessions,
-}: Props) => {
-  const [queryParams, setQueryParams] = useQueryParams();
-  const [, , setPolling] = usePoll(10000, fetch, undefined);
-  const [fileUploading, setFileUploading] = React.useState(false);
-
-  const querySessionID = queryParams.get("session");
-
-  const handleSelectSession = (sessionID: string) => {
-    setQueryParams({ session: sessionID });
-    selectSession(sessionID);
-  };
-
-  React.useEffect(() => {
-    if (!loading && !selected && sessions.length > 0) {
-      if (
-        !querySessionID ||
-        sessions.filter((session) => session.id === querySessionID).length === 0
-      ) {
-        handleSelectSession(sessions[sessions.length - 1].id);
-      } else {
-        querySessionID && handleSelectSession(querySessionID);
-      }
-    }
-    if (!loading && selected && !querySessionID) {
-      setQueryParams({ session: selected });
-    }
-  }, [loading, selected, sessions, querySessionID]);
-
-  const selectedItem = selected ? [selected] : undefined;
-  const onCollapse = (col: boolean) => setPolling(!col);
-  const onSelect = ({ key }: { key: string }) => {
-    if (key !== "new" && key !== "reset") {
-      handleSelectSession(key);
-    } else {
-      setQueryParams({ session: "" });
-    }
-  };
-  const onChangeSessionName = (index: number) => (name: string) => {
-    updateSession({ ...sessions[index], name });
-  };
-  const items = sessions.map((session: Session, index: number) => (
-    <Menu.Item key={session.id}>
-      <Row
-        justify="space-between"
-        align="middle"
-        title={session.name || session.id}
+      <Link
+        onClick={() => toggleSidebar()}
+        title={isSidebarOpen ? "Hide Sessions" : "Show Sessions"}
       >
-        <Typography.Text ellipsis className="session-name">
-          {session.name || session.id}
-        </Typography.Text>
-        <EditableItem
-          value={session.name}
-          onValidate={onChangeSessionName(index)}
+        <Icon
+          as={isSidebarOpen ? RiMenuFoldFill : RiMenuUnfoldFill}
+          boxSize="20px"
         />
-      </Row>
-    </Menu.Item>
-  ));
-
-  const onFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFileUploading(true);
-    const files = event.target.files;
-    if (!files) {
-      return;
-    }
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (ev: ProgressEvent<FileReader>) => {
-      try {
-        const sessionToUpload = JSON.parse(ev.target?.result as string);
-        uploadSessions(sessionToUpload);
-        setFileUploading(false);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const title: JSX.Element =
-    fileUploading || uploading ? (
-      <>
-        <label>
-          <a>
-            <LoadingOutlined />
-          </a>
-        </label>
-        <span>Sessions</span>
-      </>
-    ) : (
-      <>
-        <Tooltip
-          title="Load a session from a file"
-          placement="right"
-          mouseEnterDelay={0.5}
-        >
-          <label>
-            <input type="file" onChange={onFileUpload} />
-            <a>
-              <UploadOutlined />
-            </a>
-          </label>
-        </Tooltip>
-        <span>Sessions</span>
-      </>
-    );
-  return (
-    <Layout.Sider
-      className="sidebar"
-      collapsible
-      defaultCollapsed
-      breakpoint="xl"
-      collapsedWidth="0"
-      theme="light"
-      onCollapse={onCollapse}
-    >
-      <Menu
-        className="menu"
-        onClick={onSelect}
-        mode="inline"
-        selectedKeys={selectedItem}
-      >
-        <Menu.ItemGroup title={title} className="group">
-          {items}
-          <Menu.Item key="new" className="menu-button">
-            <Button
-              ghost
-              type="primary"
-              icon={<PlusOutlined />}
-              className="session-button"
-              onClick={newSession}
-            >
-              New Session
-            </Button>
-          </Menu.Item>
-        </Menu.ItemGroup>
-        <Menu.Item key="reset" className="menu-button">
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            className="reset-button"
-            onClick={resetSessions}
-          >
-            Reset Sessions
-          </Button>
-        </Menu.Item>
-      </Menu>
-    </Layout.Sider>
+      </Link>
+    </VStack>
   );
 };
 
-export default connect(
-  (state: AppState) => ({
-    sessions: state.sessions.list,
-    loading: state.sessions.loading,
-    uploading: state.sessions.uploading,
-    selected: state.sessions.selected,
-  }),
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: () => dispatch(actions.fetchSessions.request()),
-    selectSession: (sessionID: string) =>
-      dispatch(actions.selectSession(sessionID)),
-    newSession: () => dispatch(actions.newSession.request()),
-    updateSession: (session: Session) =>
-      dispatch(actions.updateSession.request(session)),
-    uploadSessions: (sessions: Sessions) =>
-      dispatch(actions.uploadSessions.request(sessions)),
-    resetSessions: () => dispatch(actions.reset.request()),
-  })
-)(SideBar);
+const Header = ({ loading }: { loading: boolean }) => {
+  const addSessionsMutation = useAddSession();
+  const { isSessionsAscSorted, toggleSessionsSort } = useContext(
+    GlobalStateContext
+  );
+  return (
+    <Flex
+      padding="20px 16px"
+      borderBottom="1px dashed"
+      borderBottomColor="sidebar.border"
+      align="center"
+      height="42px"
+      overflow="hidden"
+    >
+      <HStack>
+        <Tooltip hasArrow label="Add Session">
+          <Link
+            color="primary"
+            _hover={{ color: "hover.primary" }}
+            onClick={() => addSessionsMutation.mutate()}
+          >
+            <Icon as={RiAddFill} boxSize="5" mb="-.25em" />
+          </Link>
+        </Tooltip>
+        <FileUploader />
+      </HStack>
+      <Heading pl="2" size="sm" color="sidebar.header">
+        Sessions
+      </Heading>
+      <Spacer />
+      <Tooltip hasArrow label="Sort Sessions">
+        <Link
+          color="primary"
+          _hover={{ color: "hover.primary" }}
+          onClick={() => toggleSessionsSort()}
+        >
+          {loading ? (
+            <CircularProgress size="18px" isIndeterminate color="primary" />
+          ) : (
+            <Icon
+              as={isSessionsAscSorted ? RiSortAsc : RiSortDesc}
+              boxSize="5"
+              mb="-.25em"
+            />
+          )}
+        </Link>
+      </Tooltip>
+    </Flex>
+  );
+};
+
+const Session = (props: { data: SessionType }) => {
+  const { selectedSessionID, selectSession } = useContext(GlobalStateContext);
+  const { data: session } = props;
+  const isSelected = selectedSessionID === session.id;
+
+  return (
+    <Link
+      data-group
+      _hover={{ bg: "#e6f7ff" }}
+      onClick={() => selectSession(session.id)}
+    >
+      <Flex
+        direction="row"
+        align="stretch"
+        fontWeight="500"
+        padding="10px 16px"
+        bg={isSelected ? "#e6f7ff" : undefined}
+      >
+        <Text noOfLines={1}>{session.name}</Text>
+        <Spacer />
+        <Tooltip hasArrow label="Edit Session">
+          <Box _hover={{ color: "hover.primary" }}>
+            <Icon as={RiEditLine} boxSize="5" mb="-.25em" />
+          </Box>
+        </Tooltip>
+      </Flex>
+    </Link>
+  );
+};
+
+const Sessions = ({ data }: { data?: SessionsType }) => {
+  const { isSessionsAscSorted } = useContext(GlobalStateContext);
+  data = data?.sort((a, b) => {
+    const aDate = new Date(a.date).getTime();
+    const bDate = new Date(b.date).getTime();
+    return isSessionsAscSorted ? aDate - bDate : bDate - aDate;
+  });
+  return (
+    <VStack
+      align="stretch"
+      overflowX="hidden"
+      overflowY="auto"
+      minHeight="0"
+      spacing={0}
+      flex={1}
+    >
+      {data?.map(session => (
+        <Session key={session.id} data={session} />
+      ))}
+    </VStack>
+  );
+};
+
+const Footer = () => {
+  const resetSessionsMutation = useResetSessions();
+  return (
+    <Flex direction="column" align="center" padding={2}>
+      <Button
+        leftIcon={<Icon as={RiDeleteBinLine} />}
+        colorScheme="red"
+        variant="outline"
+        onClick={() => resetSessionsMutation.mutate()}
+      >
+        Reset Sessions
+      </Button>
+    </Flex>
+  );
+};
+
+export const Sidebar = () => {
+  const { data, isFetching } = useSessions();
+  const ref = React.useRef<HTMLDivElement>(null);
+  return (
+    <VStack
+      bg="white"
+      borderRight="1px solid"
+      borderRightColor="sidebar.border"
+      minHeight="0"
+      justify="flex-start"
+      align="stretch"
+      spacing={0}
+      ref={ref}
+      flex={1}
+    >
+      <Header loading={isFetching} />
+      <Sessions data={data} />
+      <Footer />
+      <Portal containerRef={ref}>
+        <BurgerIcon />
+      </Portal>
+    </VStack>
+  );
+};

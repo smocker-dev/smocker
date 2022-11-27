@@ -66,7 +66,7 @@ func Serve(config config.Config) {
 	})
 
 	// UI Routes
-	adminServerEngine.Static("/assets", config.StaticFiles)
+	adminServerEngine.Static("/assets", config.StaticFiles+"/assets")
 	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
 	log.WithField("port", config.ConfigListenPort).Info("Starting admin server")

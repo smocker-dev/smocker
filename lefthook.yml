@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    eslint:
+      glob: "*.{ts,tsx}"
+      run: yarn prettier --write {staged_files}
