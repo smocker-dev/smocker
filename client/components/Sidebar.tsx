@@ -6,11 +6,20 @@ import {
   Heading,
   HStack,
   Icon,
+  Input,
   Link,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
   Portal,
   Spacer,
   Text,
   Tooltip,
+  useDisclosure,
   VStack
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
@@ -26,7 +35,8 @@ import {
 import {
   useAddSession,
   useResetSessions,
-  useSessions
+  useSessions,
+  useUpdateSession
 } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
 import { SessionsType, SessionType } from "../modules/types";
@@ -45,9 +55,11 @@ const BurgerIcon = () => {
       paddingTop=".5rem"
       align="center"
       justify="center"
-      borderRadius="0 0 2px 0"
-      borderBottom="1px solid sidebar.border"
-      borderRight="1px solid sidebar.border"
+      borderRadius="0 0 3px 0"
+      borderBottom="1px solid"
+      borderBottomColor="sidebar.border"
+      borderRight="1px solid"
+      borderRightColor="sidebar.border"
       transition="all .2s"
     >
       <Link
@@ -118,6 +130,10 @@ const Session = (props: { data: SessionType }) => {
   const { selectedSessionID, selectSession } = useContext(GlobalStateContext);
   const { data: session } = props;
   const isSelected = selectedSessionID === session.id;
+  const [sessionName, setSessionName] = React.useState(session.name);
+  const updateSessionsMutation = useUpdateSession();
+  const { onOpen, onClose, isOpen } = useDisclosure();
+  const ref = React.useRef<HTMLInputElement>(null);
 
   return (
     <Link
@@ -131,14 +147,57 @@ const Session = (props: { data: SessionType }) => {
         fontWeight="500"
         padding="10px 16px"
         bg={isSelected ? "#e6f7ff" : undefined}
+        borderRight={isSelected ? "3px solid" : "none"}
+        borderRightColor={isSelected ? "primary" : "#e6f7ff"}
+        transition="border-color .3s,background .3s,padding .1s cubic-bezier(.215,.61,.355,1)"
       >
         <Text noOfLines={1}>{session.name}</Text>
         <Spacer />
-        <Tooltip hasArrow label="Edit Session">
-          <Box _hover={{ color: "hover.primary" }}>
-            <Icon as={RiEditLine} boxSize="5" mb="-.25em" />
-          </Box>
-        </Tooltip>
+        {isSelected && (
+          <Popover
+            isLazy
+            isOpen={isOpen}
+            initialFocusRef={ref}
+            onOpen={onOpen}
+            onClose={onClose}
+            placement="right"
+          >
+            <PopoverTrigger>
+              <Box _hover={{ color: "hover.primary" }}>
+                <Icon as={RiEditLine} boxSize="4" mb="-.25em" />
+              </Box>
+            </PopoverTrigger>
+            <Portal>
+              <PopoverContent bg="white">
+                <PopoverArrow bg="white" />
+                <PopoverCloseButton />
+                <PopoverHeader>Rename session</PopoverHeader>
+                <PopoverBody>
+                  <HStack>
+                    <Input
+                      ref={ref}
+                      value={sessionName}
+                      onChange={e => setSessionName(e.target.value)}
+                    />
+                    <Button
+                      isDisabled={!sessionName}
+                      colorScheme="blue"
+                      onClick={() => {
+                        updateSessionsMutation.mutate({
+                          ...session,
+                          name: sessionName
+                        });
+                        onClose();
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </HStack>
+                </PopoverBody>
+              </PopoverContent>
+            </Portal>
+          </Popover>
+        )}
       </Flex>
     </Link>
   );
@@ -159,6 +218,7 @@ const Sessions = ({ data }: { data?: SessionsType }) => {
       minHeight="0"
       spacing={0}
       flex={1}
+      fontSize="13px"
     >
       {data?.map(session => (
         <Session key={session.id} data={session} />
@@ -170,12 +230,20 @@ const Sessions = ({ data }: { data?: SessionsType }) => {
 const Footer = () => {
   const resetSessionsMutation = useResetSessions();
   return (
-    <Flex direction="column" align="center" padding={2}>
+    <Flex
+      direction="column"
+      align="center"
+      borderTop="1px dashed"
+      borderTopColor="sidebar.border"
+      overflowX="hidden"
+    >
       <Button
         leftIcon={<Icon as={RiDeleteBinLine} />}
         colorScheme="red"
         variant="outline"
         onClick={() => resetSessionsMutation.mutate()}
+        borderRadius="3px"
+        margin={3}
       >
         Reset Sessions
       </Button>

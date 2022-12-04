@@ -4,7 +4,12 @@ import trimEnd from "lodash/trimEnd";
 import React from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useSearchParams } from "react-router-dom";
-import { SessionCodec, SessionsCodec, SessionsType } from "./types";
+import {
+  SessionCodec,
+  SessionsCodec,
+  SessionsType,
+  SessionType
+} from "./types";
 
 export const trimedPath = trimEnd(window.basePath, "/");
 
@@ -106,6 +111,24 @@ export const useResetSessions = () => {
     },
     onError: e => {
       processError(toast, e, "reset-sessions", "Unable to reset sessions");
+    }
+  });
+};
+
+const updateSession = async (session: SessionType) => {
+  const { data } = await axios.put(`${trimedPath}/sessions`, session);
+  return SessionCodec.parse(data);
+};
+
+export const useUpdateSession = () => {
+  const queryClient = useQueryClient();
+  const toast = errorToast();
+  return useMutation(updateSession, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["sessions"]);
+    },
+    onError: e => {
+      processError(toast, e, "update-session", "Unable to update session");
     }
   });
 };

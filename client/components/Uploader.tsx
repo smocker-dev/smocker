@@ -52,11 +52,9 @@ export const FileUploader = () => {
         style={{ display: "none" }}
       />
       <Tooltip hasArrow label="Upload Sessions">
-        <React.Suspense
-          fallback={
-            <CircularProgress size="18px" isIndeterminate color="primary" />
-          }
-        >
+        {uploading ? (
+          <CircularProgress size="18px" isIndeterminate color="primary" />
+        ) : (
           <Link
             color="primary"
             _hover={{ color: "hover.primary" }}
@@ -64,7 +62,7 @@ export const FileUploader = () => {
           >
             <Icon as={RiUpload2Fill} boxSize="5" mb="-.25em" />
           </Link>
-        </React.Suspense>
+        )}
       </Tooltip>
     </Box>
   );
