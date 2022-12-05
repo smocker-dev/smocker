@@ -2,7 +2,12 @@ import { Box, Icon, Link } from "@chakra-ui/react";
 import { RiBookOpenLine, RiGithubFill } from "react-icons/ri";
 
 export const Footer = () => (
-  <Box p="24px" display="flex" alignItems="center" flexDirection="column">
+  <Box
+    p="0 24px 24px"
+    display="flex"
+    alignItems="center"
+    flexDirection="column"
+  >
     <Box style={{ textAlign: "center" }}>
       Smocker version {window.version} &ndash; MIT Licensed
     </Box>

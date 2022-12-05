@@ -11,6 +11,13 @@ interface IGlobalState {
 
   isSessionsAscSorted: boolean;
   toggleSessionsSort: () => void;
+
+  historySortField: string;
+  setHistorySortField: (field: string) => void;
+  historySortOrder: string;
+  setHistorySortOrder: (order: string) => void;
+  historyFilter: string;
+  setHistoryFilter: (filter: string) => void;
 }
 
 export const GlobalStateContext = React.createContext<IGlobalState>(
@@ -34,6 +41,19 @@ export const GlobalStateProvider = ({ children }: React.PropsWithChildren) => {
     setSessionsAscSort(!isSessionsAscSorted);
   };
 
+  const [historySortField, setHistorySortField] = useLocalStorage(
+    "smocker.history.sort.field",
+    "response"
+  );
+  const [historySortOrder, setHistorySortOrder] = useLocalStorage(
+    "smocker.history.sort.order",
+    "desc"
+  );
+  const [historyFilter, setHistoryFilter] = useLocalStorage(
+    "smocker.history.filter",
+    "all"
+  );
+
   React.useEffect(() => {
     if (selectedSessionID !== searchParams.get("session")) {
       setSearchParams({ session: selectedSessionID || "" });
@@ -54,7 +74,13 @@ export const GlobalStateProvider = ({ children }: React.PropsWithChildren) => {
         selectedSessionID,
         selectSession,
         isSessionsAscSorted,
-        toggleSessionsSort
+        toggleSessionsSort,
+        historySortField,
+        setHistorySortField,
+        historySortOrder,
+        setHistorySortOrder,
+        historyFilter,
+        setHistoryFilter
       }}
     >
       {children}

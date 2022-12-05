@@ -55,7 +55,7 @@ const BurgerIcon = () => {
       paddingTop=".5rem"
       align="center"
       justify="center"
-      borderRadius="0 0 3px 0"
+      borderRadius="0 0 2px 0"
       borderBottom="1px solid"
       borderBottomColor="sidebar.border"
       borderRight="1px solid"
@@ -143,7 +143,6 @@ const Session = (props: { data: SessionType }) => {
     >
       <Flex
         direction="row"
-        align="stretch"
         fontWeight="500"
         padding="10px 16px"
         bg={isSelected ? "#e6f7ff" : undefined}
@@ -151,7 +150,9 @@ const Session = (props: { data: SessionType }) => {
         borderRightColor={isSelected ? "primary" : "#e6f7ff"}
         transition="border-color .3s,background .3s,padding .1s cubic-bezier(.215,.61,.355,1)"
       >
-        <Text noOfLines={1}>{session.name}</Text>
+        <Text noOfLines={1} title={session.name}>
+          {session.name}
+        </Text>
         <Spacer />
         {isSelected && (
           <Popover
@@ -238,11 +239,10 @@ const Footer = () => {
       overflowX="hidden"
     >
       <Button
-        leftIcon={<Icon as={RiDeleteBinLine} />}
+        leftIcon={<Icon as={RiDeleteBinLine} boxSize="18px" />}
         colorScheme="red"
         variant="outline"
         onClick={() => resetSessionsMutation.mutate()}
-        borderRadius="3px"
         margin={3}
       >
         Reset Sessions

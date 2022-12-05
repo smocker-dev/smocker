@@ -1,7 +1,10 @@
-import { Box, Flex, Grid, GridItem } from "@chakra-ui/react";
+import { Grid, GridItem, VStack } from "@chakra-ui/react";
 import React from "react";
+import { Route, Routes } from "react-router-dom";
 import { GlobalStateContext } from "../modules/state";
 import { Footer } from "./Footer";
+import { History } from "./History";
+import { Mocks } from "./Mocks";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 
@@ -24,7 +27,6 @@ export const Layout = () => {
         transition="all .2s"
         display="flex"
         flexDirection="column"
-        alignItems="stretch"
         minHeight="0"
       >
         <Sidebar />
@@ -37,12 +39,15 @@ export const Layout = () => {
         flex={1}
         minHeight="100%"
         overflowY="auto"
-        alignItems="center"
       >
-        <Flex>
-          <Box flex={1}>Body</Box>
+        <VStack flex="1" align="stretch" spacing={10}>
+          <Routes>
+            <Route path="/pages/history" element={<History />} />
+            <Route path="/pages/mocks" element={<Mocks />} />
+            <Route path="*" element={<History />} />
+          </Routes>
           <Footer />
-        </Flex>
+        </VStack>
       </GridItem>
     </Grid>
   );

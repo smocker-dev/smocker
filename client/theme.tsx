@@ -84,5 +84,12 @@ export const theme = extendTheme({
         fontStyle: "normal"
       }
     }
+  },
+  components: {
+    Button: {
+      baseStyle: {
+        borderRadius: "2px"
+      }
+    }
   }
 });

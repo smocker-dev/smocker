@@ -5,6 +5,7 @@ import React from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useSearchParams } from "react-router-dom";
 import {
+  HistoryCodec,
   SessionCodec,
   SessionsCodec,
   SessionsType,
@@ -129,6 +130,24 @@ export const useUpdateSession = () => {
     },
     onError: e => {
       processError(toast, e, "update-session", "Unable to update session");
+    }
+  });
+};
+
+const getHistory = async (sessionID: string) => {
+  const { data } = await axios.get(
+    `${trimedPath}/history?session=${sessionID}`
+  );
+  return HistoryCodec.parse(data);
+};
+
+export const useHistory = (sessionID: string) => {
+  const [refetchInterval] = React.useState(10000);
+  const toast = errorToast();
+  return useQuery(["history", sessionID], () => getHistory(sessionID), {
+    refetchInterval,
+    onError: e => {
+      processError(toast, e, "get-history", "Unable to retrieve history");
     }
   });
 };
