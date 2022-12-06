@@ -7,7 +7,7 @@ import {
   StringMatcherType
 } from "./types";
 
-export const entryToCurl = (request: EntryRequestType): string => {
+export const requestToCurl = (request: EntryRequestType): string => {
   const escapeQuote = (unsafe: string) => unsafe.replace(/'/g, "\\'");
 
   const command = ["curl"];
@@ -17,8 +17,8 @@ export const entryToCurl = (request: EntryRequestType): string => {
 
   if (request.headers) {
     command.push(
-      ...Object.entries(request.headers).flatMap(entry => {
-        const [key, values] = entry;
+      ...Object.entries(request.headers).flatMap(header => {
+        const [key, values] = header;
 
         if (key.toLowerCase() === "host") {
           if (values.length > 0) {

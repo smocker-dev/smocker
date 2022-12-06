@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import React from "react";
 import { RiCheckFill, RiClipboardLine } from "react-icons/ri";
 import { dateFormat, EntryRequestType } from "../../modules/types";
-import { entryToCurl, formatQueryParams } from "../../modules/utils";
+import { formatQueryParams, requestToCurl } from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "./Headers";
 
@@ -48,7 +48,7 @@ const Body = ({
 export const Request = ({ request }: { request: EntryRequestType }) => {
   const { onCopy, setValue, hasCopied } = useClipboard("");
   React.useEffect(() => {
-    setValue(entryToCurl(request));
+    setValue(requestToCurl(request));
   }, [request]);
   const path = request.path + formatQueryParams(request.query_params);
   const contentType = request.headers?.["Content-Type"]?.join(",");

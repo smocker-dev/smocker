@@ -3,6 +3,8 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "start": "vite",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
     "build": "vite build --emptyOutDir",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
@@ -14,10 +16,12 @@
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^2.2.0",
+    "@vitest/coverage-c8": "^0.25.5",
     "lefthook": "^1.2.2",
     "typescript": "^4.9.3",
     "vite": "^3.2.4",
-    "vite-plugin-rewrite-all": "^1.0.0"
+    "vite-plugin-rewrite-all": "^1.0.0",
+    "vitest": "^0.25.5"
   },
   "prettier": {
     "semi": true,
