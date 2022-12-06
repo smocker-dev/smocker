@@ -14,12 +14,14 @@ import {
   Text,
   VStack
 } from "@chakra-ui/react";
+import { orderBy } from "lodash";
 import React from "react";
 import { RiOrganizationChart } from "react-icons/ri";
+import { usePagination } from "react-use-pagination";
 import { useHistory } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
 import { Empty } from "./Empty";
-import { Entry } from "./Entry";
+import { Entry } from "./history/Entry";
 
 const historySortFieldOptions = [
   { text: "response", value: "response" },
@@ -27,8 +29,8 @@ const historySortFieldOptions = [
 ];
 
 const historySortOrderOptions = [
-  { text: "newest", value: "newest" },
-  { text: "oldest", value: "oldest" }
+  { text: "newest", value: "desc" },
+  { text: "oldest", value: "asc" }
 ];
 
 const historyFilterOptions = [
@@ -122,16 +124,58 @@ const Header = () => {
 };
 
 export const History = () => {
-  const { selectedSessionID } = React.useContext(GlobalStateContext);
-  const { data } = useHistory(selectedSessionID || "");
+  const {
+    selectedSessionID,
+    historySortField,
+    historySortOrder,
+    historyFilter
+  } = React.useContext(GlobalStateContext);
+  const { data, error } = useHistory(selectedSessionID || "");
+  let history = orderBy(
+    data || [],
+    `${historySortField}.date`,
+    historySortOrder as "asc" | "desc"
+  ).filter(entry => {
+    if (historyFilter === "http-errors") {
+      return entry.response.status >= 400 && entry.response.status <= 599;
+    }
+    if (historyFilter === "smocker-errors") {
+      return entry.response.status >= 600 && entry.response.status <= 699;
+    }
+    return true;
+  });
+  const {
+    currentPage,
+    totalPages,
+    setNextPage,
+    setPreviousPage,
+    nextEnabled,
+    previousEnabled,
+    startIndex,
+    endIndex
+  } = usePagination({ totalItems: history.length, initialPageSize: 10 });
+
+  let emptyDescription = "";
+  if (history.length === 0) {
+    if (historyFilter === "http-errors") {
+      emptyDescription = "No HTTP errors in the history.";
+    } else if (historyFilter === "smocker-errors") {
+      emptyDescription = "No Smocker errors in the history.";
+    } else {
+      emptyDescription = "The history is empty.";
+    }
+  }
+  history = history.slice(startIndex, endIndex);
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />
       <VStack align="stretch">
-        {data?.length ? (
-          data?.map((entry, index) => <Entry key={index} />)
+        {error ? (
+          <Empty description={emptyDescription} />
+        ) : history.length ? (
+          history.map((entry, index) => <Entry key={index} entry={entry} />)
         ) : (
-          <Empty text="The history is empty." />
+          <Empty description={emptyDescription} />
         )}
       </VStack>
     </VStack>

@@ -48,7 +48,7 @@ const colors = {
     dark: "#8854d0"
   },
   grey: {
-    light: "#d1d8e0",
+    light: "#fbfbfc",
     dark: "#a5b1c2"
   },
   darkgrey: {

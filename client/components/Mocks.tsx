@@ -32,7 +32,7 @@ export const Mocks = () => {
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="1em">
       <Header />
       <VStack align="center">
-        {history.length ? null : <Empty text="No mocks found." />}
+        {history.length ? null : <Empty description="No mocks found." />}
       </VStack>
     </VStack>
   );
