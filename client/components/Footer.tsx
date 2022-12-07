@@ -15,17 +15,19 @@ export const Footer = () => (
       <Link
         href="https://github.com/smocker-dev/smocker"
         title="Smocker on GitHub"
+        colorScheme="blue"
         isExternal
       >
-        <Icon as={RiGithubFill} color="primary" boxSize="16px" />
+        <Icon as={RiGithubFill} boxSize="16px" />
       </Link>
       <Link
         href="https://smocker.dev"
         title="Smocker Documentation"
+        colorScheme="blue"
         isExternal
         mx="1"
       >
-        <Icon as={RiBookOpenLine} color="primary" boxSize="16px" />
+        <Icon as={RiBookOpenLine} boxSize="16px" />
       </Link>
     </Box>
   </Box>

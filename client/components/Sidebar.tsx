@@ -57,9 +57,9 @@ const BurgerIcon = () => {
       justify="center"
       borderRadius="0 0 2px 0"
       borderBottom="1px solid"
-      borderBottomColor="sidebar.border"
+      borderBottomColor="border"
       borderRight="1px solid"
-      borderRightColor="sidebar.border"
+      borderRightColor="border"
       transition="all .2s"
     >
       <Link
@@ -84,35 +84,27 @@ const Header = ({ loading }: { loading: boolean }) => {
     <Flex
       padding="20px 16px"
       borderBottom="1px dashed"
-      borderBottomColor="sidebar.border"
+      borderBottomColor="border"
       align="center"
       height="42px"
       overflow="hidden"
     >
       <HStack>
         <Tooltip hasArrow label="Add Session">
-          <Link
-            color="primary"
-            _hover={{ color: "hover.primary" }}
-            onClick={() => addSessionsMutation.mutate()}
-          >
+          <Link colorScheme="blue" onClick={() => addSessionsMutation.mutate()}>
             <Icon as={RiAddFill} boxSize="5" mb="-.25em" />
           </Link>
         </Tooltip>
         <FileUploader />
       </HStack>
-      <Heading pl="2" size="sm" color="sidebar.header">
+      <Heading pl="2" size="sm" color="gray.500">
         Sessions
       </Heading>
       <Spacer />
       <Tooltip hasArrow label="Sort Sessions">
-        <Link
-          color="primary"
-          _hover={{ color: "hover.primary" }}
-          onClick={() => toggleSessionsSort()}
-        >
+        <Link colorScheme="blue" onClick={() => toggleSessionsSort()}>
           {loading ? (
-            <CircularProgress size="18px" isIndeterminate color="primary" />
+            <CircularProgress size="18px" isIndeterminate color="blue.400" />
           ) : (
             <Icon
               as={isSessionsAscSorted ? RiSortAsc : RiSortDesc}
@@ -138,16 +130,16 @@ const Session = (props: { data: SessionType }) => {
   return (
     <Link
       data-group
-      _hover={{ bg: "#e6f7ff" }}
+      _hover={{ bg: "session.bg" }}
       onClick={() => selectSession(session.id)}
     >
       <Flex
         direction="row"
         fontWeight="500"
         padding="10px 16px"
-        bg={isSelected ? "#e6f7ff" : undefined}
+        bg={isSelected ? "session.bg" : undefined}
         borderRight={isSelected ? "3px solid" : "none"}
-        borderRightColor={isSelected ? "primary" : "#e6f7ff"}
+        borderRightColor={isSelected ? "blue.400" : "session.bg"}
         transition="border-color .3s,background .3s,padding .1s cubic-bezier(.215,.61,.355,1)"
       >
         <Text noOfLines={1} title={session.name}>
@@ -164,7 +156,7 @@ const Session = (props: { data: SessionType }) => {
             placement="right"
           >
             <PopoverTrigger>
-              <Box _hover={{ color: "hover.primary" }}>
+              <Box _hover={{ color: "blue.300" }}>
                 <Icon as={RiEditLine} boxSize="4" mb="-.25em" />
               </Box>
             </PopoverTrigger>
@@ -219,7 +211,7 @@ const Sessions = ({ data }: { data?: SessionsType }) => {
       minHeight="0"
       spacing={0}
       flex={1}
-      fontSize="13px"
+      fontSize="sm"
     >
       {data?.map(session => (
         <Session key={session.id} data={session} />
@@ -235,13 +227,12 @@ const Footer = () => {
       direction="column"
       align="center"
       borderTop="1px dashed"
-      borderTopColor="sidebar.border"
+      borderTopColor="border"
       overflowX="hidden"
     >
       <Button
         leftIcon={<Icon as={RiDeleteBinLine} boxSize="18px" />}
         colorScheme="red"
-        variant="outline"
         onClick={() => resetSessionsMutation.mutate()}
         margin={3}
       >
@@ -258,7 +249,7 @@ export const Sidebar = () => {
     <VStack
       bg="white"
       borderRight="1px solid"
-      borderRightColor="sidebar.border"
+      borderRightColor="border"
       minHeight="0"
       justify="flex-start"
       align="stretch"

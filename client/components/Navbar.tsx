@@ -1,4 +1,4 @@
-import { HStack, Icon, Image, Link, Text, useToken } from "@chakra-ui/react";
+import { HStack, Icon, Image, Link, Text } from "@chakra-ui/react";
 import { RiExternalLinkFill } from "react-icons/ri";
 import { NavLink, useSearchParams } from "react-router-dom";
 import logo from "../assets/logo180.png";
@@ -22,12 +22,6 @@ const Logo = () => (
 
 const Item = (props: { to?: string; label: string; href?: string }) => {
   const [searchParams] = useSearchParams();
-  const [primary, whiteLight, greyDark] = useToken(
-    // the key within the theme, in this case `theme.colors`
-    "colors",
-    // the subkey(s), resolving to `theme.colors.red.100`
-    ["primary", "white.light", "grey.dark"]
-  );
 
   if (props.href) {
     return (
@@ -36,9 +30,9 @@ const Item = (props: { to?: string; label: string; href?: string }) => {
         isExternal
         display="flex"
         alignItems="center"
-        color="grey.dark"
+        color="gray.400"
         _hover={{
-          color: "white.light",
+          color: "white",
           textDecoration: "underline"
         }}
       >
@@ -63,10 +57,10 @@ const Item = (props: { to?: string; label: string; href?: string }) => {
         <Link
           display="flex"
           alignItems="center"
-          backgroundColor={isActive ? "primary" : undefined}
-          color={isActive ? "white.light" : "grey.dark"}
+          backgroundColor={isActive ? "blue.400" : undefined}
+          color={isActive ? "white" : "gray.400"}
           _hover={{
-            color: "white.light"
+            color: "white"
           }}
           as="div"
         >
@@ -81,7 +75,7 @@ const Item = (props: { to?: string; label: string; href?: string }) => {
 
 export const Navbar = () => {
   return (
-    <HStack align="stretch" minHeight="100%" bg="navy.dark">
+    <HStack align="stretch" minHeight="100%" bg="navbar">
       <Logo />
       <HStack align="stretch" spacing={0}>
         <Item label="History" to="/pages/history" />

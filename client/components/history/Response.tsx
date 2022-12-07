@@ -40,28 +40,14 @@ const Status = ({
   }
 
   return (
-    <HStack>
+    <HStack fontSize="sm">
       <HStack>
-        {isProxy && (
-          <Tag variant="subtle" borderRadius="2px" border="1px solid">
-            Proxified
-          </Tag>
-        )}
-        <Tag
-          variant="subtle"
-          colorScheme={statusColor}
-          borderRadius="2px"
-          border="1px solid"
-          title={title}
-        >
+        {isProxy && <Tag variant="outline">Proxified</Tag>}
+        <Tag variant="outline" colorScheme={statusColor} title={title}>
           {response.status}
         </Tag>
         {response.status >= 600 && (
-          <Text
-            color="pink"
-            title={(response.body as ErrorType).message}
-            fontSize="0.85em"
-          >
+          <Text color="pink.500" title={(response.body as ErrorType).message}>
             {(response.body as ErrorType).message}
           </Text>
         )}
@@ -69,15 +55,14 @@ const Status = ({
           <Link
             as={RouterLink}
             to={`/pages/mocks/${context.mock_id}`}
-            fontSize="0.85em"
-            color="blue"
+            colorScheme="blue"
           >
             Matched Mock
           </Link>
         )}
       </HStack>
       <Spacer />
-      <Text fontSize="0.85em" fontWeight="bold" title={response.date}>
+      <Text fontWeight="bold" title={response.date} whiteSpace="nowrap">
         {dayjs(response.date).format(dateFormat)}
       </Text>
     </HStack>
@@ -121,7 +106,7 @@ export const Response = ({
 }) => {
   const contentType = response.headers?.["Content-Type"]?.join(",");
   return (
-    <Box width="50%">
+    <Box width="calc(50% - 1em)">
       <VStack align="stretch" spacing={3}>
         <Status response={response} context={context} />
         <Headers headers={response.headers} />

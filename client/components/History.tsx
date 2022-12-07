@@ -51,7 +51,7 @@ const Select = ({
   const selectedOptions = options.filter(opt => opt.value === value);
   return (
     <Menu>
-      <MenuButton as={Link} color="primary">
+      <MenuButton as={Link} colorScheme="blue">
         {selectedOptions.length > 0 ? selectedOptions[0].text : value}
       </MenuButton>
       <Portal>
@@ -165,7 +165,7 @@ export const History = () => {
       emptyDescription = "The history is empty.";
     }
   }
-  history = history.slice(startIndex, endIndex);
+  // history = history.slice(startIndex, endIndex);
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />

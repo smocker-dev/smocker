@@ -5,24 +5,14 @@ export const Headers = ({ headers }: { headers?: MultimapType }) => {
     return <></>;
   }
   return (
-    <Table
-      size="sm"
-      border="1px solid"
-      borderColor="sidebar.border"
-      borderRadius="2px"
-      bgColor="grey.light"
-    >
+    <Table size="sm" border="1px solid" borderColor="border" bgColor="gray.50">
       <Tbody>
         {Object.entries(headers).map(([key, values]) => (
           <Tr key={key}>
-            <Td
-              borderColor="sidebar.border"
-              wordBreak="keep-all"
-              whiteSpace="nowrap"
-            >
+            <Td borderColor="border" wordBreak="keep-all" whiteSpace="nowrap">
               <Text fontWeight="bold">{key}</Text>
             </Td>
-            <Td borderColor="sidebar.border" wordBreak="break-all">
+            <Td borderColor="border" wordBreak="break-all">
               <Text>{values.join(", ")}</Text>
             </Td>
           </Tr>

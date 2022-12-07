@@ -4,11 +4,11 @@ import { Request } from "./Request";
 import { Response } from "./Response";
 
 const Divider = () => (
-  <Box borderRight="1px dashed" borderRightColor="sidebar.border" width="1px" />
+  <Box borderRight="1px dashed" borderRightColor="border" width="1px" />
 );
 
 export const Entry = ({ entry }: { entry: EntryType }) => (
-  <Card bg="white" variant="outline" borderRadius="2px">
+  <Card bg="white" variant="outline" borderRadius="sm">
     <CardBody>
       <HStack spacing="1em" align="stretch">
         <Request request={entry.request} />

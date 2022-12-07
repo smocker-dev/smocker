@@ -53,13 +53,9 @@ export const FileUploader = () => {
       />
       <Tooltip hasArrow label="Upload Sessions">
         {uploading ? (
-          <CircularProgress size="18px" isIndeterminate color="primary" />
+          <CircularProgress size="18px" isIndeterminate color="blue.400" />
         ) : (
-          <Link
-            color="primary"
-            _hover={{ color: "hover.primary" }}
-            onClick={() => ref.current?.click()}
-          >
+          <Link colorScheme="blue" onClick={() => ref.current?.click()}>
             <Icon as={RiUpload2Fill} boxSize="5" mb="-.25em" />
           </Link>
         )}
