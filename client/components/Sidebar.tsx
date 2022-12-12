@@ -214,7 +214,7 @@ const Sessions = ({ data }: { data?: SessionsType }) => {
       fontSize="sm"
     >
       {data?.map(session => (
-        <Session key={session.id} data={session} />
+        <Session key={`session-${session.id}`} data={session} />
       ))}
     </VStack>
   );

@@ -86,7 +86,7 @@ export const Code = ({
         <AccordionItem borderWidth="1px" borderColor="sidebar.border">
           {({ isExpanded }) => (
             <>
-              <AccordionButton bgColor="grey.light">
+              <AccordionButton bgColor="gray.50">
                 <Box flex="1" textAlign="left">
                   This payload is huge. Click to display it
                 </Box>

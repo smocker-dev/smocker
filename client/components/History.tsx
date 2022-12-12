@@ -17,11 +17,11 @@ import {
 import { orderBy } from "lodash";
 import React from "react";
 import { RiOrganizationChart } from "react-icons/ri";
-import { usePagination } from "react-use-pagination";
 import { useHistory } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
 import { Empty } from "./Empty";
 import { Entry } from "./history/Entry";
+import { Pagination } from "./Pagination";
 
 const historySortFieldOptions = [
   { text: "response", value: "response" },
@@ -131,6 +131,13 @@ export const History = () => {
     historyFilter
   } = React.useContext(GlobalStateContext);
   const { data, error } = useHistory(selectedSessionID || "");
+  const [{ startIndex, endIndex }, setIndexes] = React.useState({
+    startIndex: 0,
+    endIndex: 0
+  });
+  const onChangePage = (startIndex: number, endIndex: number) => {
+    setIndexes({ startIndex, endIndex });
+  };
   let history = orderBy(
     data || [],
     `${historySortField}.date`,
@@ -144,16 +151,6 @@ export const History = () => {
     }
     return true;
   });
-  const {
-    currentPage,
-    totalPages,
-    setNextPage,
-    setPreviousPage,
-    nextEnabled,
-    previousEnabled,
-    startIndex,
-    endIndex
-  } = usePagination({ totalItems: history.length, initialPageSize: 10 });
 
   let emptyDescription = "";
   if (history.length === 0) {
@@ -165,15 +162,22 @@ export const History = () => {
       emptyDescription = "The history is empty.";
     }
   }
-  // history = history.slice(startIndex, endIndex);
+  const filteredHistory = history.slice(startIndex, endIndex);
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />
       <VStack align="stretch">
+        <Pagination
+          pageSizes={[10, 20, 50, 100]}
+          total={history.length}
+          onChangePage={onChangePage}
+        />
         {error ? (
           <Empty description={emptyDescription} />
-        ) : history.length ? (
-          history.map((entry, index) => <Entry key={index} entry={entry} />)
+        ) : filteredHistory.length ? (
+          filteredHistory.map((entry, index) => (
+            <Entry key={`entry-${index}`} entry={entry} />
+          ))
         ) : (
           <Empty description={emptyDescription} />
         )}
