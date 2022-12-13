@@ -159,6 +159,23 @@ const Button = defineStyleConfig({
       _hover: {
         bgColor: `${colorScheme}.600`
       }
+    }),
+    pagination: ({ colorScheme }: StyleFunctionProps) => ({
+      border: "1px solid",
+      borderColor: "border",
+      cursor: "pointer",
+      _active: {
+        borderColor: `${colorScheme}.400 !important`,
+        color: `${colorScheme}.400 !important`
+      },
+      _disabled: {
+        borderColor: `gray.400 !important`,
+        color: `gray.400 !important`
+      },
+      _hover: {
+        borderColor: `${colorScheme}.400`,
+        color: `${colorScheme}.400`
+      }
     })
   }
 });

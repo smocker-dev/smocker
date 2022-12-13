@@ -135,7 +135,17 @@ export const History = () => {
     startIndex: 0,
     endIndex: 0
   });
-  const onChangePage = (startIndex: number, endIndex: number) => {
+  const pageSizes = React.useMemo(() => [10, 20, 50, 100], []);
+  const [pageSize, setPageSize] = React.useState(pageSizes[0]);
+  const [currentPage, setCurrentPage] = React.useState(pageSizes[0]);
+  const onChangePage = (
+    pageNumber: number,
+    pageSize: number,
+    startIndex: number,
+    endIndex: number
+  ) => {
+    setCurrentPage(pageNumber);
+    setPageSize(pageSize);
     setIndexes({ startIndex, endIndex });
   };
   let history = orderBy(
@@ -168,7 +178,9 @@ export const History = () => {
       <Header />
       <VStack align="stretch">
         <Pagination
-          pageSizes={[10, 20, 50, 100]}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          pageSizes={pageSizes}
           total={history.length}
           onChangePage={onChangePage}
         />
@@ -181,6 +193,13 @@ export const History = () => {
         ) : (
           <Empty description={emptyDescription} />
         )}
+        <Pagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          pageSizes={pageSizes}
+          total={history.length}
+          onChangePage={onChangePage}
+        />
       </VStack>
     </VStack>
   );

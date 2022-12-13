@@ -14,11 +14,10 @@ import React from "react";
 import {
   RiArrowDownSLine,
   RiArrowLeftSLine,
-  RiArrowRightSLine
+  RiArrowRightSLine,
+  RiMoreFill
 } from "react-icons/ri";
-import { usePagination } from "react-use-pagination";
-
-const DOTS = "...";
+import { DOTS, usePaginationWithSiblings } from "../modules/utils";
 
 const PageSizeSelector = ({
   options,
@@ -34,7 +33,7 @@ const PageSizeSelector = ({
       <MenuButton
         as={Button}
         rightIcon={<Icon as={RiArrowDownSLine} />}
-        variant="outline"
+        variant="pagination"
         size="sm"
         colorScheme="blue"
       >{`${pageSize} / page`}</MenuButton>
@@ -60,86 +59,53 @@ const PageSizeSelector = ({
 export interface PaginationProps {
   total: number;
   pageSizes: number[];
+  pageSize: number;
+  currentPage: number;
   siblings?: number;
-  onChangePage?: (startIndex: number, endIndex: number) => void;
+  onChangePage?: (
+    page: number,
+    pageSize: number,
+    startIndex: number,
+    endIndex: number
+  ) => void;
 }
 
-export const Pagination = ({
-  total,
-  pageSizes,
-  siblings = 1,
-  onChangePage
-}: PaginationProps) => {
-  if (!pageSizes.length || total <= pageSizes.sort()[0]) {
-    <></>;
-  }
-
-  pageSizes = pageSizes.sort((a, b) => a - b);
+export const Pagination = (props: PaginationProps) => {
+  const pageSizes = props.pageSizes.sort((a, b) => a - b);
 
   const {
-    currentPage: currentPageIndex,
-    totalPages,
-    setNextPage,
-    setPreviousPage,
-    nextEnabled,
+    currentPage,
+    setCurrentPage,
     previousEnabled,
+    setPreviousPage,
     startIndex,
     endIndex,
+    rangePages,
+    nextEnabled,
+    setNextPage,
     pageSize,
     setPageSize
-  } = usePagination({
-    totalItems: total,
-    initialPageSize: pageSizes[0]
+  } = usePaginationWithSiblings({
+    initTotal: props.total,
+    initPageSize: props.pageSize,
+    siblings: props.siblings
   });
-
   React.useEffect(() => {
-    onChangePage?.(startIndex, endIndex);
-  }, [startIndex, endIndex]);
+    props.onChangePage?.(currentPage, pageSize, startIndex, endIndex);
+  }, [currentPage, pageSize, startIndex, endIndex]);
+  React.useEffect(() => {
+    if (props.currentPage !== currentPage) {
+      setCurrentPage(props.currentPage);
+    }
+  }, [props.currentPage]);
+  React.useEffect(() => {
+    if (props.pageSize !== pageSize) {
+      setPageSize(props.pageSize);
+    }
+  }, [props.pageSize]);
 
-  const range = (start: number, end: number): any[] => {
-    let length = end - start + 1;
-    return Array.from({ length }, (_, idx) => idx + start);
-  };
-
-  let rangePage: number | string[] = [];
-  const currentPage = currentPageIndex + 1;
-
-  const firstPageIndex = 1;
-  const lastPageIndex = totalPages;
-  const totalPageNumbers = siblings + 5; // firstPage + lastPage + currentPage + 2 x DOTS
-  if (totalPageNumbers >= totalPages) {
-    rangePage = range(1, totalPages);
-  }
-  const leftSiblingIndex = Math.max(currentPage - siblings, 1);
-  const rightSiblingIndex = Math.min(currentPage + siblings, totalPages);
-
-  const shouldShowLeftDots = leftSiblingIndex > firstPageIndex + siblings;
-  const shouldShowRightDots = rightSiblingIndex < lastPageIndex - siblings;
-
-  if (!shouldShowLeftDots && shouldShowRightDots) {
-    rangePage = [
-      ...range(firstPageIndex, currentPage + siblings),
-      DOTS,
-      lastPageIndex
-    ];
-  }
-
-  if (shouldShowLeftDots && !shouldShowRightDots) {
-    rangePage = [
-      firstPageIndex,
-      DOTS,
-      ...range(currentPage - siblings, totalPages)
-    ];
-  }
-
-  if (shouldShowLeftDots && shouldShowRightDots) {
-    rangePage = [
-      firstPageIndex,
-      DOTS,
-      ...range(leftSiblingIndex, rightSiblingIndex),
-      DOTS,
-      lastPageIndex
-    ];
+  if (!pageSizes.length || props.total <= pageSizes[0]) {
+    return <></>;
   }
 
   return (
@@ -147,7 +113,7 @@ export const Pagination = ({
       <IconButton
         bg="white"
         isDisabled={!previousEnabled}
-        variant="outline"
+        variant="pagination"
         aria-label="previous page"
         colorScheme="blue"
         size="sm"
@@ -155,22 +121,38 @@ export const Pagination = ({
         onClick={setPreviousPage}
       />
 
-      {rangePage.map((value, index) => (
-        <Button
-          size="sm"
-          key={`page-${index}`}
-          bg="white"
-          variant="outline"
-          colorScheme="blue"
-          isDisabled={value === "..." || `${value}` === `${currentPage}`}
-        >
-          {value}
-        </Button>
-      ))}
+      {rangePages.map(({ text, value }, index) =>
+        text === DOTS ? (
+          <IconButton
+            size="sm"
+            key={`pagination-button-dots-${value}`}
+            bg="white"
+            aria-label={`jump to page ${value}`}
+            variant="pagination"
+            colorScheme="blue"
+            icon={<Icon as={RiMoreFill} />}
+            onClick={() => setCurrentPage(value)}
+          />
+        ) : (
+          <Button
+            size="sm"
+            key={`pagination-button-page-${value}`}
+            bg="white"
+            aria-label={`page ${value}`}
+            variant="pagination"
+            colorScheme="blue"
+            isDisabled={value === currentPage}
+            isActive={value === currentPage}
+            onClick={() => setCurrentPage(value)}
+          >
+            {text}
+          </Button>
+        )
+      )}
       <IconButton
         bg="white"
         isDisabled={!nextEnabled}
-        variant="outline"
+        variant="pagination"
         aria-label="next page"
         colorScheme="blue"
         size="sm"
