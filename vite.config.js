@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import pluginRewriteAll from 'vite-plugin-rewrite-all';
 
 export default defineConfig({
   root: './client/',
@@ -21,10 +20,7 @@ export default defineConfig({
   },
   plugins: [
     react({
-      include: ['./client/**/*.{jsx,tsx}'],
+      include: './client/**/*.{jsx,tsx}'
     }),
-    // Used to fix when dot is present in dynamic path
-    pluginRewriteAll(),
-  ],
-  rewrites: [{ source: '/(.*)', destination: '/' }],
+  ]
 });

@@ -1,7 +1,9 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Box,
   Button,
-  CircularProgress,
   Flex,
   Heading,
   HStack,
@@ -17,6 +19,7 @@ import {
   PopoverTrigger,
   Portal,
   Spacer,
+  Spinner,
   Text,
   Tooltip,
   useDisclosure,
@@ -40,6 +43,7 @@ import {
 } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
 import { SessionsType, SessionType } from "../modules/types";
+import { sortByDate } from "../modules/utils";
 import { FileUploader } from "./Uploader";
 
 const BurgerIcon = () => {
@@ -104,7 +108,7 @@ const Header = ({ loading }: { loading: boolean }) => {
       <Tooltip hasArrow label="Sort Sessions">
         <Link colorScheme="blue" onClick={() => toggleSessionsSort()}>
           {loading ? (
-            <CircularProgress size="18px" isIndeterminate color="blue.400" />
+            <Spinner boxSize="5" color="blue.400" />
           ) : (
             <Icon
               as={isSessionsAscSorted ? RiSortAsc : RiSortDesc}
@@ -198,11 +202,7 @@ const Session = (props: { data: SessionType }) => {
 
 const Sessions = ({ data }: { data?: SessionsType }) => {
   const { isSessionsAscSorted } = useContext(GlobalStateContext);
-  data = data?.sort((a, b) => {
-    const aDate = new Date(a.date).getTime();
-    const bDate = new Date(b.date).getTime();
-    return isSessionsAscSorted ? aDate - bDate : bDate - aDate;
-  });
+  data = data?.sort(sortByDate(isSessionsAscSorted));
   return (
     <VStack
       align="stretch"
@@ -243,7 +243,22 @@ const Footer = () => {
 };
 
 const Sidebar = () => {
-  const { data, isFetching } = useSessions();
+  const { data, isFetching, error } = useSessions();
+  const { selectedSessionID, selectSession, isSessionsAscSorted } = useContext(
+    GlobalStateContext
+  );
+  React.useEffect(() => {
+    const elems = data || [];
+    const containsSelectedSession =
+      elems.filter(session => session.id === selectedSessionID).length > 0;
+    if (!containsSelectedSession) {
+      selectSession(
+        elems.length > 0
+          ? elems.sort(sortByDate(isSessionsAscSorted))[0].id
+          : ""
+      );
+    }
+  }, [data, selectedSessionID, isSessionsAscSorted]);
   const ref = React.useRef<HTMLDivElement>(null);
   return (
     <VStack
@@ -256,9 +271,24 @@ const Sidebar = () => {
       spacing={0}
       ref={ref}
       flex={1}
+      overflowX="hidden"
     >
       <Header loading={isFetching} />
-      <Sessions data={data} />
+      {error ? (
+        <>
+          <Alert status="error">
+            <Box>
+              <AlertTitle fontSize="sm">Unable to retrieve sessions</AlertTitle>
+              <AlertDescription fontSize="sm">
+                {error?.message}
+              </AlertDescription>
+            </Box>
+          </Alert>
+          <Spacer />
+        </>
+      ) : (
+        <Sessions data={data} />
+      )}
       <Footer />
       <Portal containerRef={ref}>
         <BurgerIcon />

@@ -9,6 +9,19 @@ import {
   StringMatcherType
 } from "./types";
 
+export const sortNumber = (a: number, b: number) => {
+  return a - b;
+};
+
+export const sortByDate = (isAsc: boolean) => (
+  a: { date: string },
+  b: { date: string }
+) => {
+  const aDate = new Date(a.date).getTime();
+  const bDate = new Date(b.date).getTime();
+  return isAsc ? aDate - bDate : bDate - aDate;
+};
+
 export const requestToCurl = (request: EntryRequestType): string => {
   const escapeQuote = (unsafe: string) => unsafe.replace(/'/g, "\\'");
 

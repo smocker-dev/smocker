@@ -1,4 +1,9 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Box,
   Button,
   Heading,
   HStack,
@@ -130,7 +135,7 @@ const History = () => {
     historySortOrder,
     historyFilter
   } = React.useContext(GlobalStateContext);
-  const { data, error } = useHistory(selectedSessionID || "");
+  const { data, error, isFetching } = useHistory(selectedSessionID || "");
   const [{ startIndex, endIndex }, setIndexes] = React.useState({
     startIndex: 0,
     endIndex: 0
@@ -175,29 +180,41 @@ const History = () => {
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />
       <VStack align="stretch">
-        <Pagination
-          currentPage={currentPage}
-          pageSize={pageSize}
-          pageSizes={pageSizes}
-          total={history.length}
-          onChangePage={onChangePage}
-        />
+        {!error && (
+          <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            pageSizes={pageSizes}
+            total={history.length}
+            loading={isFetching}
+            onChangePage={onChangePage}
+          />
+        )}
         {error ? (
-          <Empty description={emptyDescription} />
+          <Alert status="error">
+            <AlertIcon boxSize="2em" />
+            <Box>
+              <AlertTitle>Unable to retrieve history</AlertTitle>
+              <AlertDescription>{error?.message}</AlertDescription>
+            </Box>
+          </Alert>
         ) : filteredHistory.length ? (
           filteredHistory.map((entry, index) => (
             <Entry key={`entry-${index}`} entry={entry} />
           ))
         ) : (
-          <Empty description={emptyDescription} />
+          <Empty description={emptyDescription} loading={isFetching} />
         )}
-        <Pagination
-          currentPage={currentPage}
-          pageSize={pageSize}
-          pageSizes={pageSizes}
-          total={history.length}
-          onChangePage={onChangePage}
-        />
+        {!error && (
+          <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            pageSizes={pageSizes}
+            loading={isFetching}
+            total={history.length}
+            onChangePage={onChangePage}
+          />
+        )}
       </VStack>
     </VStack>
   );

@@ -8,7 +8,9 @@ import {
   MenuButton,
   MenuItemOption,
   MenuList,
-  MenuOptionGroup
+  MenuOptionGroup,
+  Spacer,
+  Spinner
 } from "@chakra-ui/react";
 import React from "react";
 import {
@@ -17,7 +19,7 @@ import {
   RiArrowRightSLine,
   RiMoreFill
 } from "react-icons/ri";
-import { DOTS, usePaginationWithSiblings } from "../modules/utils";
+import { DOTS, sortNumber, usePaginationWithSiblings } from "../modules/utils";
 
 const PageSizeSelector = ({
   options,
@@ -43,13 +45,11 @@ const PageSizeSelector = ({
           type="radio"
           onChange={v => onChangePageSize(parseInt(v as string))}
         >
-          {options
-            .sort((a, b) => a - b)
-            .map(v => (
-              <MenuItemOption key={`page-size-${v}`} value={`${v}`}>
-                {`${v} / page`}
-              </MenuItemOption>
-            ))}
+          {options.sort(sortNumber).map(v => (
+            <MenuItemOption key={`page-size-${v}`} value={`${v}`}>
+              {`${v} / page`}
+            </MenuItemOption>
+          ))}
         </MenuOptionGroup>
       </MenuList>
     </Menu>
@@ -62,6 +62,7 @@ export interface PaginationProps {
   pageSize: number;
   currentPage: number;
   siblings?: number;
+  loading?: boolean;
   onChangePage?: (
     page: number,
     pageSize: number,
@@ -71,7 +72,7 @@ export interface PaginationProps {
 }
 
 export const Pagination = (props: PaginationProps) => {
-  const pageSizes = props.pageSizes.sort((a, b) => a - b);
+  const pageSizes = props.pageSizes.sort(sortNumber);
 
   const {
     currentPage,
@@ -109,7 +110,7 @@ export const Pagination = (props: PaginationProps) => {
   }
 
   return (
-    <HStack>
+    <HStack alignItems="center">
       <IconButton
         bg="white"
         isDisabled={!previousEnabled}
@@ -164,6 +165,12 @@ export const Pagination = (props: PaginationProps) => {
         pageSize={pageSize}
         onChangePageSize={setPageSize}
       />
+      <Spacer />
+      {props.loading && (
+        <Box pr=".5em">
+          <Spinner size="md" color="blue.400" />
+        </Box>
+      )}
     </HStack>
   );
 };

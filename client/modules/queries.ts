@@ -1,11 +1,12 @@
-import { CreateToastFnReturn, useToast } from "@chakra-ui/react";
 import axios from "axios";
 import trimEnd from "lodash/trimEnd";
 import React from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useSearchParams } from "react-router-dom";
 import {
+  ErrorType,
   HistoryCodec,
+  HistoryType,
   SessionCodec,
   SessionsCodec,
   SessionsType,
@@ -14,32 +15,6 @@ import {
 
 export const trimedPath = trimEnd(window.basePath, "/");
 
-const errorToast = () => {
-  return useToast({
-    status: "error",
-    duration: 9000,
-    isClosable: true,
-    position: "top-right",
-    variant: "subtle"
-  });
-};
-
-const processError = (
-  toaster: CreateToastFnReturn,
-  err: any,
-  id: string,
-  message: string
-) => {
-  console.log(err);
-  if (!toaster.isActive(id)) {
-    toaster({
-      id,
-      title: message,
-      description: err.issues ? "Invalid response format" : err.message
-    });
-  }
-};
-
 const getSessions = async () => {
   const { data } = await axios.get(`${trimedPath}/sessions/summary`);
   return SessionsCodec.parse(data);
@@ -47,12 +22,8 @@ const getSessions = async () => {
 
 export const useSessions = () => {
   const [refetchInterval] = React.useState(10000);
-  const toast = errorToast();
-  return useQuery(["sessions"], getSessions, {
-    refetchInterval,
-    onError: e => {
-      processError(toast, e, "get-sessions", "Unable to retrieve sessions");
-    }
+  return useQuery<SessionsType, ErrorType>(["sessions"], getSessions, {
+    refetchInterval
   });
 };
 
@@ -63,13 +34,9 @@ const addSession = async () => {
 
 export const useAddSession = () => {
   const queryClient = useQueryClient();
-  const toast = errorToast();
-  return useMutation(addSession, {
+  return useMutation<SessionType, ErrorType>(addSession, {
     onSuccess: () => {
       queryClient.invalidateQueries(["sessions"]);
-    },
-    onError: e => {
-      processError(toast, e, "add-session", "Unable to create session");
     }
   });
 };
@@ -81,16 +48,12 @@ const uploadSessions = async (sessions: SessionsType) => {
 
 export const useUploadSessions = () => {
   const queryClient = useQueryClient();
-  const toast = errorToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  return useMutation(uploadSessions, {
+  return useMutation<SessionsType, ErrorType, SessionsType>(uploadSessions, {
     onSuccess: () => {
       queryClient.invalidateQueries(["sessions"]);
       searchParams.delete("session");
       setSearchParams(searchParams);
-    },
-    onError: e => {
-      processError(toast, e, "upload-sessions", "Unable to import sessions");
     }
   });
 };
@@ -102,16 +65,12 @@ const resetSessions = async () => {
 
 export const useResetSessions = () => {
   const queryClient = useQueryClient();
-  const toast = errorToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  return useMutation(resetSessions, {
+  return useMutation<void, ErrorType>(resetSessions, {
     onSuccess: () => {
       queryClient.invalidateQueries(["sessions"]);
       searchParams.delete("session");
       setSearchParams(searchParams);
-    },
-    onError: e => {
-      processError(toast, e, "reset-sessions", "Unable to reset sessions");
     }
   });
 };
@@ -123,13 +82,9 @@ const updateSession = async (session: SessionType) => {
 
 export const useUpdateSession = () => {
   const queryClient = useQueryClient();
-  const toast = errorToast();
-  return useMutation(updateSession, {
+  return useMutation<SessionType, ErrorType, SessionType>(updateSession, {
     onSuccess: () => {
       queryClient.invalidateQueries(["sessions"]);
-    },
-    onError: e => {
-      processError(toast, e, "update-session", "Unable to update session");
     }
   });
 };
@@ -143,11 +98,11 @@ const getHistory = async (sessionID: string) => {
 
 export const useHistory = (sessionID: string) => {
   const [refetchInterval] = React.useState(10000);
-  const toast = errorToast();
-  return useQuery(["history", sessionID], () => getHistory(sessionID), {
-    refetchInterval,
-    onError: e => {
-      processError(toast, e, "get-history", "Unable to retrieve history");
+  return useQuery<HistoryType, ErrorType>(
+    ["history", sessionID],
+    () => getHistory(sessionID),
+    {
+      refetchInterval
     }
-  });
+  );
 };

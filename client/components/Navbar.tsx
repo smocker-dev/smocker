@@ -6,7 +6,7 @@ import logo from "../assets/logo180.png";
 const Logo = () => (
   <HStack align="center" pl="4em" pr="2">
     <Image boxSize="32px" src={logo} />
-    <NavLink to="/">
+    <NavLink to="/pages/history">
       <Text
         fontWeight="900"
         color="white"

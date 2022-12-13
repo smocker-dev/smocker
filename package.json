@@ -11,17 +11,17 @@
     "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0",
     "@types/graceful-fs": "^4.1.5",
     "@types/lodash": "^4.14.191",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^3.0.0",
-    "@vitest/coverage-c8": "^0.25.7",
-    "lefthook": "^1.2.4",
+    "@vitest/coverage-c8": "^0.25.8",
+    "lefthook": "^1.2.5",
     "typescript": "^4.9.4",
-    "vite": "^4.0.0",
-    "vite-plugin-rewrite-all": "^1.0.1",
-    "vitest": "^0.25.7"
+    "vite": "^4.0.1",
+    "vitest": "^0.25.8"
   },
   "prettier": {
     "semi": true,
@@ -35,7 +35,7 @@
     "@monaco-editor/react": "^4.4.6",
     "axios": "^1.2.1",
     "dayjs": "^1.11.7",
-    "framer-motion": "^7.7.2",
+    "framer-motion": "^7.8.0",
     "http-status-codes": "^2.2.0",
     "lodash": "^4.17.21",
     "monaco-editor": "^0.34.1",
@@ -46,6 +46,6 @@
     "react-router-dom": "^6.4.5",
     "react-use-pagination": "^2.0.1",
     "use-local-storage": "^2.3.6",
-    "zod": "^3.20.0"
+    "zod": "^3.20.2"
   }
 }
