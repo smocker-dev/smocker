@@ -92,7 +92,7 @@ export const Pagination = (props: PaginationProps) => {
   });
   React.useEffect(() => {
     props.onChangePage?.(currentPage, pageSize, startIndex, endIndex);
-  }, [currentPage, pageSize, startIndex, endIndex]);
+  }, [startIndex, endIndex]);
   React.useEffect(() => {
     if (props.currentPage !== currentPage) {
       setCurrentPage(props.currentPage);

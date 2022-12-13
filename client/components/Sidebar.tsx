@@ -242,7 +242,7 @@ const Footer = () => {
   );
 };
 
-export const Sidebar = () => {
+const Sidebar = () => {
   const { data, isFetching } = useSessions();
   const ref = React.useRef<HTMLDivElement>(null);
   return (
@@ -266,3 +266,5 @@ export const Sidebar = () => {
     </VStack>
   );
 };
+
+export default Sidebar;

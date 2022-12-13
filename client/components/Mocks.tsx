@@ -26,7 +26,7 @@ const Header = () => (
   </VStack>
 );
 
-export const Mocks = () => {
+const Mocks = () => {
   const history = [];
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="1em">
@@ -37,3 +37,5 @@ export const Mocks = () => {
     </VStack>
   );
 };
+
+export default Mocks;

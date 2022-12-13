@@ -2,11 +2,12 @@ import { Grid, GridItem, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { GlobalStateContext } from "../modules/state";
-import { Footer } from "./Footer";
-import { History } from "./History";
-import { Mocks } from "./Mocks";
-import { Navbar } from "./Navbar";
-import { Sidebar } from "./Sidebar";
+
+const Navbar = React.lazy(() => import("./Navbar"));
+const Sidebar = React.lazy(() => import("./Sidebar"));
+const Footer = React.lazy(() => import("./Footer"));
+const History = React.lazy(() => import("./History"));
+const Mocks = React.lazy(() => import("./Mocks"));
 
 export const Layout = () => {
   const { isSidebarOpen } = React.useContext(GlobalStateContext);
@@ -19,7 +20,9 @@ export const Layout = () => {
       height="100vh"
     >
       <GridItem area={"header"}>
-        <Navbar />
+        <React.Suspense>
+          <Navbar />
+        </React.Suspense>
       </GridItem>
       <GridItem
         width={isSidebarOpen ? "200px" : "0px"}
@@ -29,7 +32,9 @@ export const Layout = () => {
         flexDirection="column"
         minHeight="0"
       >
-        <Sidebar />
+        <React.Suspense>
+          <Sidebar />
+        </React.Suspense>
       </GridItem>
       <GridItem
         bg="page.bg"
@@ -41,11 +46,13 @@ export const Layout = () => {
         overflowY="auto"
       >
         <VStack flex="1" align="stretch" spacing={10}>
-          <Routes>
-            <Route path="/pages/history" element={<History />} />
-            <Route path="/pages/mocks" element={<Mocks />} />
-            <Route path="*" element={<History />} />
-          </Routes>
+          <React.Suspense>
+            <Routes>
+              <Route path="/pages/history" element={<History />} />
+              <Route path="/pages/mocks" element={<Mocks />} />
+              <Route path="*" element={<History />} />
+            </Routes>
+          </React.Suspense>
           <Footer />
         </VStack>
       </GridItem>

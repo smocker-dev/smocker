@@ -123,7 +123,7 @@ const Header = () => {
   );
 };
 
-export const History = () => {
+const History = () => {
   const {
     selectedSessionID,
     historySortField,
@@ -162,14 +162,12 @@ export const History = () => {
     return true;
   });
 
-  let emptyDescription = "";
+  let emptyDescription = "The history is empty.";
   if (history.length === 0) {
     if (historyFilter === "http-errors") {
       emptyDescription = "No HTTP errors in the history.";
     } else if (historyFilter === "smocker-errors") {
       emptyDescription = "No Smocker errors in the history.";
-    } else {
-      emptyDescription = "The history is empty.";
     }
   }
   const filteredHistory = history.slice(startIndex, endIndex);
@@ -204,3 +202,5 @@ export const History = () => {
     </VStack>
   );
 };
+
+export default History;

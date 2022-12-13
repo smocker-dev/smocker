@@ -1,7 +1,7 @@
 import { Box, Icon, Link } from "@chakra-ui/react";
 import { RiBookOpenLine, RiGithubFill } from "react-icons/ri";
 
-export const Footer = () => (
+const Footer = () => (
   <Box
     p="0 24px 24px"
     display="flex"
@@ -32,3 +32,5 @@ export const Footer = () => (
     </Box>
   </Box>
 );
+
+export default Footer;

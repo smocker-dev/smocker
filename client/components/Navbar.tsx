@@ -73,7 +73,7 @@ const Item = (props: { to?: string; label: string; href?: string }) => {
   );
 };
 
-export const Navbar = () => {
+const Navbar = () => {
   return (
     <HStack align="stretch" minHeight="100%" bg="navbar">
       <Logo />
@@ -85,3 +85,5 @@ export const Navbar = () => {
     </HStack>
   );
 };
+
+export default Navbar;
