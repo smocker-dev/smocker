@@ -7,6 +7,8 @@ import {
   ErrorType,
   HistoryCodec,
   HistoryType,
+  MocksCodec,
+  MocksType,
   SessionCodec,
   SessionsCodec,
   SessionsType,
@@ -101,6 +103,22 @@ export const useHistory = (sessionID: string) => {
   return useQuery<HistoryType, ErrorType>(
     ["history", sessionID],
     () => getHistory(sessionID),
+    {
+      refetchInterval
+    }
+  );
+};
+
+const getMocks = async (sessionID: string) => {
+  const { data } = await axios.get(`${trimedPath}/mocks?session=${sessionID}`);
+  return MocksCodec.parse(data);
+};
+
+export const useMocks = (sessionID: string) => {
+  const [refetchInterval] = React.useState(10000);
+  return useQuery<MocksType, ErrorType>(
+    ["mocks", sessionID],
+    () => getMocks(sessionID),
     {
       refetchInterval
     }

@@ -12,14 +12,14 @@ import {
   Spacer,
   Spinner
 } from "@chakra-ui/react";
-import React from "react";
 import {
   RiArrowDownSLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiMoreFill
 } from "react-icons/ri";
-import { DOTS, sortNumber, usePaginationWithSiblings } from "../modules/utils";
+import { DOTS } from "../modules/pagination";
+import { sortNumber } from "../modules/utils";
 
 const PageSizeSelector = ({
   options,
@@ -56,56 +56,36 @@ const PageSizeSelector = ({
   </Box>
 );
 
-export interface PaginationProps {
-  total: number;
+interface PaginationProps {
+  totalItems: number;
   pageSizes: number[];
-  pageSize: number;
   currentPage: number;
-  siblings?: number;
+  setCurrentPage: (page: number) => void;
+  previousEnabled: boolean;
+  setPreviousPage: () => void;
+  rangePages: { text: string; value: number }[];
+  nextEnabled: boolean;
+  setNextPage: () => void;
+  pageSize: number;
+  setPageSize: (pageSize: number) => void;
   loading?: boolean;
-  onChangePage?: (
-    page: number,
-    pageSize: number,
-    startIndex: number,
-    endIndex: number
-  ) => void;
 }
 
-export const Pagination = (props: PaginationProps) => {
-  const pageSizes = props.pageSizes.sort(sortNumber);
-
-  const {
-    currentPage,
-    setCurrentPage,
-    previousEnabled,
-    setPreviousPage,
-    startIndex,
-    endIndex,
-    rangePages,
-    nextEnabled,
-    setNextPage,
-    pageSize,
-    setPageSize
-  } = usePaginationWithSiblings({
-    initTotal: props.total,
-    initPageSize: props.pageSize,
-    siblings: props.siblings
-  });
-  React.useEffect(() => {
-    props.onChangePage?.(currentPage, pageSize, startIndex, endIndex);
-  }, [startIndex, endIndex]);
-  React.useEffect(() => {
-    if (props.currentPage !== currentPage) {
-      setCurrentPage(props.currentPage);
-    }
-  }, [props.currentPage]);
-  React.useEffect(() => {
-    if (props.pageSize !== pageSize) {
-      setPageSize(props.pageSize);
-    }
-  }, [props.pageSize]);
-
-  if (!pageSizes.length || props.total <= pageSizes[0]) {
+export const Pagination = ({
+  totalItems,
+  pageSizes,
+  currentPage,
+  setCurrentPage,
+  previousEnabled,
+  setPreviousPage,
+  rangePages,
+  nextEnabled,
+  setNextPage,
+  pageSize,
+  setPageSize,
+  loading
+}: PaginationProps) => {
+  if (!pageSizes.length || totalItems <= pageSizes[0]) {
     return <></>;
   }
 
@@ -166,7 +146,7 @@ export const Pagination = (props: PaginationProps) => {
         onChangePageSize={setPageSize}
       />
       <Spacer />
-      {props.loading && (
+      {loading && (
         <Box pr=".5em">
           <Spinner size="md" color="blue.400" />
         </Box>

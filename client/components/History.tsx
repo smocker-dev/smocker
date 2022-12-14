@@ -22,6 +22,7 @@ import {
 import { orderBy } from "lodash";
 import React from "react";
 import { RiOrganizationChart } from "react-icons/ri";
+import { usePaginationWithSiblings } from "../modules/pagination";
 import { useHistory } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
 import { Empty } from "./Empty";
@@ -136,23 +137,26 @@ const History = () => {
     historyFilter
   } = React.useContext(GlobalStateContext);
   const { data, error, isFetching } = useHistory(selectedSessionID || "");
-  const [{ startIndex, endIndex }, setIndexes] = React.useState({
-    startIndex: 0,
-    endIndex: 0
-  });
   const pageSizes = React.useMemo(() => [10, 20, 50, 100], []);
-  const [pageSize, setPageSize] = React.useState(pageSizes[0]);
-  const [currentPage, setCurrentPage] = React.useState(pageSizes[0]);
-  const onChangePage = (
-    pageNumber: number,
-    pageSize: number,
-    startIndex: number,
-    endIndex: number
-  ) => {
-    setCurrentPage(pageNumber);
-    setPageSize(pageSize);
-    setIndexes({ startIndex, endIndex });
-  };
+  const total = data?.length || 0;
+
+  const {
+    currentPage,
+    setCurrentPage,
+    previousEnabled,
+    setPreviousPage,
+    startIndex,
+    endIndex,
+    rangePages,
+    nextEnabled,
+    setNextPage,
+    pageSize,
+    setPageSize
+  } = usePaginationWithSiblings({
+    initTotal: total,
+    initPageSize: pageSizes[0]
+  });
+
   let history = orderBy(
     data || [],
     `${historySortField}.date`,
@@ -175,21 +179,28 @@ const History = () => {
       emptyDescription = "No Smocker errors in the history.";
     }
   }
+  const pagination = !error ? (
+    <Pagination
+      totalItems={total}
+      pageSizes={pageSizes}
+      currentPage={currentPage}
+      setCurrentPage={setCurrentPage}
+      previousEnabled={previousEnabled}
+      setPreviousPage={setPreviousPage}
+      rangePages={rangePages}
+      nextEnabled={nextEnabled}
+      setNextPage={setNextPage}
+      pageSize={pageSize}
+      setPageSize={setPageSize}
+      loading={isFetching}
+    />
+  ) : null;
   const filteredHistory = history.slice(startIndex, endIndex);
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />
       <VStack align="stretch">
-        {!error && (
-          <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            pageSizes={pageSizes}
-            total={history.length}
-            loading={isFetching}
-            onChangePage={onChangePage}
-          />
-        )}
+        {pagination}
         {error ? (
           <Alert status="error">
             <AlertIcon boxSize="2em" />
@@ -205,16 +216,7 @@ const History = () => {
         ) : (
           <Empty description={emptyDescription} loading={isFetching} />
         )}
-        {!error && (
-          <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            pageSizes={pageSizes}
-            loading={isFetching}
-            total={history.length}
-            onChangePage={onChangePage}
-          />
-        )}
+        {pagination}
       </VStack>
     </VStack>
   );
