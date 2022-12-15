@@ -9,7 +9,7 @@ import {
   ErrorType
 } from "../../modules/types";
 import { Code } from "../Code";
-import { Headers } from "./Headers";
+import { Headers } from "../Headers";
 
 const Status = ({
   response,

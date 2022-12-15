@@ -15,7 +15,7 @@ import { RiCheckFill, RiClipboardLine } from "react-icons/ri";
 import { dateFormat, EntryRequestType } from "../../modules/types";
 import { formatQueryParams, requestToCurl } from "../../modules/utils";
 import { Code } from "../Code";
-import { Headers } from "./Headers";
+import { Headers } from "../Headers";
 
 const Body = ({
   body,

@@ -39,7 +39,7 @@ const EditorBox = ({
   onChange
 }: {
   value?: string;
-  language: Language;
+  language?: Language;
   onChange?: (value: string) => unknown;
 }) => {
   const [height, setHeight] = React.useState(20);
@@ -54,7 +54,7 @@ const EditorBox = ({
     });
   }, []);
   return (
-    <Box p="1em 0" bgColor="rgb(30, 30, 30)" borderRadius="2px">
+    <Box p=".5em 0" bgColor="rgb(30, 30, 30)" borderRadius="2px">
       <Editor
         loading={<Spinner color="white" />}
         height={height}
@@ -76,7 +76,7 @@ export const Code = ({
   collapsible = true
 }: {
   value?: string;
-  language: Language;
+  language?: Language;
   collapsible?: boolean;
   onChange?: (value: string) => unknown;
 }): JSX.Element => {
@@ -84,23 +84,15 @@ export const Code = ({
     return (
       <Accordion allowToggle reduceMotion>
         <AccordionItem borderWidth="1px" borderColor="sidebar.border">
-          {({ isExpanded }) => (
-            <>
-              <AccordionButton bgColor="gray.50">
-                <Box flex="1" textAlign="left">
-                  This payload is huge. Click to display it
-                </Box>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel>
-                <EditorBox
-                  value={value}
-                  language={language}
-                  onChange={onChange}
-                />
-              </AccordionPanel>
-            </>
-          )}
+          <AccordionButton bgColor="gray.50">
+            <Box flex="1" textAlign="left">
+              This payload is huge. Click to display it
+            </Box>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel>
+            <EditorBox value={value} language={language} onChange={onChange} />
+          </AccordionPanel>
         </AccordionItem>
       </Accordion>
     );

@@ -4,6 +4,7 @@ import {
   EntryRequestType,
   MultimapMatcherType,
   MultimapType,
+  StringMatcherSliceType,
   StringMatcherType
 } from "./types";
 
@@ -115,4 +116,25 @@ export const formatQueryParams = (
       }, [])
       .join("&")
   );
+};
+
+export const formatHeaderValue = (
+  headerValue?: StringMatcherSliceType | string[]
+): string => {
+  if (!headerValue || !headerValue.length) {
+    return "";
+  }
+  if (!(headerValue as StringMatcherSliceType)[0]["matcher"]) {
+    return headerValue.join(", ");
+  }
+  return (headerValue as StringMatcherSliceType)
+    .reduce((acc: string[], v) => {
+      const param =
+        v.matcher !== defaultMatcher
+          ? `${v.matcher}: "${v.value}"`
+          : `${v.value}`;
+      acc.push(param);
+      return acc;
+    }, [])
+    .join(", ");
 };

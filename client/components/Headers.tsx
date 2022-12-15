@@ -1,6 +1,12 @@
 import { Table, Tbody, Td, Text, Tr } from "@chakra-ui/react";
-import { MultimapType } from "../../modules/types";
-export const Headers = ({ headers }: { headers?: MultimapType }) => {
+import { MultimapMatcherType, MultimapType } from "../modules/types";
+import { formatHeaderValue } from "../modules/utils";
+
+export const Headers = ({
+  headers
+}: {
+  headers?: MultimapMatcherType | MultimapType;
+}) => {
   if (!headers) {
     return <></>;
   }
@@ -13,7 +19,7 @@ export const Headers = ({ headers }: { headers?: MultimapType }) => {
               <Text fontWeight="bold">{key}</Text>
             </Td>
             <Td borderColor="border" wordBreak="break-all">
-              <Text>{values.join(", ")}</Text>
+              <Text align="right">{formatHeaderValue(values)}</Text>
             </Td>
           </Tr>
         ))}
