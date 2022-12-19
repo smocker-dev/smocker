@@ -124,3 +124,31 @@ export const useMocks = (sessionID: string) => {
     }
   );
 };
+
+const lockMock = async (mockID: string) => {
+  const { data } = await axios.post(`${trimedPath}/mocks/lock`, [mockID]);
+  return MocksCodec.parse(data);
+};
+
+export const useLockMock = () => {
+  const queryClient = useQueryClient();
+  return useMutation<MocksType, ErrorType, string>(lockMock, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["mocks"]);
+    }
+  });
+};
+
+const unlockMock = async (mockID: string) => {
+  const { data } = await axios.post(`${trimedPath}/mocks/unlock`, [mockID]);
+  return MocksCodec.parse(data);
+};
+
+export const useUnlockMock = () => {
+  const queryClient = useQueryClient();
+  return useMutation<MocksType, ErrorType, string>(unlockMock, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["mocks"]);
+    }
+  });
+};
