@@ -4,30 +4,27 @@ import {
   AlertTitle,
   Box,
   Button,
+  Editable,
+  EditableInput,
+  EditablePreview,
   Flex,
   Heading,
   HStack,
   Icon,
-  Input,
+  IconButton,
   Link,
-  Popover,
-  PopoverArrow,
-  PopoverBody,
-  PopoverCloseButton,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTrigger,
   Portal,
   Spacer,
   Spinner,
   Text,
   Tooltip,
-  useDisclosure,
+  useEditableControls,
   VStack
 } from "@chakra-ui/react";
 import React, { useContext } from "react";
 import {
   RiAddFill,
+  RiCheckFill,
   RiDeleteBinLine,
   RiEditLine,
   RiMenuFoldFill,
@@ -122,14 +119,72 @@ const Header = ({ loading }: { loading: boolean }) => {
   );
 };
 
+const EditableControls = () => {
+  const {
+    isEditing,
+    getSubmitButtonProps,
+    getEditButtonProps
+  } = useEditableControls();
+
+  return isEditing ? (
+    <IconButton
+      ml={3}
+      size="sm"
+      aria-label="submit button"
+      variant="outline"
+      colorScheme="blue"
+      icon={<Icon as={RiCheckFill} />}
+      {...getSubmitButtonProps()}
+    />
+  ) : (
+    <IconButton
+      ml={3}
+      size="sm"
+      aria-label="submit button"
+      variant="outline"
+      colorScheme="blue"
+      icon={<Icon as={RiEditLine} />}
+      {...getEditButtonProps()}
+    />
+  );
+};
+
+const CustomEditableInput = ({
+  value,
+  onSubmit
+}: {
+  value: string;
+  onSubmit?: (value: string) => void;
+}) => {
+  return (
+    <Editable
+      defaultValue={value}
+      display="flex"
+      flexDirection="row"
+      flex="1"
+      alignItems="center"
+      justifyContent="space-between"
+      isPreviewFocusable={false}
+      onSubmit={onSubmit}
+    >
+      <EditablePreview
+        noOfLines={1}
+        title={value}
+        pt={1.5}
+        pb={1.5}
+        wordBreak="break-all"
+      />
+      <EditableInput borderRadius={0} />
+      <EditableControls />
+    </Editable>
+  );
+};
+
 const Session = (props: { data: SessionType }) => {
   const { selectedSessionID, selectSession } = useContext(GlobalStateContext);
   const { data: session } = props;
   const isSelected = selectedSessionID === session.id;
-  const [sessionName, setSessionName] = React.useState(session.name);
   const updateSessionsMutation = useUpdateSession();
-  const { onOpen, onClose, isOpen } = useDisclosure();
-  const ref = React.useRef<HTMLInputElement>(null);
 
   return (
     <Link
@@ -146,54 +201,23 @@ const Session = (props: { data: SessionType }) => {
         borderRightColor={isSelected ? "blue.400" : "session.bg"}
         transition="border-color .3s,background .3s,padding .1s cubic-bezier(.215,.61,.355,1)"
       >
-        <Text noOfLines={1} title={session.name}>
-          {session.name}
-        </Text>
-        <Spacer />
-        {isSelected && (
-          <Popover
-            isLazy
-            isOpen={isOpen}
-            initialFocusRef={ref}
-            onOpen={onOpen}
-            onClose={onClose}
-            placement="right"
+        {isSelected ? (
+          <CustomEditableInput
+            value={session.name}
+            onSubmit={name =>
+              updateSessionsMutation.mutate({ ...session, name })
+            }
+          />
+        ) : (
+          <Text
+            noOfLines={1}
+            title={session.name}
+            pt={1.5}
+            pb={1.5}
+            wordBreak="break-all"
           >
-            <PopoverTrigger>
-              <Box _hover={{ color: "blue.300" }}>
-                <Icon as={RiEditLine} boxSize="4" mb="-.25em" />
-              </Box>
-            </PopoverTrigger>
-            <Portal>
-              <PopoverContent bg="white">
-                <PopoverArrow bg="white" />
-                <PopoverCloseButton />
-                <PopoverHeader>Rename session</PopoverHeader>
-                <PopoverBody>
-                  <HStack>
-                    <Input
-                      ref={ref}
-                      value={sessionName}
-                      onChange={e => setSessionName(e.target.value)}
-                    />
-                    <Button
-                      isDisabled={!sessionName}
-                      colorScheme="blue"
-                      onClick={() => {
-                        updateSessionsMutation.mutate({
-                          ...session,
-                          name: sessionName
-                        });
-                        onClose();
-                      }}
-                    >
-                      Save
-                    </Button>
-                  </HStack>
-                </PopoverBody>
-              </PopoverContent>
-            </Portal>
-          </Popover>
+            {session.name}
+          </Text>
         )}
       </Flex>
     </Link>

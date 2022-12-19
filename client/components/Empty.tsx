@@ -1,4 +1,12 @@
-import { HStack, Icon, Spacer, Spinner, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Icon,
+  Spacer,
+  Spinner,
+  Text,
+  VStack
+} from "@chakra-ui/react";
 import { RiEyeOffLine, RiFeedbackLine } from "react-icons/ri";
 
 export const Empty = ({
@@ -10,12 +18,14 @@ export const Empty = ({
 }) => (
   <VStack align="center" spacing={0}>
     {loading ? (
-      <Spinner
-        thickness="4px"
-        color="gray.400"
-        boxSize="5em"
-        alignSelf="center"
-      />
+      <Box pt={10}>
+        <Spinner
+          thickness="5px"
+          color="gray.400"
+          boxSize="5em"
+          alignSelf="center"
+        />
+      </Box>
     ) : (
       <>
         <VStack align="stretch" spacing={0}>
