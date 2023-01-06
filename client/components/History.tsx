@@ -211,7 +211,7 @@ const History = () => {
           </Alert>
         ) : filteredHistory.length ? (
           filteredHistory.map((entry, index) => (
-            <Entry key={`entry-${index}`} entry={entry} />
+            <Entry key={`entry-${index}-${entry.request.date}`} entry={entry} />
           ))
         ) : (
           <Empty description={emptyDescription} loading={isFetching} />

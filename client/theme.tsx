@@ -1,4 +1,4 @@
-import { tagAnatomy } from "@chakra-ui/anatomy";
+import { tabsAnatomy, tagAnatomy } from "@chakra-ui/anatomy";
 import {
   createMultiStyleConfigHelpers,
   defineStyleConfig,
@@ -149,6 +149,28 @@ const Tag = defineStyleConfig({
   }
 });
 
+const {
+  definePartsStyle: definePartsStyleTabs
+} = createMultiStyleConfigHelpers(tabsAnatomy.keys);
+
+const Tabs = defineStyleConfig({
+  variants: {
+    line: ({ colorScheme }) =>
+      definePartsStyleTabs({
+        tab: {
+          _selected: {
+            fontWeight: "bold",
+            color: `${colorScheme}.400`,
+            borderColor: `${colorScheme}.400`
+          }
+        },
+        tablist: {
+          borderBottom: "1px solid"
+        }
+      })
+  }
+});
+
 const Button = defineStyleConfig({
   baseStyle: {
     borderRadius: "2px"
@@ -206,6 +228,7 @@ export const theme = extendTheme({
   components: {
     Button,
     Link,
-    Tag
+    Tag,
+    Tabs
   }
 });

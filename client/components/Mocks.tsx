@@ -10,31 +10,39 @@ import {
   Icon,
   Spacer,
   Text,
+  useDisclosure,
   VStack
 } from "@chakra-ui/react";
 import React from "react";
 import { RiAddFill } from "react-icons/ri";
 import { usePaginationWithSiblings } from "../modules/pagination";
-import { useMocks } from "../modules/queries";
+import { useMocks, useSessions } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
+import { sortByDate } from "../modules/utils";
+import { MocksDrawer } from "./Drawer";
 import { Empty } from "./Empty";
 import { Mock } from "./mocks/Mock";
 import { Pagination } from "./Pagination";
 
-const Header = () => {
+const Header = ({ canAddMocks }: { canAddMocks: boolean }) => {
+  const { isOpen, onClose, onOpen } = useDisclosure();
   return (
     <VStack alignItems="stretch">
       <HStack justify="space-between">
         <Heading size="md">Mocks</Heading>
         <Spacer />
-        <Button
-          leftIcon={<Icon as={RiAddFill} boxSize="20px" />}
-          colorScheme="blue"
-        >
-          Add Mocks
-        </Button>
+        {canAddMocks && (
+          <Button
+            leftIcon={<Icon as={RiAddFill} boxSize="20px" />}
+            colorScheme="blue"
+            onClick={onOpen}
+          >
+            Add Mocks
+          </Button>
+        )}
       </HStack>
       <Text>This is the list of declared mocks ordered by priority.</Text>
+      <MocksDrawer isOpen={isOpen} onClose={onClose} />
     </VStack>
   );
 };
@@ -42,6 +50,10 @@ const Header = () => {
 const Mocks = () => {
   const { selectedSessionID } = React.useContext(GlobalStateContext);
   const { data, error, isFetching } = useMocks(selectedSessionID || "");
+  const { data: sessions } = useSessions();
+  const canAddMocks =
+    !selectedSessionID ||
+    selectedSessionID === sessions?.sort(sortByDate(false))?.[0].id;
   const pageSizes = React.useMemo(() => [10, 20, 50, 100], []);
   const total = data?.length || 0;
 
@@ -81,7 +93,7 @@ const Mocks = () => {
   const filteredMocks = mocks.slice(startIndex, endIndex);
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
-      <Header />
+      <Header canAddMocks={canAddMocks} />
       <VStack align="stretch">
         {pagination}
         {error ? (
@@ -94,7 +106,7 @@ const Mocks = () => {
           </Alert>
         ) : filteredMocks.length ? (
           filteredMocks.map((mock, index) => (
-            <Mock key={`mock-${index}`} mock={mock} />
+            <Mock key={`mock-${index}-${mock.state.id}`} mock={mock} />
           ))
         ) : (
           <Empty description="No mocks found." loading={isFetching} />
