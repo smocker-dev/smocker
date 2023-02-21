@@ -53,7 +53,7 @@ const Mocks = () => {
   const { data: sessions } = useSessions();
   const canAddMocks =
     !selectedSessionID ||
-    selectedSessionID === sessions?.sort(sortByDate(false))?.[0].id;
+    selectedSessionID === sessions?.sort(sortByDate(false))?.[0]?.id;
   const pageSizes = React.useMemo(() => [10, 20, 50, 100], []);
   const total = data?.length || 0;
 
@@ -68,29 +68,37 @@ const Mocks = () => {
     nextEnabled,
     setNextPage,
     pageSize,
-    setPageSize
+    setPageSize,
+    setTotalItems
   } = usePaginationWithSiblings({
     initTotal: total,
     initPageSize: pageSizes[0]
   });
   const mocks = data || [];
-  const pagination = !error ? (
-    <Pagination
-      totalItems={total}
-      pageSizes={pageSizes}
-      currentPage={currentPage}
-      setCurrentPage={setCurrentPage}
-      previousEnabled={previousEnabled}
-      setPreviousPage={setPreviousPage}
-      rangePages={rangePages}
-      nextEnabled={nextEnabled}
-      setNextPage={setNextPage}
-      pageSize={pageSize}
-      setPageSize={setPageSize}
-      loading={isFetching}
-    />
-  ) : null;
+
+  React.useEffect(() => {
+    setTotalItems(mocks.length);
+  }, [mocks]);
+
   const filteredMocks = mocks.slice(startIndex, endIndex);
+
+  const pagination =
+    !error && filteredMocks.length ? (
+      <Pagination
+        totalItems={total}
+        pageSizes={pageSizes}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        previousEnabled={previousEnabled}
+        setPreviousPage={setPreviousPage}
+        rangePages={rangePages}
+        nextEnabled={nextEnabled}
+        setNextPage={setNextPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        loading={isFetching}
+      />
+    ) : null;
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header canAddMocks={canAddMocks} />

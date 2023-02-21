@@ -1,5 +1,4 @@
 import React from "react";
-import { useQueryClient } from "react-query";
 import { useSearchParams } from "react-router-dom";
 import useLocalStorage from "use-local-storage";
 
@@ -26,7 +25,6 @@ export const GlobalStateContext = React.createContext<IGlobalState>(
 );
 
 export const GlobalStateProvider = ({ children }: React.PropsWithChildren) => {
-  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSidebarOpen, setSideBarOpen] = React.useState(true);
   const toggleSidebar = () => {
@@ -61,13 +59,6 @@ export const GlobalStateProvider = ({ children }: React.PropsWithChildren) => {
       setSearchParams({ session: selectedSessionID || "" });
     }
   }, [selectedSessionID]);
-
-  React.useEffect(() => {
-    if (selectedSessionID !== searchParams.get("session")) {
-      selectSession(searchParams.get("session"));
-      queryClient.invalidateQueries(["sessions"]);
-    }
-  }, [searchParams.get("session")]);
 
   return (
     <GlobalStateContext.Provider

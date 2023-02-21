@@ -3,6 +3,7 @@ import trimEnd from "lodash/trimEnd";
 import React from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useSearchParams } from "react-router-dom";
+import { GlobalStateContext } from "./state";
 import {
   ErrorType,
   HistoryCodec,
@@ -24,8 +25,18 @@ const getSessions = async () => {
 
 export const useSessions = () => {
   const [refetchInterval] = React.useState(10000);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { selectSession } = React.useContext(GlobalStateContext);
   return useQuery<SessionsType, ErrorType>(["sessions"], getSessions, {
-    refetchInterval
+    refetchInterval,
+    onSuccess: data => {
+      const sessionID = searchParams.get("session");
+      if (!data.filter(session => session.id === sessionID).length) {
+        searchParams.delete("session");
+        setSearchParams(searchParams);
+        selectSession("");
+      }
+    }
   });
 };
 

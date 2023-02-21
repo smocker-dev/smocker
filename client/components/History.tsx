@@ -151,13 +151,18 @@ const History = () => {
     nextEnabled,
     setNextPage,
     pageSize,
-    setPageSize
+    setPageSize,
+    setTotalItems
   } = usePaginationWithSiblings({
     initTotal: total,
     initPageSize: pageSizes[0]
   });
 
-  let history = orderBy(
+  React.useEffect(() => {
+    setCurrentPage(0);
+  }, [historySortField, historySortOrder]);
+
+  const history = orderBy(
     data || [],
     `${historySortField}.date`,
     historySortOrder as "asc" | "desc"
@@ -171,31 +176,39 @@ const History = () => {
     return true;
   });
 
+  React.useEffect(() => {
+    setTotalItems(history.length);
+  }, [history]);
+
+  const filteredHistory = history.slice(startIndex, endIndex);
+
   let emptyDescription = "The history is empty.";
-  if (history.length === 0) {
+  if (filteredHistory.length === 0) {
     if (historyFilter === "http-errors") {
       emptyDescription = "No HTTP errors in the history.";
     } else if (historyFilter === "smocker-errors") {
       emptyDescription = "No Smocker errors in the history.";
     }
   }
-  const pagination = !error ? (
-    <Pagination
-      totalItems={total}
-      pageSizes={pageSizes}
-      currentPage={currentPage}
-      setCurrentPage={setCurrentPage}
-      previousEnabled={previousEnabled}
-      setPreviousPage={setPreviousPage}
-      rangePages={rangePages}
-      nextEnabled={nextEnabled}
-      setNextPage={setNextPage}
-      pageSize={pageSize}
-      setPageSize={setPageSize}
-      loading={isFetching}
-    />
-  ) : null;
-  const filteredHistory = history.slice(startIndex, endIndex);
+
+  const pagination =
+    !error && filteredHistory.length ? (
+      <Pagination
+        totalItems={history.length}
+        pageSizes={pageSizes}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        previousEnabled={previousEnabled}
+        setPreviousPage={setPreviousPage}
+        rangePages={rangePages}
+        nextEnabled={nextEnabled}
+        setNextPage={setNextPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        loading={isFetching}
+      />
+    ) : null;
+
   return (
     <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
       <Header />

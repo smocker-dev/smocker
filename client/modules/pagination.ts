@@ -15,7 +15,6 @@ export const usePaginationWithSiblings = ({
   const {
     currentPage: currentPageIndex,
     setPage,
-    totalPages,
     setNextPage,
     setPreviousPage,
     nextEnabled,
@@ -28,8 +27,17 @@ export const usePaginationWithSiblings = ({
     totalItems: initTotal,
     initialPageSize: initPageSize
   });
+  const [totalItems, setTotalItems] = React.useState(initTotal);
 
-  const currentPage = currentPageIndex + 1;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  let currentPage = currentPageIndex + 1;
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setPage(0);
+    }
+  }, [currentPage, totalPages]);
 
   const rangePages = React.useMemo(
     () => computeRange({ currentPage, totalPages, siblings }),
@@ -63,7 +71,8 @@ export const usePaginationWithSiblings = ({
     nextEnabled,
     setNextPage,
     pageSize,
-    setPageSize: changePageSize
+    setPageSize: changePageSize,
+    setTotalItems
   };
 };
 
@@ -126,6 +135,10 @@ const computeRange = ({
       { text: DOTS, value: rightItemIndex + siblings },
       { text: `${lastPageIndex}`, value: lastPageIndex }
     ];
+  }
+
+  if (!shouldShowLeftDots && !shouldShowRightDots) {
+    rangePages = [...range(firstPageIndex, lastPageIndex)];
   }
   return rangePages;
 };
