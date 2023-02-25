@@ -10,11 +10,13 @@ import {
 import {
   BodyMatcherType,
   defaultMatcher,
+  MatcherType,
   MockRequestType,
   StringMatcherMapType,
   StringMatcherType
 } from "../../modules/types";
 import {
+  asMatcher,
   bodyToString,
   formatQueryParams,
   isStringMatcher
@@ -34,13 +36,12 @@ const Body = ({ body }: { body?: BodyMatcherType }) => {
       <VStack alignItems="stretch">
         <HStack fontSize="sm" fontWeight="bold">
           <Text>Body</Text>
-          <Text>{`${body["matcher"]}`}</Text>
+          <Text>{`${(body as MatcherType)["matcher"]}`}</Text>
         </HStack>
-        {bodyString && <Code value={bodyString} language="yaml" />}
+        {bodyString && <Code defaultValue={bodyString} language="yaml" />}
       </VStack>
     );
   }
-
   return (
     <VStack alignItems="stretch">
       <Text fontSize="sm" fontWeight="bold">
@@ -48,12 +49,15 @@ const Body = ({ body }: { body?: BodyMatcherType }) => {
       </Text>
       <UnorderedList>
         {Object.entries<StringMatcherType>(body as StringMatcherMapType).map(
-          ([key, value]) => (
-            <ListItem key={key}>
-              <Text fontWeight="bold">{`${key}`}</Text>
-              <Text>{`: ${value.matcher} "${value.value}"`}</Text>
-            </ListItem>
-          )
+          ([key, value]) => {
+            const matcher = asMatcher(value);
+            return (
+              <ListItem key={key}>
+                <Text fontWeight="bold">{`${key}`}</Text>
+                <Text>{`: ${matcher.matcher} "${matcher.value}"`}</Text>
+              </ListItem>
+            );
+          }
         )}
       </UnorderedList>
     </VStack>
@@ -61,20 +65,22 @@ const Body = ({ body }: { body?: BodyMatcherType }) => {
 };
 
 export const Request = ({ request }: { request: MockRequestType }) => {
-  const showMethodMatcher = request.method.matcher !== defaultMatcher;
-  const showPathMatcher = request.path.matcher !== defaultMatcher;
+  const methodMatcher = asMatcher(request.method);
+  const pathMatcher = asMatcher(request.path);
+  const showMethodMatcher = methodMatcher.matcher !== defaultMatcher;
+  const showPathMatcher = pathMatcher.matcher !== defaultMatcher;
   const path =
     (showPathMatcher
-      ? `Path ${request.path.matcher}: "${request.path.value}"`
-      : request.path.value) + formatQueryParams(request.query_params);
+      ? `Path ${pathMatcher.matcher}: "${pathMatcher.value}"`
+      : pathMatcher.value) + formatQueryParams(request.query_params);
   return (
     <Box width="calc(50% - 1em)" pt={1}>
       <VStack align="stretch" spacing={3}>
         <HStack fontSize="sm">
           <Tag variant="outline" colorScheme="blue">
             {showMethodMatcher
-              ? `Method: ${request.method.matcher} "${request.method.value}"`
-              : request.method.value}
+              ? `Method: ${methodMatcher.matcher} "${methodMatcher.value}"`
+              : methodMatcher.value}
           </Tag>
           <Text noOfLines={1} title={path} fontWeight="bold">
             {path}

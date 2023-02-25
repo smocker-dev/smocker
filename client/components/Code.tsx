@@ -44,93 +44,90 @@ const editableOptions: editor.IStandaloneEditorConstructionOptions = {
   contextmenu: false // do not display contextual menu on right click
 };
 
-const CodeBox = React.forwardRef(
-  (
-    {
-      value,
-      language,
-      editable
-    }: {
-      value?: string;
-      language?: Language;
-      editable?: boolean;
-    },
-    ref: any
-  ) => {
-    const [height, setHeight] = React.useState(20);
+const CodeBox = ({
+  defaultValue,
+  language,
+  onChange
+}: {
+  defaultValue?: string;
+  language?: Language;
+  onChange?: (value: string) => void;
+}) => {
+  const [content, setContent] = React.useState(defaultValue);
+  const [height, setHeight] = React.useState(20);
 
-    const updateHeight = (editor: editor.IStandaloneCodeEditor) => {
-      const contentHeight = Math.max(20, editor.getContentHeight());
-      setHeight(contentHeight);
-    };
-    const onMount: OnMount = React.useCallback(editor => {
-      if (ref) {
-        ref.current = editor;
-      }
-      editor.onDidContentSizeChange(() => {
-        updateHeight(editor);
-      });
-    }, []);
-    return (
-      <Box p=".5em 0" bgColor="rgb(30, 30, 30)" borderRadius="2px">
-        <Editor
-          loading={<Spinner color="white" />}
-          height={height}
-          onMount={onMount}
-          value={value}
-          language={language}
-          theme="vs-dark"
-          options={editable ? editableOptions : readOnlyOptions}
-        />
-      </Box>
-    );
-  }
-);
+  React.useEffect(() => {
+    onChange?.(content || "");
+  }, [content]);
 
-export const Code = React.forwardRef(
-  (
-    {
-      value,
-      language,
-      collapsible = true,
-      editable
-    }: {
-      value?: string;
-      language?: Language;
-      collapsible?: boolean;
-      editable?: boolean;
-    },
-    ref: any
-  ): JSX.Element => {
-    if (collapsible && value && value.length > largeBodyLength) {
-      return (
-        <Accordion allowToggle reduceMotion>
-          <AccordionItem borderWidth="1px" borderColor="sidebar.border">
-            <AccordionButton bgColor="gray.50">
-              <Box flex="1" textAlign="left">
-                This payload is huge. Click to display it
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-            <AccordionPanel>
-              <CodeBox
-                ref={ref}
-                value={value}
-                language={language}
-                editable={editable}
-              />
-            </AccordionPanel>
-          </AccordionItem>
-        </Accordion>
-      );
+  React.useEffect(() => {
+    if (!onChange) {
+      setContent(defaultValue);
     }
-    return (
-      <CodeBox
-        ref={ref}
-        value={value}
+  }, [defaultValue, onChange]);
+
+  const updateHeight = (editor: editor.IStandaloneCodeEditor) => {
+    const contentHeight = Math.max(20, editor.getContentHeight());
+    setHeight(contentHeight);
+  };
+  const onMount: OnMount = React.useCallback(editor => {
+    editor.onDidContentSizeChange(() => {
+      updateHeight(editor);
+    });
+  }, []);
+  return (
+    <Box p=".5em 0" bgColor="rgb(30, 30, 30)" borderRadius="2px">
+      <Editor
+        loading={<Spinner color="white" />}
+        height={height}
+        onMount={onMount}
+        value={content}
         language={language}
-        editable={editable}
+        theme="vs-dark"
+        options={onChange ? editableOptions : readOnlyOptions}
+        onChange={v => setContent(v || "")}
       />
+    </Box>
+  );
+};
+
+export const Code = ({
+  defaultValue,
+  language,
+  collapsible = true,
+  onChange
+}: {
+  defaultValue?: string;
+  language?: Language;
+  collapsible?: boolean;
+  onChange?: (value: string) => void;
+}): JSX.Element => {
+  if (collapsible && defaultValue && defaultValue.length > largeBodyLength) {
+    return (
+      <Accordion allowToggle reduceMotion>
+        <AccordionItem borderWidth="1px" borderColor="sidebar.border">
+          <AccordionButton bgColor="gray.50">
+            <Box flex="1" textAlign="left">
+              This payload is huge. Click to display it
+            </Box>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel>
+            <CodeBox
+              defaultValue={defaultValue}
+              language={language}
+              onChange={onChange}
+            />
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
     );
   }
-);
+  return (
+    <CodeBox
+      defaultValue={defaultValue}
+      language={language}
+      onChange={onChange}
+    />
+  );
+};

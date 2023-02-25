@@ -18,7 +18,7 @@ import { dateFormat, MockStateType, MockType } from "../../modules/types";
 import { Request } from "./Request";
 import { DynamicResponse, ProxyResponse, Response } from "./Response";
 
-const Header = ({ state }: { state: MockStateType }) => {
+const Header = ({ state }: { state?: MockStateType }) => {
   const useLockMockMutation = useLockMock();
   const useUnlockMockMutation = useUnlockMock();
   const loading =
@@ -31,7 +31,7 @@ const Header = ({ state }: { state: MockStateType }) => {
       pb={3}
     >
       <HStack>
-        {state.locked ? (
+        {state?.locked ? (
           <Tooltip hasArrow label="Click to unlock Mock">
             <IconButton
               variant="outline"
@@ -39,7 +39,9 @@ const Header = ({ state }: { state: MockStateType }) => {
               colorScheme="red"
               size="sm"
               icon={<Icon as={RiLockFill} />}
-              onClick={() => useUnlockMockMutation.mutate(state.id)}
+              onClick={() =>
+                state?.id && useUnlockMockMutation.mutate(state?.id)
+              }
               isLoading={loading}
               isDisabled={loading}
             />
@@ -52,18 +54,18 @@ const Header = ({ state }: { state: MockStateType }) => {
               colorScheme="blue"
               size="sm"
               icon={<Icon as={RiLockUnlockFill} />}
-              onClick={() => useLockMockMutation.mutate(state.id)}
+              onClick={() => state?.id && useLockMockMutation.mutate(state?.id)}
               isLoading={loading}
               isDisabled={loading}
             />
           </Tooltip>
         )}
         <Text fontWeight="bold">ID:</Text>
-        <Link colorScheme="blue">{state.id}</Link>
+        <Link colorScheme="blue">{state?.id}</Link>
       </HStack>
       <Spacer />
       <Text fontWeight="bold">
-        {dayjs(state.creation_date).format(dateFormat)}
+        {dayjs(state?.creation_date).format(dateFormat)}
       </Text>
     </HStack>
   );

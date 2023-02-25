@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodError, ZodIssueCode } from "zod";
 
 export const dateFormat = "ddd, D MMM YYYY HH:mm:ss.SSS";
 export const defaultMatcher = "ShouldEqual";
@@ -18,13 +18,19 @@ export type SessionType = z.infer<typeof SessionCodec>;
 export const SessionsCodec = SessionCodec.array();
 export type SessionsType = z.infer<typeof SessionsCodec>;
 
-const MultimapCodec = z.record(z.string(), z.string().array());
+const MultimapCodec = z.record(
+  z.string(),
+  z.union([z.string(), z.string().array()])
+);
 export type MultimapType = z.infer<typeof MultimapCodec>;
 
-const StringMatcherCodec = z.object({
+const MatcherCodec = z.object({
   matcher: z.string(),
   value: z.string()
 });
+export type MatcherType = z.infer<typeof MatcherCodec>;
+
+const StringMatcherCodec = z.union([z.string(), MatcherCodec]);
 export type StringMatcherType = z.infer<typeof StringMatcherCodec>;
 
 const StringMatcherSliceCodec = StringMatcherCodec.array();
@@ -33,7 +39,10 @@ export type StringMatcherSliceType = z.infer<typeof StringMatcherSliceCodec>;
 const StringMatcherMapCodec = z.record(z.string(), StringMatcherCodec);
 export type StringMatcherMapType = z.infer<typeof StringMatcherMapCodec>;
 
-const MultimapMatcherCodec = z.record(z.string(), StringMatcherSliceCodec);
+const MultimapMatcherCodec = z.record(
+  z.string(),
+  z.union([StringMatcherCodec, StringMatcherSliceCodec])
+);
 export type MultimapMatcherType = z.infer<typeof MultimapMatcherCodec>;
 
 const BodyMatcherCodec = z.union([StringMatcherCodec, StringMatcherMapCodec]);
@@ -90,21 +99,28 @@ const MockResponseCodec = z.object({
 });
 export type MockResponseType = z.infer<typeof MockResponseCodec>;
 
+const MockDynamicEngineCodec = z.union([
+  z.literal("go_template"),
+  z.literal("go_template_yaml"),
+  z.literal("go_template_json"),
+  z.literal("lua")
+]);
+export type MockDynamicEngineType = z.infer<typeof MockDynamicEngineCodec>;
+
 const MockDynamicResponseCodec = z.object({
-  engine: z.union([
-    z.literal("go_template"),
-    z.literal("go_template_yaml"),
-    z.literal("go_template_json"),
-    z.literal("lua")
-  ]),
+  engine: MockDynamicEngineCodec,
   script: z.string()
 });
 export type MockDynamicResponseType = z.infer<typeof MockDynamicResponseCodec>;
 
 const MockProxyCodec = z.object({
-  host: z.string()
+  host: z.string(),
+  follow_redirect: z.boolean().optional(),
+  skip_verify_tls: z.boolean().optional(),
+  keep_host: z.boolean().optional(),
+  headers: MultimapCodec.optional()
 });
-export type MockProxy = z.infer<typeof MockProxyCodec>;
+export type MockProxyType = z.infer<typeof MockProxyCodec>;
 
 const MockContextCodec = z.object({
   times: z.number().optional()
@@ -124,8 +140,8 @@ const MockCodec = z.object({
   response: MockResponseCodec.optional(),
   dynamic_response: MockDynamicResponseCodec.optional(),
   proxy: MockProxyCodec.optional(),
-  context: MockContextCodec,
-  state: MockStateCodec
+  context: MockContextCodec.optional(),
+  state: MockStateCodec.optional()
 });
 export type MockType = z.infer<typeof MockCodec>;
 
@@ -143,3 +159,19 @@ export type GraphEntryType = z.infer<typeof GraphEntryCodec>;
 
 export const GraphHistoryCodec = z.array(GraphEntryCodec);
 export type GraphHistoryType = z.infer<typeof GraphHistoryCodec>;
+
+export const processError = (err: ZodError): string[] => {
+  return err.issues.map(e => {
+    const causes: string[] = [];
+    if (e.code === ZodIssueCode.invalid_union) {
+      e.unionErrors
+        .flatMap(e => e.errors)
+        .forEach(e => {
+          causes.push(e.message.toLowerCase());
+        });
+    } else {
+      causes.push(e.message.toLowerCase());
+    }
+    return `Error at [${e.path.join(".")}]: ${causes.join(" / ")}`;
+  });
+};

@@ -13,7 +13,11 @@ import dayjs from "dayjs";
 import React from "react";
 import { RiCheckFill, RiClipboardLine } from "react-icons/ri";
 import { dateFormat, EntryRequestType } from "../../modules/types";
-import { formatQueryParams, requestToCurl } from "../../modules/utils";
+import {
+  asStringArray,
+  formatQueryParams,
+  requestToCurl
+} from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "../Headers";
 
@@ -37,7 +41,7 @@ const Body = ({
 
   return (
     <Code
-      value={
+      defaultValue={
         (language === "json" && JSON.stringify(body, null, 2)) || `${body}`
       }
       language={language}
@@ -51,7 +55,11 @@ export const Request = ({ request }: { request: EntryRequestType }) => {
     setValue(requestToCurl(request));
   }, [request]);
   const path = request.path + formatQueryParams(request.query_params);
-  const contentType = request.headers?.["Content-Type"]?.join(",");
+
+  let contentType = request.headers?.["Content-Type"];
+  if (contentType) {
+    contentType = asStringArray(contentType).join(",");
+  }
   return (
     <Box width="calc(50% - 1em)">
       <VStack align="stretch" spacing={3}>

@@ -198,6 +198,25 @@ const Button = defineStyleConfig({
         borderColor: `${colorScheme}.400`,
         color: `${colorScheme}.400`
       }
+    }),
+    tabs: ({ colorScheme }: StyleFunctionProps) => ({
+      border: "1px solid",
+      borderColor: "border",
+      cursor: "pointer",
+      fontWeight: "500",
+      _active: {
+        borderColor: `${colorScheme}.500 !important`,
+        backgroundColor: `${colorScheme}.500 !important`,
+        color: "white"
+      },
+      _hover: {
+        borderColor: `${colorScheme}.400 !important`,
+        backgroundColor: `${colorScheme}.400 !important`,
+        color: "white"
+      },
+      ".chakra-button__group[data-attached][data-orientation=horizontal] > &:not(:last-of-type)": {
+        marginEnd: "-1px"
+      }
     })
   }
 });

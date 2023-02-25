@@ -114,7 +114,7 @@ const Mocks = () => {
           </Alert>
         ) : filteredMocks.length ? (
           filteredMocks.map((mock, index) => (
-            <Mock key={`mock-${index}-${mock.state.id}`} mock={mock} />
+            <Mock key={`mock-${index}-${mock.state?.id}`} mock={mock} />
           ))
         ) : (
           <Empty description="No mocks found." loading={isFetching} />

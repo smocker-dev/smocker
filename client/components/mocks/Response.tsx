@@ -4,6 +4,7 @@ import {
   MockResponseType,
   MockType
 } from "../../modules/types";
+import { asStringArray } from "../../modules/utils";
 import { Code, Language } from "../Code";
 import { Headers } from "../Headers";
 
@@ -31,7 +32,10 @@ export const Response = ({ mock }: { mock: MockType }) => {
   const { response: resp, context, state } = mock;
   const response = resp ? resp : (emptyResponse as MockResponseType);
 
-  const contentType = response.headers?.["Content-Type"]?.join(",");
+  let contentType = response.headers?.["Content-Type"];
+  if (contentType) {
+    contentType = asStringArray(contentType).join(",");
+  }
   const language = contentType
     ? contentType.includes("yaml")
       ? "yaml"
@@ -48,11 +52,14 @@ export const Response = ({ mock }: { mock: MockType }) => {
             {response.status || 200}
           </Tag>
           <Spacer />
-          <Times count={state.times_count} expected={context.times} />
+          <Times count={state?.times_count || 0} expected={context?.times} />
         </HStack>
         <Headers headers={response.headers} />
         {response.body && (
-          <Code value={(response.body as string).trim()} language={language} />
+          <Code
+            defaultValue={(response.body as string).trim()}
+            language={language}
+          />
         )}
       </>
     </VStack>
@@ -91,9 +98,9 @@ export const DynamicResponse = ({ mock }: { mock: MockType }) => {
           <Text fontWeight="bold">{response.engine}</Text>
         </HStack>
         <Spacer />
-        <Times count={state.times_count} expected={context.times} />
+        <Times count={state?.times_count || 0} expected={context?.times} />
       </HStack>
-      <Code value={response.script} language={language} />
+      <Code defaultValue={response.script} language={language} />
     </VStack>
   );
 };
@@ -110,7 +117,7 @@ export const ProxyResponse = ({ mock }: { mock: MockType }) => {
         <Text fontWeight="bold">{host}</Text>
       </HStack>
       <Spacer />
-      <Times count={state.times_count} expected={context.times} />
+      <Times count={state?.times_count || 0} expected={context?.times} />
     </HStack>
   );
 };

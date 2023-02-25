@@ -8,6 +8,7 @@ import {
   EntryResponseType,
   ErrorType
 } from "../../modules/types";
+import { asStringArray } from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "../Headers";
 
@@ -89,7 +90,7 @@ const Body = ({
 
   return (
     <Code
-      value={
+      defaultValue={
         (language === "json" && JSON.stringify(body, null, 2)) || `${body}`
       }
       language={language}
@@ -104,7 +105,10 @@ export const Response = ({
   response: EntryResponseType;
   context: EntryContextType;
 }) => {
-  const contentType = response.headers?.["Content-Type"]?.join(",");
+  let contentType = response.headers?.["Content-Type"];
+  if (contentType) {
+    contentType = asStringArray(contentType).join(",");
+  }
   return (
     <Box width="calc(50% - 1em)">
       <VStack align="stretch" spacing={3}>

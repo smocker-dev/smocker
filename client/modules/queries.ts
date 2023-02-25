@@ -163,3 +163,17 @@ export const useUnlockMock = () => {
     }
   });
 };
+
+const addMocks = async (mocks: MocksType) => {
+  const { data } = await axios.post(`${trimedPath}/mocks`, mocks);
+  return data;
+};
+
+export const useAddMocks = () => {
+  const queryClient = useQueryClient();
+  return useMutation<{ message: string }, ErrorType, MocksType>(addMocks, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["mocks"]);
+    }
+  });
+};
