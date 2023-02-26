@@ -52,6 +52,7 @@ export const ProxyEditor = ({
             placeholder="https://example.com"
             value={host}
             onChange={e => setHost(e.target.value)}
+            borderRadius="2px"
           />
         </FormControl>
         <Headers

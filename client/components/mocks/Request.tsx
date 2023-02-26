@@ -8,19 +8,17 @@ import {
   VStack
 } from "@chakra-ui/react";
 import {
+  asMatcher,
   BodyMatcherType,
+  bodyToString,
   defaultMatcher,
+  isStringMatcher,
   MatcherType,
   MockRequestType,
   StringMatcherMapType,
   StringMatcherType
 } from "../../modules/types";
-import {
-  asMatcher,
-  bodyToString,
-  formatQueryParams,
-  isStringMatcher
-} from "../../modules/utils";
+import { formatQueryParams } from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "../Headers";
 

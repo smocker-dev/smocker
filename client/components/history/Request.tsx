@@ -12,12 +12,12 @@ import {
 import dayjs from "dayjs";
 import React from "react";
 import { RiCheckFill, RiClipboardLine } from "react-icons/ri";
-import { dateFormat, EntryRequestType } from "../../modules/types";
 import {
   asStringArray,
-  formatQueryParams,
-  requestToCurl
-} from "../../modules/utils";
+  dateFormat,
+  EntryRequestType
+} from "../../modules/types";
+import { formatQueryParams, requestToCurl } from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "../Headers";
 

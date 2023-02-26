@@ -1,10 +1,10 @@
 import { HStack, Spacer, Tag, Text, VStack } from "@chakra-ui/react";
 import {
+  asStringArray,
   MockDynamicResponseType,
   MockResponseType,
   MockType
 } from "../../modules/types";
-import { asStringArray } from "../../modules/utils";
 import { Code, Language } from "../Code";
 import { Headers } from "../Headers";
 

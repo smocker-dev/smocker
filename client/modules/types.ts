@@ -175,3 +175,202 @@ export const processError = (err: ZodError): string[] => {
     return `Error at [${e.path.join(".")}]: ${causes.join(" / ")}`;
   });
 };
+
+const trimMatcher = (matcher: StringMatcherType): StringMatcherType => {
+  const m = asMatcher(matcher);
+  if (m.matcher === defaultMatcher) {
+    matcher = m.value;
+  }
+  return matcher;
+};
+
+const trimMatcherSlice = (
+  matcher?: StringMatcherSliceType
+): StringMatcherSliceType | undefined => {
+  if (!matcher) {
+    return matcher;
+  }
+  return matcher.map(m => trimMatcher(m));
+};
+
+const trimMatcherMap = (
+  matcher?: StringMatcherMapType
+): StringMatcherMapType | undefined => {
+  if (!matcher) {
+    return matcher;
+  }
+  if (!Object.keys(matcher).length) {
+    return undefined;
+  }
+  const newMatcher: StringMatcherMapType = {};
+  Object.entries(matcher).forEach(([key, value]) => {
+    if (key != "") {
+      newMatcher[key] = trimMatcher(value);
+    }
+  });
+  return newMatcher;
+};
+
+const trimMatcherMultimap = (
+  matcher?: MultimapMatcherType
+): MultimapMatcherType | undefined => {
+  if (!matcher) {
+    return matcher;
+  }
+
+  const newMatcher: MultimapMatcherType = {};
+  Object.entries(matcher).forEach(([key, value]) => {
+    if (key != "") {
+      const slice = trimMatcherSlice(asMatcherSlice(value));
+      if (slice?.length) {
+        if (slice?.length === 1) {
+          newMatcher[key] = slice[0];
+        } else {
+          newMatcher[key] = slice;
+        }
+      }
+    }
+  });
+
+  if (!Object.keys(newMatcher).length) {
+    return undefined;
+  }
+  return newMatcher;
+};
+
+export const trimMultimap = (
+  multimap?: MultimapType
+): MultimapType | undefined => {
+  if (!multimap) {
+    return multimap;
+  }
+
+  const newMultimap: MultimapType = {};
+  Object.entries(multimap).forEach(([key, value]) => {
+    if (key != "") {
+      const slice = asStringArray(value);
+      if (slice?.length) {
+        if (slice?.length === 1) {
+          newMultimap[key] = slice[0];
+        } else {
+          newMultimap[key] = slice;
+        }
+      }
+    }
+  });
+
+  if (!Object.keys(newMultimap).length) {
+    return undefined;
+  }
+  return newMultimap;
+};
+
+const trimBodyMatcher = (
+  matcher?: BodyMatcherType
+): BodyMatcherType | undefined => {
+  if (!matcher) {
+    return matcher;
+  }
+  if (typeof matcher === "string" || "matcher" in matcher) {
+    return trimMatcher(matcher as StringMatcherType);
+  }
+  return trimMatcherMap(matcher);
+};
+
+const trimRequest = (request: MockRequestType): MockRequestType => {
+  request.method = trimMatcher(request.method);
+  request.path = trimMatcher(request.path);
+  request.query_params = trimMatcherMultimap(request.query_params);
+  request.headers = trimMatcherMultimap(request.headers);
+  request.body = trimBodyMatcher(request.body);
+  return request;
+};
+
+const trimContext = (
+  context?: MockContextType
+): MockContextType | undefined => {
+  if (!context || !context.times) {
+    return undefined;
+  }
+  return context;
+};
+
+const trimStaticResponse = (
+  response?: MockResponseType
+): MockResponseType | undefined => {
+  if (!response) {
+    return undefined;
+  }
+  response.headers = trimMultimap(response.headers);
+  return response;
+};
+
+const trimProxyResponse = (
+  response?: MockProxyType
+): MockProxyType | undefined => {
+  if (!response) {
+    return undefined;
+  }
+  response.headers = trimMultimap(response.headers);
+  response.follow_redirect = Boolean(response.follow_redirect) || undefined;
+  response.skip_verify_tls = Boolean(response.skip_verify_tls) || undefined;
+  response.keep_host = Boolean(response.keep_host) || undefined;
+  return response;
+};
+
+export const trimMock = (mock: MockType): MockType => {
+  mock.request = trimRequest(mock.request);
+  mock.context = trimContext(mock.context);
+  mock.response = trimStaticResponse(mock.response);
+  mock.proxy = trimProxyResponse(mock.proxy);
+  return mock;
+};
+
+export const isStringMatcher = (body?: BodyMatcherType): boolean => {
+  if (!body) {
+    return false;
+  }
+  if (typeof body === "string") {
+    return true;
+  }
+  if (body["matcher"]) {
+    return true;
+  }
+  return false;
+};
+
+export const asMatcher = (matcher: StringMatcherType): MatcherType => {
+  if (typeof matcher === "string") {
+    return { matcher: defaultMatcher, value: matcher };
+  }
+  return matcher;
+};
+
+export const asMatcherSlice = (
+  matcher: StringMatcherType | StringMatcherSliceType
+): StringMatcherSliceType => {
+  if (!Array.isArray(matcher)) {
+    return [matcher];
+  }
+  return matcher;
+};
+
+export const asStringArray = (value: string | string[]): string[] => {
+  if (typeof value === "string") {
+    return [value];
+  }
+  return value;
+};
+
+export const bodyToString = (body?: BodyMatcherType): string => {
+  if (!body) {
+    return "";
+  }
+  if (typeof body === "string") {
+    return body;
+  }
+  if (body["matcher"]) {
+    return (body["value"] as string).trim();
+  }
+  return "";
+};

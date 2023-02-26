@@ -10,8 +10,7 @@ import {
 import React from "react";
 import { RiAddFill, RiDeleteBin2Fill } from "react-icons/ri";
 import { v4 } from "uuid";
-import { MultimapType } from "../../../modules/types";
-import { asStringArray } from "../../../modules/utils";
+import { asStringArray, MultimapType } from "../../../modules/types";
 
 interface HeaderLine {
   id: string;

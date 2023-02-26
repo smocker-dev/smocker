@@ -8,7 +8,7 @@ import {
   VStack
 } from "@chakra-ui/react";
 import { RiEyeOffLine, RiFeedbackLine } from "react-icons/ri";
-import { useDebounce } from "../modules/utils";
+import { useDebounce } from "../modules/hooks";
 
 export const Empty = ({
   description,

@@ -25,7 +25,6 @@ import yaml, { YAMLException } from "js-yaml";
 import React from "react";
 import { useAddMocks } from "../modules/queries";
 import {
-  defaultMatcher,
   MocksCodec,
   MocksType,
   MockType,
@@ -34,29 +33,30 @@ import {
 import { Code } from "./Code";
 import MockEditor from "./mock_editor/Editor";
 
-const initMock = {
-  request: {
-    method: { matcher: defaultMatcher, value: "GET" },
-    path: { matcher: defaultMatcher, value: "" }
-  },
-  response: {
-    status: 200
-  }
-} as MockType;
-
 export const MocksDrawer = ({
   isOpen,
-  onClose
+  onClose,
+  initMock
 }: {
   isOpen: boolean;
   onClose: () => void;
+  initMock: MockType;
 }) => {
   const useAddMocksMutation = useAddMocks();
   const [mocks, setMocks] = React.useState<MocksType>([initMock]);
   const [errors, setErrors] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    setMocks([initMock]);
+    setErrors([]);
+  }, [initMock]);
+
+  React.useEffect(() => {
+    onClose();
+  }, [useAddMocksMutation.isSuccess]);
+
   const onClick = () => {
     useAddMocksMutation.mutate(mocks);
-    onClose();
   };
   const onStringChange = (mocksString: string) => {
     try {
@@ -129,6 +129,12 @@ export const MocksDrawer = ({
           </Tabs>
         </DrawerBody>
         <DrawerFooter borderTopWidth="1px">
+          {Boolean(useAddMocksMutation.error) && (
+            <Alert status="error" flex="1" mr="1em">
+              <AlertIcon />
+              {useAddMocksMutation.error?.message}
+            </Alert>
+          )}
           <Button variant="outline" mr={3} onClick={onClose}>
             Cancel
           </Button>

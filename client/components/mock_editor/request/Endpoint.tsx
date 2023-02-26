@@ -10,11 +10,11 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import {
+  asMatcher,
   defaultMatcher,
   MatcherType,
   StringMatcherType
 } from "../../../modules/types";
-import { asMatcher } from "../../../modules/utils";
 
 const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 

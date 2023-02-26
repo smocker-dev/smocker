@@ -18,7 +18,7 @@ import {
   RiArrowRightSLine,
   RiMoreFill
 } from "react-icons/ri";
-import { DOTS } from "../modules/pagination";
+import { DOTS } from "../modules/hooks";
 import { sortNumber } from "../modules/utils";
 
 const PageSizeSelector = ({

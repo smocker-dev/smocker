@@ -36,6 +36,7 @@ export const DynamicEditor = ({
   return (
     <VStack width="100%" alignItems="stretch">
       <Select
+        borderRadius="2px"
         value={engine}
         onChange={e => setEngine(e.target.value as MockDynamicEngineType)}
       >

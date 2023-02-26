@@ -17,14 +17,18 @@ import {
   Portal,
   Spacer,
   Text,
+  useDisclosure,
   VStack
 } from "@chakra-ui/react";
 import { orderBy } from "lodash";
 import React from "react";
 import { RiOrganizationChart } from "react-icons/ri";
-import { usePaginationWithSiblings } from "../modules/pagination";
+import { usePaginationWithSiblings } from "../modules/hooks";
 import { useHistory } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
+import { EntryType, MockType } from "../modules/types";
+import { defaultMock, mockFromEntry } from "../modules/utils";
+import { MocksDrawer } from "./Drawer";
 import { Empty } from "./Empty";
 import { Entry } from "./history/Entry";
 import { Pagination } from "./Pagination";
@@ -158,6 +162,20 @@ const History = () => {
     initPageSize: pageSizes[0]
   });
 
+  const { isOpen, onClose, onOpen } = useDisclosure();
+  const [mock, setMock] = React.useState<MockType>();
+
+  const createMockFromEntry = (entry: EntryType) => {
+    setMock(mockFromEntry(entry));
+  };
+
+  React.useEffect(() => {
+    if (mock) {
+      console.log(mock);
+      onOpen();
+    }
+  }, [mock]);
+
   React.useEffect(() => {
     setCurrentPage(0);
   }, [historySortField, historySortOrder]);
@@ -224,13 +242,22 @@ const History = () => {
           </Alert>
         ) : filteredHistory.length ? (
           filteredHistory.map((entry, index) => (
-            <Entry key={`entry-${index}-${entry.request.date}`} entry={entry} />
+            <Entry
+              key={`entry-${index}-${entry.request.date}`}
+              entry={entry}
+              onCreateMock={createMockFromEntry}
+            />
           ))
         ) : (
           <Empty description={emptyDescription} loading={isFetching} />
         )}
         {pagination}
       </VStack>
+      <MocksDrawer
+        isOpen={isOpen}
+        onClose={onClose}
+        initMock={mock || defaultMock}
+      />
     </VStack>
   );
 };

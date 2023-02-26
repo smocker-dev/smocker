@@ -78,7 +78,7 @@ export const StaticEditor = ({
             min={0}
             defaultValue={200}
           >
-            <NumberInputField />
+            <NumberInputField borderRadius="2px" />
             <NumberInputStepper>
               <NumberIncrementStepper />
               <NumberDecrementStepper />

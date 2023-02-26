@@ -15,10 +15,10 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { RiAddFill } from "react-icons/ri";
-import { usePaginationWithSiblings } from "../modules/pagination";
+import { usePaginationWithSiblings } from "../modules/hooks";
 import { useMocks, useSessions } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
-import { sortByDate } from "../modules/utils";
+import { defaultMock, sortByDate } from "../modules/utils";
 import { MocksDrawer } from "./Drawer";
 import { Empty } from "./Empty";
 import { Mock } from "./mocks/Mock";
@@ -42,7 +42,7 @@ const Header = ({ canAddMocks }: { canAddMocks: boolean }) => {
         )}
       </HStack>
       <Text>This is the list of declared mocks ordered by priority.</Text>
-      <MocksDrawer isOpen={isOpen} onClose={onClose} />
+      <MocksDrawer isOpen={isOpen} onClose={onClose} initMock={defaultMock} />
     </VStack>
   );
 };

@@ -53,7 +53,7 @@ export const ContextEditor = ({
             min={1}
             defaultValue={1}
           >
-            <NumberInputField />
+            <NumberInputField borderRadius="2px" />
             <NumberInputStepper>
               <NumberIncrementStepper />
               <NumberDecrementStepper />

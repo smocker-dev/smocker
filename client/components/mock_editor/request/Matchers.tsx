@@ -12,11 +12,13 @@ import React from "react";
 import { RiAddFill, RiDeleteBin2Fill } from "react-icons/ri";
 import { v4 } from "uuid";
 import {
+  asMatcher,
+  asMatcherSlice,
   defaultMatcher,
   MatcherType,
   MultimapMatcherType
 } from "../../../modules/types";
-import { allMatchers, asMatcher, asMatcherSlice } from "../../../modules/utils";
+import { allMatchers } from "../../../modules/utils";
 
 type MatcherLine = MatcherType & { id: string; key: string };
 

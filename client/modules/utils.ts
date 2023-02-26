@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { omit, pickBy } from "lodash";
 import {
+  asMatcher,
+  asMatcherSlice,
   BodyMatcherType,
   defaultMatcher,
   EntryRequestType,
-  MatcherType,
-  MockContextType,
-  MockProxyType,
-  MockRequestType,
-  MockResponseType,
+  EntryResponseType,
+  EntryType,
   MockType,
   MultimapMatcherType,
   MultimapType,
-  StringMatcherMapType,
   StringMatcherSliceType,
-  StringMatcherType
+  StringMatcherType,
+  trimMock,
+  trimMultimap
 } from "./types";
 
 export const unaryMatchers = ["ShouldBeEmpty", "ShouldNotBeEmpty"];
@@ -37,6 +37,16 @@ export const negativeMatchers = [
 ];
 
 export const allMatchers = [...positiveMatchers, ...negativeMatchers];
+
+export const defaultMock: MockType = {
+  request: {
+    method: { matcher: defaultMatcher, value: "GET" },
+    path: { matcher: defaultMatcher, value: "" }
+  },
+  response: {
+    status: 200
+  }
+};
 
 export const sortNumber = (a: number, b: number) => {
   return a - b;
@@ -109,55 +119,6 @@ export const requestToCurl = (request: EntryRequestType): string => {
   return command.join(" ");
 };
 
-export const isStringMatcher = (body?: BodyMatcherType): boolean => {
-  if (!body) {
-    return false;
-  }
-  if (typeof body === "string") {
-    return true;
-  }
-  if (body["matcher"]) {
-    return true;
-  }
-  return false;
-};
-
-export const asMatcher = (matcher: StringMatcherType): MatcherType => {
-  if (typeof matcher === "string") {
-    return { matcher: defaultMatcher, value: matcher };
-  }
-  return matcher;
-};
-
-export const asMatcherSlice = (
-  matcher: StringMatcherType | StringMatcherSliceType
-): StringMatcherSliceType => {
-  if (!Array.isArray(matcher)) {
-    return [matcher];
-  }
-  return matcher;
-};
-
-export const asStringArray = (value: string | string[]): string[] => {
-  if (typeof value === "string") {
-    return [value];
-  }
-  return value;
-};
-
-export const bodyToString = (body?: BodyMatcherType): string => {
-  if (!body) {
-    return "";
-  }
-  if (typeof body === "string") {
-    return body;
-  }
-  if (body["matcher"]) {
-    return (body["value"] as string).trim();
-  }
-  return "";
-};
-
 export const formatQueryParams = (
   params?: MultimapMatcherType | MultimapType
 ): string => {
@@ -205,158 +166,103 @@ export const formatHeaderValue = (
     .join(", ");
 };
 
-const trimMatcher = (matcher: StringMatcherType): StringMatcherType => {
-  const m = asMatcher(matcher);
-  if (m.matcher === defaultMatcher) {
-    matcher = m.value;
+const headersToClean = [
+  "Accept",
+  "Accept-Encoding",
+  "Accept-Language",
+  "Connection",
+  "Content-Length",
+  "Date",
+  "Dnt",
+  "If-None-Match",
+  "Sec-Fetch-Dest",
+  "Sec-Fetch-Mode",
+  "Sec-Fetch-Site",
+  "Te",
+  "Upgrade-Insecure-Requests",
+  "User-Agent"
+];
+
+// Convert a body matcher to a list of paths compatible with objx:
+//  - keys are dot separated
+//  - array indices are accessed with []
+// Example: foo.bar[0].baz represents a key of the following object:
+//   {"foo": {"bar": [{"baz": "Hello"}]}}
+export const bodyToBodyMatcherPaths = (
+  bodyMatcher: unknown | Record<string, unknown>,
+  currentPath = "",
+  result: Record<string, unknown> = {}
+): Record<string, unknown> => {
+  if (Array.isArray(bodyMatcher)) {
+    bodyMatcher.forEach((item, index) => {
+      bodyToBodyMatcherPaths(item, `${currentPath}[${index}]`, result);
+    });
+    return result;
+  } else if (typeof bodyMatcher === "object" && bodyMatcher !== null) {
+    Object.entries(bodyMatcher).forEach(([key, value]) => {
+      bodyToBodyMatcherPaths(
+        value,
+        currentPath ? `${currentPath}.${key}` : `${key}`,
+        result
+      );
+    });
+    return result;
+  } else {
+    result[currentPath] = bodyMatcher;
+    return result;
   }
-  return matcher;
 };
 
-const trimMatcherSlice = (
-  matcher?: StringMatcherSliceType
-): StringMatcherSliceType | undefined => {
-  if (!matcher) {
-    return matcher;
+const cleanupRequest = (
+  entryRequest: EntryRequestType
+): Partial<EntryRequestType> => {
+  let request: Partial<EntryRequestType> = { ...entryRequest };
+  request.query_params = trimMultimap(request.query_params);
+  request.headers = trimMultimap(omit(request.headers, headersToClean));
+  request = omit(request, "body_string");
+  request = omit(request, "date");
+  request = omit(request, "origin");
+  request = pickBy(request); // remove nulls
+  if (typeof request.body === "object" && request.body !== null) {
+    request.body = bodyToBodyMatcherPaths(request.body);
   }
-  return matcher.map(m => trimMatcher(m));
-};
-
-const trimMatcherMap = (
-  matcher?: StringMatcherMapType
-): StringMatcherMapType | undefined => {
-  if (!matcher) {
-    return matcher;
-  }
-  if (!Object.keys(matcher).length) {
-    return undefined;
-  }
-  const newMatcher: StringMatcherMapType = {};
-  Object.entries(matcher).forEach(([key, value]) => {
-    newMatcher[key] = trimMatcher(value);
-  });
-  return newMatcher;
-};
-
-const trimMatcherMultimap = (
-  matcher?: MultimapMatcherType
-): MultimapMatcherType | undefined => {
-  if (!matcher) {
-    return matcher;
-  }
-
-  const newMatcher: MultimapMatcherType = {};
-  Object.entries(matcher).forEach(([key, value]) => {
-    const slice = trimMatcherSlice(asMatcherSlice(value));
-    if (slice?.length) {
-      if (slice?.length === 1) {
-        newMatcher[key] = slice[0];
-      } else {
-        newMatcher[key] = slice;
-      }
-    }
-  });
-
-  if (!Object.keys(newMatcher).length) {
-    return undefined;
-  }
-  return newMatcher;
-};
-
-const trimMultimap = (multimap?: MultimapType): MultimapType | undefined => {
-  if (!multimap) {
-    return multimap;
-  }
-
-  const newMultimap: MultimapType = {};
-  Object.entries(multimap).forEach(([key, value]) => {
-    const slice = asStringArray(value);
-    if (slice?.length) {
-      if (slice?.length === 1) {
-        newMultimap[key] = slice[0];
-      } else {
-        newMultimap[key] = slice;
-      }
-    }
-  });
-
-  if (!Object.keys(newMultimap).length) {
-    return undefined;
-  }
-  return newMultimap;
-};
-
-const trimBodyMatcher = (
-  matcher?: BodyMatcherType
-): BodyMatcherType | undefined => {
-  if (!matcher) {
-    return matcher;
-  }
-  if (typeof matcher === "string" || "matcher" in matcher) {
-    return trimMatcher(matcher as StringMatcherType);
-  }
-  return trimMatcherMap(matcher);
-};
-
-const trimRequest = (request: MockRequestType): MockRequestType => {
-  request.method = trimMatcher(request.method);
-  request.path = trimMatcher(request.path);
-  request.query_params = trimMatcherMultimap(request.query_params);
-  request.headers = trimMatcherMultimap(request.headers);
-  request.body = trimBodyMatcher(request.body);
   return request;
 };
 
-const trimContext = (
-  context?: MockContextType
-): MockContextType | undefined => {
-  if (!context || !context.times) {
-    return undefined;
-  }
-  return context;
-};
-
-const trimStaticResponse = (
-  response?: MockResponseType
-): MockResponseType | undefined => {
-  if (!response) {
-    return undefined;
-  }
-  response.headers = trimMultimap(response.headers);
+const cleanupResponse = (
+  entryResponse: EntryResponseType
+): Partial<EntryResponseType> => {
+  let response: Partial<EntryResponseType> = { ...entryResponse };
+  response.headers = trimMultimap(omit(response.headers, headersToClean));
+  response = omit(response, "date");
+  response = pickBy(response); // remove nulls
   return response;
 };
 
-const trimProxyResponse = (
-  response?: MockProxyType
-): MockProxyType | undefined => {
-  if (!response) {
-    return undefined;
-  }
-  response.headers = trimMultimap(response.headers);
-  response.follow_redirect = Boolean(response.follow_redirect) || undefined;
-  response.skip_verify_tls = Boolean(response.skip_verify_tls) || undefined;
-  response.keep_host = Boolean(response.keep_host) || undefined;
-  return response;
-};
-
-export const trimMock = (mock: MockType): MockType => {
-  mock.request = trimRequest(mock.request);
-  mock.context = trimContext(mock.context);
-  mock.response = trimStaticResponse(mock.response);
-  mock.proxy = trimProxyResponse(mock.proxy);
-  return mock;
-};
-
-export const useDebounce = <T>(value: T, delay?: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
-
-    return () => {
-      clearTimeout(timer);
+export const mockFromEntry = (entry: EntryType): MockType => {
+  const request = cleanupRequest(entry.request);
+  const mock: MockType = {
+    request: {
+      method: request.method || "GET",
+      path: request.path || "",
+      headers: request.headers,
+      query_params: request.query_params,
+      body: request.body as BodyMatcherType
+    },
+    response: {
+      // Sane default response
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: ""
+    }
+  };
+  if (entry.response.status < 600) {
+    const response = cleanupResponse(entry.response);
+    mock.response = {
+      status: response.status || 200,
+      headers: response.headers,
+      body: JSON.stringify(response.body, undefined, "  ")
     };
-  }, [value, delay]);
-
-  return debouncedValue;
+  }
+  return trimMock(mock);
 };

@@ -7,9 +7,9 @@ import {
   MockProxyType,
   MockRequestType,
   MockResponseType,
-  MockType
+  MockType,
+  trimMock
 } from "../../modules/types";
-import { trimMock } from "../../modules/utils";
 import { Code } from "../Code";
 import { ContextEditor } from "./Context";
 import { FormDivider } from "./FormDivider";

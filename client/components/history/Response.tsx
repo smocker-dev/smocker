@@ -1,14 +1,24 @@
-import { Box, HStack, Link, Spacer, Tag, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Link,
+  Spacer,
+  Tag,
+  Text,
+  VStack
+} from "@chakra-ui/react";
 import dayjs from "dayjs";
 import { getReasonPhrase } from "http-status-codes";
+import { RiAddCircleLine } from "react-icons/ri";
 import { Link as RouterLink } from "react-router-dom";
 import {
+  asStringArray,
   dateFormat,
   EntryContextType,
   EntryResponseType,
   ErrorType
 } from "../../modules/types";
-import { asStringArray } from "../../modules/utils";
 import { Code } from "../Code";
 import { Headers } from "../Headers";
 
@@ -100,10 +110,12 @@ const Body = ({
 
 export const Response = ({
   response,
-  context
+  context,
+  onCreateMock
 }: {
   response: EntryResponseType;
   context: EntryContextType;
+  onCreateMock: () => void;
 }) => {
   let contentType = response.headers?.["Content-Type"];
   if (contentType) {
@@ -113,6 +125,17 @@ export const Response = ({
     <Box width="calc(50% - 1em)">
       <VStack align="stretch" spacing={3}>
         <Status response={response} context={context} />
+        <Button
+          leftIcon={<RiAddCircleLine />}
+          colorScheme="blue"
+          variant="outline"
+          borderStyle="dashed"
+          onClick={onCreateMock}
+        >
+          {response.status < 600
+            ? "Create a new mock from entry"
+            : "Create a new mock from request"}
+        </Button>
         <Headers headers={response.headers} />
         <Body body={response.body} contentType={contentType} />
       </VStack>
