@@ -6,6 +6,8 @@ import { useSearchParams } from "react-router-dom";
 import { GlobalStateContext } from "./state";
 import {
   ErrorType,
+  GraphHistoryCodec,
+  GraphHistoryType,
   HistoryCodec,
   HistoryType,
   MocksCodec,
@@ -117,6 +119,27 @@ export const useHistory = (sessionID: string) => {
     {
       refetchInterval
     }
+  );
+};
+
+const summarizeHistory = async (
+  sessionID: string,
+  src: string,
+  dest: string
+) => {
+  const { data } = await axios.get(
+    `${trimedPath}/history/summary?session=${sessionID}&src=${src}&dest=${dest}`
+  );
+  return GraphHistoryCodec.parse(data);
+};
+
+export const useSummarizeHistory = (
+  sessionID: string,
+  src: string,
+  dest: string
+) => {
+  return useQuery<GraphHistoryType, ErrorType>(["summary", sessionID], () =>
+    summarizeHistory(sessionID, src, dest)
   );
 };
 

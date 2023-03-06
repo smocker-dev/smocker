@@ -2,6 +2,7 @@ import { Grid, GridItem, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { GlobalStateContext } from "../modules/state";
+import { Visualize } from "./Visualize";
 
 const Navbar = React.lazy(() => import("./Navbar"));
 const Sidebar = React.lazy(() => import("./Sidebar"));
@@ -49,6 +50,7 @@ export const Layout = () => {
           <React.Suspense>
             <Routes>
               <Route path="/pages/history" element={<History />} />
+              <Route path="/pages/visualize" element={<Visualize />} />
               <Route path="/pages/mocks" element={<Mocks />} />
               <Route path="*" element={<History />} />
             </Routes>

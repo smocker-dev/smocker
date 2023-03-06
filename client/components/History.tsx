@@ -23,6 +23,7 @@ import {
 import { orderBy } from "lodash";
 import React from "react";
 import { RiOrganizationChart } from "react-icons/ri";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { usePaginationWithSiblings } from "../modules/hooks";
 import { useHistory } from "../modules/queries";
 import { GlobalStateContext } from "../modules/state";
@@ -92,17 +93,25 @@ const Header = () => {
     historyFilter,
     setHistoryFilter
   } = React.useContext(GlobalStateContext);
+  const [searchParams] = useSearchParams();
   return (
     <VStack alignItems="stretch">
       <HStack justify="space-between">
         <Heading size="md">History</Heading>
         <Spacer />
-        <Button
-          leftIcon={<Icon as={RiOrganizationChart} boxSize="18px" />}
-          colorScheme="blue"
+        <NavLink
+          to={{
+            pathname: "/pages/visualize",
+            search: searchParams.toString()
+          }}
         >
-          Visualize
-        </Button>
+          <Button
+            leftIcon={<Icon as={RiOrganizationChart} boxSize="18px" />}
+            colorScheme="blue"
+          >
+            Visualize
+          </Button>
+        </NavLink>
       </HStack>
       <Text>
         This is the history of the requests made during the selected session.
