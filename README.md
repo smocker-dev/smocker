@@ -198,7 +198,7 @@ mkcert -cert-file /tmp/cert.pem -key-file /tmp/key.pem localhost
 Then, start Smocker with TLS enabled, using your generated certificate:
 
 ```sh
-./smocker -mock-server-listen-port=44300 -config-listen-port=44301 -tls-enable -tls-cert-file=/tmp/cert.pem -tls-private-key-file=/tmp/key.pm
+./smocker -mock-server-listen-port=44300 -config-listen-port=44301 -tls-enable -tls-cert-file=/tmp/cert.pem -tls-private-key-file=/tmp/key.pem
 ```
 
 ## Authors
