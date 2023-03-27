@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/Thiht/smocker/server/services"
@@ -50,7 +51,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 	for _, mock := range mocks {
 		if mock.Request.Match(actualRequest) {
 			matchingMock = mock
-			if matchingMock.Context.Times > 0 && matchingMock.State.TimesCount >= matchingMock.Context.Times {
+			if matchingMock.Context.Times > 0 && *matchingMock.State.TimesCount >= uint64(matchingMock.Context.Times) {
 				b, _ = yaml.Marshal(mock)
 				log.Tracef("Times exceeded, skipping mock:\n---\n%s\n", string(b))
 				exceededMocks = append(exceededMocks, mock)
@@ -85,7 +86,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 				response = mock.Response
 			}
 
-			matchingMock.State.TimesCount++
+			atomic.AddUint64(mock.State.TimesCount, uint64(1))
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -101,7 +102,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 		if len(exceededMocks) > 0 {
 			for _, mock := range exceededMocks {
-				mock.State.TimesCount++
+				atomic.AddUint64(mock.State.TimesCount, uint64(1))
 			}
 			resp["message"] = types.SmockerMockExceeded
 			resp["nearest"] = exceededMocks

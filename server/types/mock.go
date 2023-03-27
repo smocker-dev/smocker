@@ -68,6 +68,7 @@ func (m *Mock) Init() {
 	m.State = &MockState{
 		CreationDate: time.Now(),
 		ID:           shortid.MustGenerate(),
+		TimesCount:   new(uint64),
 	}
 
 	if m.Context == nil {
@@ -77,7 +78,7 @@ func (m *Mock) Init() {
 
 func (m *Mock) Verify() bool {
 	isTimesDefined := m.Context.Times > 0
-	hasBeenCalledRightNumberOfTimes := m.State.TimesCount == m.Context.Times
+	hasBeenCalledRightNumberOfTimes := *m.State.TimesCount == uint64(m.Context.Times)
 	return !isTimesDefined || hasBeenCalledRightNumberOfTimes
 }
 
@@ -89,7 +90,7 @@ func (m *Mock) CloneAndReset() *Mock {
 			ID:           m.State.ID,
 			CreationDate: time.Now(),
 			Locked:       m.State.Locked,
-			TimesCount:   0,
+			TimesCount:   new(uint64),
 		},
 		DynamicResponse: m.DynamicResponse,
 		Proxy:           m.Proxy,
@@ -272,7 +273,7 @@ type MockContext struct {
 
 type MockState struct {
 	ID           string    `json:"id" yaml:"id"`
-	TimesCount   int       `json:"times_count" yaml:"times_count"`
+	TimesCount   *uint64   `json:"times_count" yaml:"times_count"`
 	Locked       bool      `json:"locked" yaml:"locked"`
 	CreationDate time.Time `json:"creation_date" yaml:"creation_date"`
 }

@@ -120,7 +120,7 @@ func (a *Admin) VerifySession(c echo.Context) error {
 		if !mock.Verify() {
 			failedMocks = append(failedMocks, mock)
 		}
-		if mock.State.TimesCount == 0 {
+		if *mock.State.TimesCount == 0 {
 			unusedMocks = append(unusedMocks, mock)
 		}
 	}
