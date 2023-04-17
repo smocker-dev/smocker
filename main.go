@@ -31,6 +31,7 @@ func parseConfig() (c config.Config) {
 	flag.StringVar(&c.StaticFiles, "static-files", ".", "Location of the static files to serve (index.html, etc.)")
 	flag.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "Maximum number of calls to keep in the history per session (0 = no limit)")
 	flag.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
+	flag.StringVar(&c.MockFilesDirectory, "mock-files-directory", "", "Directory with mock files to load from on start up")
 	flag.BoolVar(&c.TLSEnable, "tls-enable", false, "Enable TLS using the provided certificate")
 	flag.StringVar(&c.TLSCertFile, "tls-cert-file", "/etc/smocker/tls/certs/cert.pem", "Path to TLS certificate file ")
 	flag.StringVar(&c.TLSKeyFile, "tls-private-key-file", "/etc/smocker/tls/private/key.pem", "Path to TLS key file")

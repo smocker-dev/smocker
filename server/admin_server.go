@@ -5,15 +5,19 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/Thiht/smocker/server/config"
 	"github.com/Thiht/smocker/server/handlers"
 	"github.com/Thiht/smocker/server/services"
+	"github.com/Thiht/smocker/server/types"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 )
 
 // TemplateRenderer is a custom html/template renderer for Echo framework
@@ -38,6 +42,13 @@ func Serve(config config.Config) {
 	mockServerEngine, mockServices := NewMockServer(config)
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
+
+	// Load mocks from the directory
+	if len(config.MockFilesDirectory) > 0 {
+		if err := loadMocksFromDir(mockServices, config.MockFilesDirectory); err != nil {
+			log.WithError(err).Error("loadMocksFromDir")
+		}
+	}
 
 	// Admin Routes
 	mocksGroup := adminServerEngine.Group("/mocks")
@@ -115,4 +126,50 @@ func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 			"version":  cfg.Build.BuildVersion,
 		})
 	}
+}
+
+func loadMocksFromDir(mockServices services.Mocks, dir string) error {
+	sessionName := "static_mock_files"
+
+	ses, err := mockServices.GetSessionByID(sessionName)
+	if err != nil {
+		ses = mockServices.NewSession(sessionName)
+		err = nil
+	}
+
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			// do not traverse dirs beyond the provided 'dir'
+			return nil
+		}
+
+		filePath, err := filepath.Abs(path)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		var mocks types.Mocks
+		if err := yaml.NewDecoder(f).Decode(&mocks); err != nil {
+			return err
+		}
+
+		for _, m := range mocks {
+			_, err := mockServices.AddMock(ses.ID, m)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
