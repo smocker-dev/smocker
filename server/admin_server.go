@@ -143,16 +143,10 @@ func loadMocksFromDir(mockServices services.Mocks, dir string) error {
 		}
 
 		if info.IsDir() {
-			// do not traverse dirs beyond the provided 'dir'
 			return nil
 		}
 
-		filePath, err := filepath.Abs(path)
-		if err != nil {
-			return err
-		}
-
-		f, err := os.Open(filePath)
+		f, err := os.Open(path)
 		if err != nil {
 			return err
 		}
@@ -164,10 +158,15 @@ func loadMocksFromDir(mockServices services.Mocks, dir string) error {
 		}
 
 		for _, m := range mocks {
-			_, err := mockServices.AddMock(ses.ID, m)
-			if err != nil {
+			if err := m.Validate(); err != nil {
 				return err
 			}
+
+			if _, err := mockServices.AddMock(ses.ID, m); err != nil {
+				return err
+			}
+
+			log.Infof("loaded mock file: %s", path)
 		}
 
 		return nil
