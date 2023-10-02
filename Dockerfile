@@ -13,7 +13,7 @@ FROM node:16-bullseye AS build-frontend
 WORKDIR /wd
 ENV PARCEL_WORKERS 1
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --ignore-scripts --network-timeout 300000
 COPY tsconfig.json ./
 COPY client/ ./client/
 RUN yarn build
