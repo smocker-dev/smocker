@@ -110,6 +110,7 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 	}
 	var sessionsGroup errgroup.Group
 	for _, session := range sessions {
+		session := session
 		sessionsGroup.Go(func() error {
 			if err := p.createSessionDirectory(session.ID); err != nil {
 				return err
@@ -161,6 +162,7 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	var sessionsGroup errgroup.Group
 	var sessionsLock sync.Mutex
 	for _, session := range sessions {
+		session := session
 		sessionsGroup.Go(func() error {
 			historyFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, historyFileName))
 			if err != nil {
@@ -235,7 +237,6 @@ func (p *persistence) persistHistory(sessionID string, h types.History) error {
 }
 
 func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
-
 	// we need to reverse mocks before storage in order to have a reusable mocks file as mocks are stored as a stack
 	orderedMocks := make(types.Mocks, 0, len(m))
 	for i := len(m) - 1; i >= 0; i-- {
