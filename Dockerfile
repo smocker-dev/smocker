@@ -12,8 +12,6 @@ RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 FROM node:16-bullseye AS build-frontend
 WORKDIR /wd
 ENV PARCEL_WORKERS 1
-# node-gyp dependencies: https://github.com/nodejs/node-gyp#on-unix
-RUN apk add --no-cache g++ make python3
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY tsconfig.json ./
