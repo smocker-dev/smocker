@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"runtime"
@@ -66,7 +65,7 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 				if err != nil {
 					log.WithError(err).Error("Unable to uncompress response body")
 				} else {
-					responseBytes, err = ioutil.ReadAll(r)
+					responseBytes, err = io.ReadAll(r)
 					if err != nil {
 						log.WithError(err).Error("Unable to read uncompressed response body")
 						responseBytes = responseBody.Bytes()
@@ -104,14 +103,9 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 func loggerMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req, res := c.Request(), c.Response()
+			req := c.Request()
 
 			start := time.Now()
-			if err := next(c); err != nil {
-				c.Error(err)
-			}
-			end := time.Now()
-
 			p := req.URL.Path
 			if p == "" {
 				p = "/"
@@ -123,18 +117,29 @@ func loggerMiddleware() echo.MiddlewareFunc {
 			}
 
 			headers := fmt.Sprintf("%+v", req.Header)
+
 			entry := log.WithFields(log.Fields{
 				"start":     start.Format(time.RFC3339),
-				"end":       end.Format(time.RFC3339),
 				"remote-ip": c.RealIP(),
 				"host":      req.Host,
 				"uri":       req.RequestURI,
 				"method":    req.Method,
 				"path":      p,
 				"headers":   headers,
+				"bytes-in":  bytesIn,
+			})
+			entry.Debug("Handling request...")
+
+			if err := next(c); err != nil {
+				c.Error(err)
+			}
+
+			res := c.Response()
+			end := time.Now()
+			entry = entry.WithFields(log.Fields{
+				"end":       end.Format(time.RFC3339),
 				"status":    res.Status,
 				"latency":   end.Sub(start).String(),
-				"bytes-in":  bytesIn,
 				"bytes-out": res.Size,
 			})
 
