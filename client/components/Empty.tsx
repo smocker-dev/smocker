@@ -8,7 +8,6 @@ import {
   VStack
 } from "@chakra-ui/react";
 import { RiEyeOffLine, RiFeedbackLine } from "react-icons/ri";
-import { useDebounce } from "../modules/hooks";
 
 export const Empty = ({
   description,
@@ -17,10 +16,9 @@ export const Empty = ({
   description: string;
   loading?: boolean;
 }) => {
-  const showLoader = useDebounce(loading, 2000);
   return (
     <VStack align="center" spacing={0}>
-      {showLoader ? (
+      {loading ? (
         <Box pt={10}>
           <Spinner
             thickness="5px"
@@ -31,7 +29,7 @@ export const Empty = ({
         </Box>
       ) : (
         <>
-          <VStack align="stretch" spacing={0}>
+          <VStack align="stretch" spacing={0} className="empty">
             <HStack justify="end" marginBottom={-3} w="10em">
               <Spacer />
               <Icon as={RiFeedbackLine} boxSize="3em" color="gray.400" />

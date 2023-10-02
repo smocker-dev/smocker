@@ -75,7 +75,7 @@ const Item = (props: { to?: string; label: string; href?: string }) => {
 
 const Navbar = () => {
   return (
-    <HStack align="stretch" minHeight="100%" bg="navbar">
+    <HStack align="stretch" minHeight="100%" bg="navbar" className="navbar">
       <Logo />
       <HStack align="stretch" spacing={0}>
         <Item label="History" to="/pages/history" />

@@ -191,6 +191,7 @@ const Session = (props: { data: SessionType }) => {
       data-group
       _hover={{ bg: "session.bg" }}
       onClick={() => selectSession(session.id)}
+      className="session"
     >
       <Flex
         direction="row"
@@ -296,6 +297,7 @@ const Sidebar = () => {
       ref={ref}
       flex={1}
       overflowX="hidden"
+      className="sidebar"
     >
       <Header loading={isFetching} />
       {error ? (

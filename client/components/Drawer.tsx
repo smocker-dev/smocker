@@ -142,6 +142,7 @@ export const MocksDrawer = ({
             colorScheme="blue"
             onClick={onClick}
             isDisabled={Boolean(errors.length)}
+            className="add-mocks-save-button"
           >
             Save
           </Button>

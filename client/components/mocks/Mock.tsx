@@ -72,7 +72,7 @@ const Header = ({ state }: { state?: MockStateType }) => {
 };
 
 export const Mock = ({ mock }: { mock: MockType }) => (
-  <Card bg="white" variant="outline" borderRadius="sm">
+  <Card bg="white" variant="outline" borderRadius="sm" className="mock">
     <CardBody>
       <VStack align="stretch" spacing={3}>
         <Header state={mock.state} />

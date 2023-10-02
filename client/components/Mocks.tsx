@@ -36,6 +36,7 @@ const Header = ({ canAddMocks }: { canAddMocks: boolean }) => {
             leftIcon={<Icon as={RiAddFill} boxSize="20px" />}
             colorScheme="blue"
             onClick={onOpen}
+            className="add-mocks-button"
           >
             Add Mocks
           </Button>
@@ -100,7 +101,13 @@ const Mocks = () => {
       />
     ) : null;
   return (
-    <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
+    <VStack
+      flex="1"
+      padding="2em 7% 0"
+      alignItems="stretch"
+      spacing="2em"
+      className="mocks"
+    >
       <Header canAddMocks={canAddMocks} />
       <VStack align="stretch">
         {pagination}

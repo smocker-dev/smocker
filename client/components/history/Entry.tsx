@@ -9,9 +9,9 @@ export const Entry = ({
 }: {
   entry: EntryType;
   onCreateMock: (entry: EntryType) => void;
-}) => {
+}): JSX.Element => {
   return (
-    <Card bg="white" variant="outline" borderRadius="sm">
+    <Card bg="white" variant="outline" borderRadius="sm" className="entry">
       <CardBody>
         <HStack spacing="1em" align="stretch">
           <Request request={entry.request} />

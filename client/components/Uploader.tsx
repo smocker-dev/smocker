@@ -27,7 +27,6 @@ export const FileUploader = () => {
       try {
         const sessionToUpload = JSON.parse(ev.target?.result as string);
         uploadSessionsMutation.mutate(sessionToUpload);
-        setUploading(false);
       } catch (e) {
         const err = e as Error;
         toast({
@@ -39,6 +38,7 @@ export const FileUploader = () => {
           position: "top-right"
         });
       }
+      setUploading(false);
     };
     reader.readAsText(file);
   };

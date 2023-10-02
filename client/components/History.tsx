@@ -108,6 +108,7 @@ const Header = () => {
           <Button
             leftIcon={<Icon as={RiOrganizationChart} boxSize="18px" />}
             colorScheme="blue"
+            className="visualize-button"
           >
             Visualize
           </Button>
@@ -180,7 +181,6 @@ const History = () => {
 
   React.useEffect(() => {
     if (mock) {
-      console.log(mock);
       onOpen();
     }
   }, [mock]);
@@ -237,7 +237,13 @@ const History = () => {
     ) : null;
 
   return (
-    <VStack flex="1" padding="2em 7% 0" alignItems="stretch" spacing="2em">
+    <VStack
+      flex="1"
+      padding="2em 7% 0"
+      alignItems="stretch"
+      spacing="2em"
+      className="history"
+    >
       <Header />
       <VStack align="stretch">
         {pagination}
