@@ -139,4 +139,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: build/smocker.tar.gz
-          token: ${{ secrets.GH_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
