@@ -108,7 +108,7 @@ clean:
 
 .PHONY: build-docker
 build-docker:
-	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest .
+	docker buildx build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest --platform linux/arm64,linux/amd64 .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: start-docker
