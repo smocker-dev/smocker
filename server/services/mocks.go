@@ -183,7 +183,6 @@ func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, e
 }
 
 func (s *mocks) NewSession(name string) *types.Session {
-
 	if strings.TrimSpace(name) == "" {
 		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
 	}

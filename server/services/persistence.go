@@ -1,7 +1,7 @@
 package services
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -26,8 +26,9 @@ type Persistence interface {
 	StoreSessions(types.Sessions)
 }
 
+var mu sync.Mutex
+
 type persistence struct {
-	mu                   sync.Mutex
 	persistenceDirectory string
 }
 
@@ -39,8 +40,8 @@ func NewPersistence(persistenceDirectory string) Persistence {
 }
 
 func (p *persistence) StoreMocks(sessionID string, mocks types.Mocks) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -56,8 +57,8 @@ func (p *persistence) StoreMocks(sessionID string, mocks types.Mocks) {
 }
 
 func (p *persistence) StoreHistory(sessionID string, history types.History) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -73,8 +74,8 @@ func (p *persistence) StoreHistory(sessionID string, history types.History) {
 }
 
 func (p *persistence) StoreSession(summary []types.SessionSummary, session *types.Session) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -99,17 +100,14 @@ func (p *persistence) StoreSession(summary []types.SessionSummary, session *type
 }
 
 func (p *persistence) StoreSessions(sessions types.Sessions) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
-	if err := p.cleanAll(); err != nil {
-		log.Error("unable to clean directory: ", err)
-		return
-	}
 	var sessionsGroup errgroup.Group
-	for _, session := range sessions {
+	for _, ses := range sessions {
+		session := *ses
 		sessionsGroup.Go(func() error {
 			if err := p.createSessionDirectory(session.ID); err != nil {
 				return err
@@ -133,11 +131,14 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 	if err := sessionsGroup.Wait(); err != nil {
 		log.Error("unable to store sessions: ", err)
 	}
+	if err := p.cleanOutdatedSessions(sessions); err != nil {
+		log.Error("unable to clean outdated sessions: ", err)
+	}
 }
 
 func (p *persistence) LoadSessions() (types.Sessions, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return nil, nil
 	}
@@ -146,10 +147,13 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	}
 	file, err := os.Open(filepath.Join(p.persistenceDirectory, sessionsFileName))
 	if err != nil {
+		if err == os.ErrNotExist {
+			return types.Sessions{}, nil
+		}
 		return nil, err
 	}
 	defer file.Close()
-	bytes, err := ioutil.ReadAll(file)
+	bytes, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -160,14 +164,16 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	}
 	var sessionsGroup errgroup.Group
 	var sessionsLock sync.Mutex
-	for _, session := range sessions {
+	for _, ses := range sessions {
+		session := *ses
 		sessionsGroup.Go(func() error {
 			historyFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, historyFileName))
 			if err != nil {
+				log.WithError(err).Errorf("Unable to open history file for session %q", session.ID)
 				return err
 			}
 			defer historyFile.Close()
-			bytes, err := ioutil.ReadAll(historyFile)
+			bytes, err := io.ReadAll(historyFile)
 			if err != nil {
 				return err
 			}
@@ -184,10 +190,11 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 		sessionsGroup.Go(func() error {
 			mocksFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, mocksFileName))
 			if err != nil {
+				log.WithError(err).Errorf("Unable to open mocks file for session %q", session.ID)
 				return err
 			}
 			defer mocksFile.Close()
-			bytes, err := ioutil.ReadAll(mocksFile)
+			bytes, err := io.ReadAll(mocksFile)
 			if err != nil {
 				return err
 			}
@@ -211,10 +218,15 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	if err := sessionsGroup.Wait(); err != nil {
 		return nil, err
 	}
+	if err := p.cleanOutdatedSessions(sessions); err != nil {
+		return nil, err
+	}
+
 	return sessions, nil
 }
 
 func (p *persistence) createSessionDirectory(sessionID string) error {
+	log.Debugf("Create directory for session %q", sessionID)
 	sessionDirectory := filepath.Join(p.persistenceDirectory, sessionID)
 	if err := os.MkdirAll(sessionDirectory, os.ModePerm); err != nil && !os.IsExist(err) {
 		return err
@@ -223,11 +235,12 @@ func (p *persistence) createSessionDirectory(sessionID string) error {
 }
 
 func (p *persistence) persistHistory(sessionID string, h types.History) error {
+	log.Debugf("Persist history for session %q", sessionID)
 	history, err := yaml.Marshal(h)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(p.persistenceDirectory, sessionID, historyFileName), history, os.ModePerm)
+	err = os.WriteFile(filepath.Join(p.persistenceDirectory, sessionID, historyFileName), history, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -235,7 +248,7 @@ func (p *persistence) persistHistory(sessionID string, h types.History) error {
 }
 
 func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
-
+	log.Debugf("Persist mocks for session %q", sessionID)
 	// we need to reverse mocks before storage in order to have a reusable mocks file as mocks are stored as a stack
 	orderedMocks := make(types.Mocks, 0, len(m))
 	for i := len(m) - 1; i >= 0; i-- {
@@ -245,7 +258,7 @@ func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(p.persistenceDirectory, sessionID, mocksFileName), mocks, os.ModePerm)
+	err = os.WriteFile(filepath.Join(p.persistenceDirectory, sessionID, mocksFileName), mocks, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -253,27 +266,35 @@ func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
 }
 
 func (p *persistence) persistSessionsSummary(summary []types.SessionSummary) error {
+	log.Debug("Persist sessions summary")
 	sessions, err := yaml.Marshal(summary)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(p.persistenceDirectory, sessionsFileName), sessions, os.ModePerm)
+	err = os.WriteFile(filepath.Join(p.persistenceDirectory, sessionsFileName), sessions, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *persistence) cleanAll() error {
-	if err := os.MkdirAll(p.persistenceDirectory, os.ModePerm); err != nil && !os.IsExist(err) {
-		return err
+func (p *persistence) cleanOutdatedSessions(sessions types.Sessions) error {
+	sessionsIDs := make(map[string]bool, len(sessions))
+	for _, ses := range sessions {
+		session := *ses
+		sessionsIDs[session.ID] = true
 	}
-	files, err := ioutil.ReadDir(p.persistenceDirectory)
+	log.Debug("Clean old sessions")
+	entries, err := os.ReadDir(p.persistenceDirectory)
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		os.RemoveAll(filepath.Join(p.persistenceDirectory, file.Name()))
+	for _, entry := range entries {
+		if entry.IsDir() && !sessionsIDs[entry.Name()] {
+			path := filepath.Join(p.persistenceDirectory, entry.Name())
+			log.Debugf("Removing directory: %q", path)
+			os.RemoveAll(path)
+		}
 	}
 	return nil
 }
