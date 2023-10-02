@@ -108,7 +108,7 @@ clean:
 
 .PHONY: build-docker
 build-docker:
-	docker buildx build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest --platform linux/arm64,linux/amd64 .
+	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: start-docker
@@ -129,9 +129,9 @@ optimize:
 
 build/smocker.tar.gz:
 	$(MAKE) build
-	yarn install --frozen-lockfile --ignore-scripts --network-timeout 300000
+	yarn install --frozen-lockfile --ignore-scripts
 	yarn build
-	cd build/; tar cvf smocker.tar.gz *
+	cd build/; tar -cvf smocker.tar.gz *
 
 .PHONY: release
 release: build/smocker.tar.gz
@@ -144,18 +144,10 @@ start-release: clean build/smocker.tar.gz
 start-caddy: $(CADDY)
 	$(CADDY) run
 
-.PHONY: save-docker
-save-docker:
-	docker save --output /tmp/smocker.tar $(DOCKER_IMAGE):latest
-
-.PHONY: load-docker
-load-docker:
-	docker load --input /tmp/smocker.tar
-	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
-
 .PHONY: deploy-docker
 deploy-docker:
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker buildx create --use
 ifdef IS_SEMVER
-	docker push $(DOCKER_IMAGE):latest
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .
 endif
-	docker push $(DOCKER_IMAGE):$(DOCKER_TAG)
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):$(DOCKER_TAG) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .

@@ -9,9 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	appName, buildVersion, buildCommit, buildDate string // nolint
-)
+var appName, buildVersion, buildCommit, buildDate string // nolint
 
 func parseConfig() (c config.Config) {
 	c.Build = config.Build{
@@ -28,7 +26,7 @@ func parseConfig() (c config.Config) {
 	flag.StringVar(&c.ConfigBasePath, "config-base-path", "/", "Base path applied to Smocker UI")
 	flag.IntVar(&c.ConfigListenPort, "config-listen-port", 8081, "Listening port of Smocker administration server")
 	flag.IntVar(&c.MockServerListenPort, "mock-server-listen-port", 8080, "Listening port of Smocker mock server")
-	flag.StringVar(&c.StaticFiles, "static-files", ".", "Location of the static files to serve (index.html, etc.)")
+	flag.StringVar(&c.StaticFiles, "static-files", "client", "Location of the static files to serve (index.html, etc.)")
 	flag.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "Maximum number of calls to keep in the history per session (0 = no limit)")
 	flag.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
 	flag.BoolVar(&c.TLSEnable, "tls-enable", false, "Enable TLS using the provided certificate")
