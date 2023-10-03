@@ -86,3 +86,12 @@
   response:
     body: >
       {"message": "test11"}
+- request:
+    path: /test12
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    body:
+      key1[0]: test
+  response:
+    body: >
+      {"message": "test13"}

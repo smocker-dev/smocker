@@ -166,6 +166,25 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 666
 
+      - type: http
+        method: POST
+        url: http://localhost:8080/test12
+        headers:
+          Content-Type: application/x-www-form-urlencoded
+        body: key1=test
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test13
+
+      - type: http
+        method: POST
+        url: http://localhost:8080/test12
+        headers:
+          Content-Type: application/x-www-form-urlencoded
+        body: key1=test2
+        assertions:
+          - result.statuscode ShouldEqual 666
+
   - name: Use dynamic mock list
     steps:
       - type: http

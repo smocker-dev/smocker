@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"regexp"
 
 	log "github.com/sirupsen/logrus"
@@ -252,9 +254,20 @@ type BodyMatcher struct {
 	bodyJson   map[string]StringMatcher
 }
 
-func (bm BodyMatcher) Match(value string) bool {
+func (bm BodyMatcher) Match(headers http.Header, value string) bool {
 	if bm.bodyString != nil {
 		return bm.bodyString.Match(value)
+	}
+
+	if headers.Get("Content-Type") == "application/x-www-form-urlencoded" {
+		m, err := url.ParseQuery(value)
+		if err != nil {
+			log.WithError(err).Error("Failed to read request body as encoded form")
+		} else if b, err := json.Marshal(m); err != nil {
+			log.WithError(err).Error("Failed to serialize form body as JSON")
+		} else {
+			value = string(b)
+		}
 	}
 
 	j, err := objx.FromJSON(value)

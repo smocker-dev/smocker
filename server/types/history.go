@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -55,12 +55,12 @@ func HTTPRequestToRequest(req *http.Request) Request {
 	bodyBytes := []byte{}
 	if req.Body != nil {
 		var err error
-		bodyBytes, err = ioutil.ReadAll(req.Body)
+		bodyBytes, err = io.ReadAll(req.Body)
 		if err != nil {
 			log.WithError(err).Error("Failed to read request body")
 		}
 	}
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	var body interface{}
 	var tmp map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &tmp); err != nil {
