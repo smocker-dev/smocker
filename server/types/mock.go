@@ -126,7 +126,7 @@ func (mr MockRequest) Match(req Request) bool {
 		log.Trace("Query params did not match")
 		return false
 	}
-	matchBody := mr.Body == nil || mr.Body.Match(req.BodyString)
+	matchBody := mr.Body == nil || mr.Body.Match(req.Headers, req.BodyString)
 	if !matchBody {
 		log.Trace("Body did not match")
 		return false

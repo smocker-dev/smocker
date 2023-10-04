@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/Thiht/smocker/server/services"
@@ -16,15 +17,20 @@ import (
 
 type Mocks struct {
 	mocksServices services.Mocks
+	mu            sync.Mutex
 }
 
 func NewMocks(ms services.Mocks) *Mocks {
 	return &Mocks{
 		mocksServices: ms,
+		mu:            sync.Mutex{},
 	}
 }
 
 func (m *Mocks) GenericHandler(c echo.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
 	log.Debugf("Received request:\n---\n%s\n", string(b))
