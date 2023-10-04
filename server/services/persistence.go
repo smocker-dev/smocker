@@ -26,9 +26,8 @@ type Persistence interface {
 	StoreSessions(types.Sessions)
 }
 
-var mu sync.Mutex
-
 type persistence struct {
+	mu                   sync.Mutex
 	persistenceDirectory string
 }
 
@@ -40,8 +39,8 @@ func NewPersistence(persistenceDirectory string) Persistence {
 }
 
 func (p *persistence) StoreMocks(sessionID string, mocks types.Mocks) {
-	mu.Lock()
-	defer mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -57,8 +56,8 @@ func (p *persistence) StoreMocks(sessionID string, mocks types.Mocks) {
 }
 
 func (p *persistence) StoreHistory(sessionID string, history types.History) {
-	mu.Lock()
-	defer mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -74,8 +73,8 @@ func (p *persistence) StoreHistory(sessionID string, history types.History) {
 }
 
 func (p *persistence) StoreSession(summary []types.SessionSummary, session *types.Session) {
-	mu.Lock()
-	defer mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return
 	}
@@ -100,9 +99,13 @@ func (p *persistence) StoreSession(summary []types.SessionSummary, session *type
 }
 
 func (p *persistence) StoreSessions(sessions types.Sessions) {
-	mu.Lock()
-	defer mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
+		return
+	}
+	if err := p.cleanAll(); err != nil {
+		log.Error("unable to clean directory: ", err)
 		return
 	}
 	var sessionsGroup errgroup.Group
@@ -131,14 +134,11 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 	if err := sessionsGroup.Wait(); err != nil {
 		log.Error("unable to store sessions: ", err)
 	}
-	if err := p.cleanOutdatedSessions(sessions); err != nil {
-		log.Error("unable to clean outdated sessions: ", err)
-	}
 }
 
 func (p *persistence) LoadSessions() (types.Sessions, error) {
-	mu.Lock()
-	defer mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
 		return nil, nil
 	}
@@ -147,9 +147,6 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	}
 	file, err := os.Open(filepath.Join(p.persistenceDirectory, sessionsFileName))
 	if err != nil {
-		if err == os.ErrNotExist {
-			return types.Sessions{}, nil
-		}
 		return nil, err
 	}
 	defer file.Close()
@@ -218,10 +215,6 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	if err := sessionsGroup.Wait(); err != nil {
 		return nil, err
 	}
-	if err := p.cleanOutdatedSessions(sessions); err != nil {
-		return nil, err
-	}
-
 	return sessions, nil
 }
 
@@ -278,23 +271,19 @@ func (p *persistence) persistSessionsSummary(summary []types.SessionSummary) err
 	return nil
 }
 
-func (p *persistence) cleanOutdatedSessions(sessions types.Sessions) error {
-	sessionsIDs := make(map[string]bool, len(sessions))
-	for _, ses := range sessions {
-		session := *ses
-		sessionsIDs[session.ID] = true
-	}
-	log.Debug("Clean old sessions")
-	entries, err := os.ReadDir(p.persistenceDirectory)
-	if err != nil {
+func (p *persistence) cleanAll() error {
+	if err := os.MkdirAll(p.persistenceDirectory, os.ModePerm); err != nil && !os.IsExist(err) {
+		log.WithError(err).Errorf("Unable to ensure that directory %q exists", p.persistenceDirectory)
 		return err
 	}
-	for _, entry := range entries {
-		if entry.IsDir() && !sessionsIDs[entry.Name()] {
-			path := filepath.Join(p.persistenceDirectory, entry.Name())
-			log.Debugf("Removing directory: %q", path)
-			os.RemoveAll(path)
-		}
+	log.Debug("Cleanning old sessions")
+	files, err := os.ReadDir(p.persistenceDirectory)
+	if err != nil {
+		log.WithError(err).Errorf("Unable to browse directory %q", p.persistenceDirectory)
+		return err
+	}
+	for _, file := range files {
+		os.RemoveAll(filepath.Join(p.persistenceDirectory, file.Name()))
 	}
 	return nil
 }
