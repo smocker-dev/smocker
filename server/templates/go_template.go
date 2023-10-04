@@ -64,14 +64,15 @@ func (*goTemplateJsonEngine) Execute(request types.Request, script string) (*typ
 		return nil, fmt.Errorf("failed to unmarshal response from dynamic template: %w", err)
 	}
 
-	body := tmplResult["body"]
-	if _, ok := body.(string); !ok {
-		b, err := json.Marshal(body)
-		if err != nil {
-			log.WithError(err).Error("Failed to marshal response body as JSON")
-			return nil, fmt.Errorf("failed to marshal response body as JSON: %w", err)
+	if body := tmplResult["body"]; body != nil {
+		if _, ok := body.(string); !ok {
+			b, err := json.Marshal(body)
+			if err != nil {
+				log.WithError(err).Error("Failed to marshal response body as JSON")
+				return nil, fmt.Errorf("failed to marshal response body as JSON: %w", err)
+			}
+			tmplResult["body"] = string(b)
 		}
-		tmplResult["body"] = string(b)
 	}
 
 	b, err := json.Marshal(tmplResult)
