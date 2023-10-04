@@ -26,7 +26,7 @@ func (ss *StringSlice) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (ss *StringSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (ss *StringSlice) UnmarshalYAML(unmarshal func(any) error) error {
 	var str string
 	if err := unmarshal(&str); err == nil {
 		*ss = append(*ss, str)

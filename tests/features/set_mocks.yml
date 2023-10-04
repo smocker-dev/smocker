@@ -105,20 +105,23 @@ testcases:
         url: http://localhost:8081/mocks
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 9
-          - result.bodyjson.bodyjson8.request.path.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson8.request.path.value ShouldEqual "/.*"
-          - result.bodyjson.bodyjson7.request.method.matcher ShouldEqual "ShouldContainSubstring"
-          - result.bodyjson.bodyjson7.request.method.value ShouldEqual "PO"
-          - result.bodyjson.bodyjson6.request.body.matcher ShouldEqual "ShouldEqualJSON"
-          - result.bodyjson.bodyjson6.request.body.value ShouldContainSubstring id
-          - result.bodyjson.bodyjson5.request.headers.content-type.content-type0.matcher ShouldEqual "ShouldMatch"
-          - result.bodyjson.bodyjson5.request.headers.content-type.content-type0.value ShouldEqual application/.*
-          - result.bodyjson.bodyjson4.request.query_params.test.test0.value ShouldEqual true
-          - result.bodyjson.bodyjson3.request.body.matcher ShouldEqual "ShouldNotBeEmpty"
-          - result.bodyjson.bodyjson2.request.query_params.test.test0.value ShouldEqual true
-          - result.bodyjson.bodyjson1.request.body.key1.value ShouldEqual test
-          - result.bodyjson.bodyjson0.request.body.key1[0].value ShouldEqual test
+          - result.bodyjson.__len__ ShouldEqual 12
+          - result.bodyjson.bodyjson0.request.body.matcher ShouldEqual ShouldNotEqualUnorderedJSON
+          - result.bodyjson.bodyjson1.request.body.matcher ShouldEqual ShouldEqualUnorderedJSON
+          - result.bodyjson.bodyjson2.request.body.matcher ShouldEqual ShouldNotEqualJSON
+          - result.bodyjson.bodyjson3.request.body.key1[0].value ShouldEqual test
+          - result.bodyjson.bodyjson4.request.body.key1.value ShouldEqual test
+          - result.bodyjson.bodyjson5.request.query_params.test.test0.value ShouldEqual true
+          - result.bodyjson.bodyjson6.request.body.matcher ShouldEqual "ShouldNotBeEmpty"
+          - result.bodyjson.bodyjson7.request.query_params.test.test0.value ShouldEqual true
+          - result.bodyjson.bodyjson8.request.headers.content-type.content-type0.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson8.request.headers.content-type.content-type0.value ShouldEqual application/.*
+          - result.bodyjson.bodyjson9.request.body.matcher ShouldEqual "ShouldEqualJSON"
+          - result.bodyjson.bodyjson9.request.body.value ShouldContainSubstring id
+          - result.bodyjson.bodyjson10.request.method.matcher ShouldEqual "ShouldContainSubstring"
+          - result.bodyjson.bodyjson10.request.method.value ShouldEqual "PO"
+          - result.bodyjson.bodyjson11.request.path.matcher ShouldEqual "ShouldMatch"
+          - result.bodyjson.bodyjson11.request.path.value ShouldEqual "/.*"
 
   - name: Add dynamic mocks
     steps:

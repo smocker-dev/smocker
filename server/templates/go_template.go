@@ -26,7 +26,7 @@ func (*goTemplateYamlEngine) Execute(request types.Request, script string) (*typ
 	}
 
 	buffer := new(bytes.Buffer)
-	if err = tmpl.Execute(buffer, map[string]interface{}{"Request": request}); err != nil {
+	if err = tmpl.Execute(buffer, map[string]any{"Request": request}); err != nil {
 		log.WithError(err).Error("Failed to execute dynamic template")
 		return nil, fmt.Errorf("failed to execute dynamic template: %w", err)
 	}
@@ -53,12 +53,12 @@ func (*goTemplateJsonEngine) Execute(request types.Request, script string) (*typ
 	}
 
 	buffer := new(bytes.Buffer)
-	if err = tmpl.Execute(buffer, map[string]interface{}{"Request": request}); err != nil {
+	if err = tmpl.Execute(buffer, map[string]any{"Request": request}); err != nil {
 		log.WithError(err).Error("Failed to execute dynamic template")
 		return nil, fmt.Errorf("failed to execute dynamic template: %w", err)
 	}
 
-	var tmplResult map[string]interface{}
+	var tmplResult map[string]any
 	if err = json.Unmarshal(buffer.Bytes(), &tmplResult); err != nil {
 		log.WithError(err).Error("Failed to unmarshal response from dynamic template")
 		return nil, fmt.Errorf("failed to unmarshal response from dynamic template: %w", err)

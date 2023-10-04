@@ -181,7 +181,7 @@ func (d *Delay) UnmarshalJSON(data []byte) error {
 	return d.validate()
 }
 
-func (d *Delay) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (d *Delay) UnmarshalYAML(unmarshal func(any) error) error {
 	var s time.Duration
 	if err := unmarshal(&s); err == nil {
 		d.Min = s

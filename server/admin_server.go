@@ -22,7 +22,7 @@ type TemplateRenderer struct {
 }
 
 // Render renders a template document
-func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
 	return t.ExecuteTemplate(w, name, data)
 }
 

@@ -38,7 +38,7 @@ type Request struct {
 	Method      string      `json:"method"`
 	Origin      string      `json:"origin"`
 	BodyString  string      `json:"body_string" yaml:"body_string"`
-	Body        interface{} `json:"body,omitempty" yaml:"body,omitempty"`
+	Body        any         `json:"body,omitempty" yaml:"body,omitempty"`
 	QueryParams url.Values  `json:"query_params,omitempty" yaml:"query_params,omitempty"`
 	Headers     http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
 	Date        time.Time   `json:"date" yaml:"date"`
@@ -46,7 +46,7 @@ type Request struct {
 
 type Response struct {
 	Status  int         `json:"status"`
-	Body    interface{} `json:"body,omitempty" yaml:"body,omitempty"`
+	Body    any         `json:"body,omitempty" yaml:"body,omitempty"`
 	Headers http.Header `json:"headers,omitempty" yaml:"headers,omitempty"`
 	Date    time.Time   `json:"date" yaml:"date"`
 }
@@ -61,8 +61,8 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		}
 	}
 	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-	var body interface{}
-	var tmp map[string]interface{}
+	var body any
+	var tmp map[string]any
 	if err := json.Unmarshal(bodyBytes, &tmp); err != nil {
 		body = string(bodyBytes)
 	} else {

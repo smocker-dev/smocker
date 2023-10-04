@@ -73,7 +73,7 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 				}
 			}
 
-			var body interface{}
+			var body any
 			if err := json.Unmarshal(responseBytes, &body); err != nil {
 				body = string(responseBytes)
 			}

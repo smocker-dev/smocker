@@ -11,7 +11,7 @@ import (
 
 const MIMEApplicationXYaml = "application/x-yaml"
 
-func bindAccordingAccept(c echo.Context, res interface{}) error {
+func bindAccordingAccept(c echo.Context, res any) error {
 	if err := c.Bind(res); err != nil {
 		if err != echo.ErrUnsupportedMediaType {
 			log.WithError(err).Error("Failed to parse payload")
@@ -32,7 +32,7 @@ func bindAccordingAccept(c echo.Context, res interface{}) error {
 	return nil
 }
 
-func respondAccordingAccept(c echo.Context, body interface{}) error {
+func respondAccordingAccept(c echo.Context, body any) error {
 	accept := c.Request().Header.Get(echo.HeaderAccept)
 	if strings.Contains(strings.ToLower(accept), MIMEApplicationXYaml) {
 		c.Response().Header().Set(echo.HeaderContentType, MIMEApplicationXYaml)
