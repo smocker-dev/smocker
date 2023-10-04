@@ -194,7 +194,13 @@ func (a *Admin) SummarizeSessions(c echo.Context) error {
 
 func (a *Admin) NewSession(c echo.Context) error {
 	name := c.QueryParam("name")
-	session := a.mocksServices.NewSession(name)
+	override, _ := strconv.ParseBool(c.QueryParam("override"))
+	var session *types.Session
+	if override {
+		session = a.mocksServices.ResetSession(name)
+	} else {
+		session = a.mocksServices.NewSession(name)
+	}
 	return respondAccordingAccept(c, types.SessionSummary(*session))
 }
 
