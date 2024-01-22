@@ -5,7 +5,8 @@ build/
 coverage/
 docs/.vuepress/dist/
 node_modules/
-sessions/
+sessions
+!tests/sessions
 smocker
 smocker.test
 vendor/

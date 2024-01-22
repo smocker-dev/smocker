@@ -53,8 +53,13 @@ CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
 	cd /tmp; go get github.com/caddyserver/caddy/v2/...
 
+.PHONY: persistence
+persistence:
+	rm -rf ./sessions || true
+	cp -r tests/sessions sessions
+
 .PHONY: start
-start: $(REFLEX)
+start: $(REFLEX) persistence
 	$(REFLEX) --start-service \
 		--decoration='none' \
 		--regex='\.go$$' \
@@ -80,7 +85,7 @@ test:
 
 PID_FILE=/tmp/$(APPNAME).test.pid
 .PHONY: test-integration
-test-integration: $(VENOM) check-default-ports
+test-integration: $(VENOM) check-default-ports persistence
 	mkdir -p coverage
 	go test -race -coverpkg="./..." -c . -o $(APPNAME).test
 	SMOCKER_PERSISTENCE_DIRECTORY=./sessions ./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)

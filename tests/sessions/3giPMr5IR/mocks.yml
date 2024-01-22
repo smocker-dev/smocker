@@ -1,0 +1,21 @@
+- request:
+      path:
+          matcher: ShouldEqual
+          value: /test
+      method:
+          matcher: ShouldEqual
+          value: GET
+  response:
+      body: |
+          {"message": "test"}
+      status: 200
+      headers:
+          Content-Type:
+            - application/json
+  context:
+      times: 1
+  state:
+      id: YnJEM95SR
+      times_count: 0
+      locked: false
+      creation_date: 2024-01-22T21:05:27.349554475+01:00
