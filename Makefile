@@ -130,7 +130,7 @@ build/smocker.tar.gz:
 	$(MAKE) build
 	yarn install --frozen-lockfile --ignore-scripts
 	yarn build
-	cd build/; tar -cvf smocker.tar.gz *
+	cd build/; tar -czvf smocker.tar.gz *
 
 .PHONY: release
 release: build/smocker.tar.gz
