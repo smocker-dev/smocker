@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="docs/.vuepress/public/logo/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
+  <img src="docs/static/img/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
 </h1>
 
 [![CI](https://github.com/Thiht/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/Thiht/smocker/actions/workflows/main.yml)
@@ -65,9 +65,9 @@ curl localhost:8081/version
 
 Smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
-![History](docs/.vuepress/public/screenshots/screenshot-history.png)
+![History](docs/static/screenshots/screenshot-history.png)
 
-![Mocks](docs/.vuepress/public/screenshots/screenshot-mocks.png)
+![Mocks](docs/static/screenshots/screenshot-mocks.png)
 
 ## Usage
 
@@ -162,12 +162,11 @@ The frontend is written with TypeScript and React. You can use the following com
 
 ### Documentation
 
-The documentation is written in Markdown using [Vuepress](https://vuepress.vuejs.org/). You can use the following commands to manage the documentation:
+The documentation is written in Markdown using [Docusaurus](https://docusaurus.io). You can use the following commands in the `docs/` folder to manage the documentation:
 
-- `yarn install`: install the dependencies
-- `yarn docs:generate`: regenerate documentation screenshots (require the whole application to be started on the default ports)
-- `yarn docs:dev`: start the documentation in development mode, with live reload
-- `yarn docs:build`: generate the static production documentation
+- `npm install`: install the dependencies
+- `npm run start`: start the documentation in development mode, with live reload
+- `npm run build`: generate the static production documentation
 
 ### Docker
 

@@ -1,0 +1,21 @@
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2rem 0;
+  width: 100%;
+
+  border-top: 1px solid #eaecef;
+  border-bottom: 1px solid #eaecef;
+}
+
+.featureHeading {
+  font-size: 1.4rem;
+  font-weight: 500;
+  border-bottom: none;
+  padding-bottom: 0;
+  color: #3a5169;
+}
+
+.featureDescription {
+  color: #4e6e8e;
+}
