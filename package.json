@@ -28,6 +28,7 @@
     "io-ts": "^2.2.7",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.19",
+    "lodash.debounce": "^4.0.8",
     "mermaid": "^8.5.2",
     "react": "^16.10.2",
     "react-codemirror2": "^7.2.1",
@@ -39,7 +40,7 @@
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
     "typesafe-actions": "^5.1.0",
-    "use-lodash-debounce": "^1.1.0"
+    "use-lodash-debounce": "^1.3.0"
   },
   "devDependencies": {
     "@hot-loader/react-dom": "^16.10.2",
@@ -76,9 +77,6 @@
     "ts-jest": "^26.1.1",
     "tslib": "^2.3.0",
     "typescript": "^3.8.3"
-  },
-  "peerDependencies": {
-    "puppeteer": "^11.0.0"
   },
   "resolutions": {
     "@types/react": "16.9.41"
