@@ -145,8 +145,9 @@ start-caddy: $(CADDY)
 
 .PHONY: deploy-docker
 deploy-docker:
-	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker buildx create --use
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	docker buildx create --use
 ifdef IS_SEMVER
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):latest .
 endif
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):$(DOCKER_TAG) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
