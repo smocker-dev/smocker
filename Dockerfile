@@ -11,6 +11,7 @@ COPY server/ ./server/
 RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
 
 FROM alpine
+LABEL org.opencontainers.image.source="https://github.com/smocker-dev/smocker"
 WORKDIR /opt
 EXPOSE 8080 8081
 COPY build/client client/

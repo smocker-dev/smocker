@@ -3,7 +3,7 @@
 </h1>
 
 [![CI](https://github.com/smocker-dev/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/smocker-dev/smocker/actions/workflows/main.yml)
-<!-- TODO: replace with ghcr badge [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker) -->
+[![Docker Repository](https://img.shields.io/badge/ghcr.io%2Fsmocker--dev%2Fsmocker-blue?logo=docker&label=docker)](https://github.com/smocker-dev/smocker/pkgs/container/smocker)
 [![Github Release](https://img.shields.io/github/v/release/smocker-dev/smocker.svg?logo=github)](https://github.com/smocker-dev/smocker/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/smocker-dev/smocker)](https://goreportcard.com/report/github.com/smocker-dev/smocker)
 [![License](https://img.shields.io/github/license/smocker-dev/smocker?logo=open-source-initiative)](https://github.com/smocker-dev/smocker/blob/main/LICENSE)
