@@ -96,7 +96,7 @@ jobs:
           make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} start-docker
 
       - if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: smocker-bin
           path: ./build/smocker.tar.gz
@@ -112,7 +112,7 @@ jobs:
       - id: extract_ref
         run: echo ::set-output name=GIT_REF::$(echo ${GITHUB_REF##*/})
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: smocker-bin
           path: ./build
