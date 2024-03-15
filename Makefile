@@ -15,8 +15,7 @@ ifeq ($(RELEASE), 1)
 endif
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
-DOCKER_ACCOUNT?=thiht
-DOCKER_IMAGE=$(DOCKER_ACCOUNT)/$(APPNAME)
+DOCKER_IMAGE=ghcr.io/smocker-dev/smocker
 
 # See: https://docs.docker.com/engine/reference/commandline/tag/#extended-description
 # A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
@@ -63,7 +62,7 @@ start: $(REFLEX)
 
 .PHONY: build
 build:
-	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
+	go build -trimpath $(GO_LDFLAGS) -o ./build/$(APPNAME)
 
 .PHONY: lint
 lint: $(GOLANGCILINT)

@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Thiht/smocker/server/services"
-	"github.com/Thiht/smocker/server/templates"
-	"github.com/Thiht/smocker/server/types"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/services"
+	"github.com/smocker-dev/smocker/server/templates"
+	"github.com/smocker-dev/smocker/server/types"
 	"gopkg.in/yaml.v3"
 )
 

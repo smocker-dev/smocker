@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Thiht/smocker/server/config"
-	"github.com/Thiht/smocker/server/handlers"
-	"github.com/Thiht/smocker/server/services"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/config"
+	"github.com/smocker-dev/smocker/server/handlers"
+	"github.com/smocker-dev/smocker/server/services"
 )
 
 // TemplateRenderer is a custom html/template renderer for Echo framework

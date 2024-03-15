@@ -2,11 +2,11 @@
   <img src="./docs/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
 </h1>
 
-[![CI](https://github.com/Thiht/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/Thiht/smocker/actions/workflows/main.yml)
-[![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
-[![Github Release](https://img.shields.io/github/v/release/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
-[![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
+[![CI](https://github.com/smocker-dev/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/smocker-dev/smocker/actions/workflows/main.yml)
+<!-- TODO: replace with ghcr badge [![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker) -->
+[![Github Release](https://img.shields.io/github/v/release/smocker-dev/smocker.svg?logo=github)](https://github.com/smocker-dev/smocker/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/smocker-dev/smocker)](https://goreportcard.com/report/github.com/smocker-dev/smocker)
+[![License](https://img.shields.io/github/license/smocker-dev/smocker?logo=open-source-initiative)](https://github.com/smocker-dev/smocker/blob/main/LICENSE)
 
 **Smocker** (server mock) is a simple and efficient HTTP mock server.
 
@@ -40,7 +40,7 @@ docker run -d \
   -p 8080:8080 \
   -p 8081:8081 \
   --name smocker \
-  thiht/smocker
+  ghcr.io/smocker-dev/smocker
 ```
 
 ### Manual Deployment
@@ -48,7 +48,7 @@ docker run -d \
 ```sh
 # This will be the deployment folder for the Smocker instance
 mkdir -p /opt/smocker && cd /opt/smocker
-wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
+wget -P /tmp https://github.com/smocker-dev/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz
 nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
 ```

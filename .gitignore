@@ -7,5 +7,4 @@ node_modules/
 sessions/
 smocker
 smocker.test
-vendor/
 yarn-error.log
