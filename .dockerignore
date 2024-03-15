@@ -1,6 +1,5 @@
 .cache/
 .git/
 .vscode/
-docs/
 node_modules/
 tests/

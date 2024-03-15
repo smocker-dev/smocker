@@ -3,7 +3,6 @@
 .vscode/
 build/
 coverage/
-docs/.vuepress/dist/
 node_modules/
 sessions/
 smocker
