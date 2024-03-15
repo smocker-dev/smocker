@@ -14,15 +14,13 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
       - run: yarn install --frozen-lockfile
@@ -34,23 +32,22 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
+
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.21.1'
+          go-version: stable
 
       - run: yarn install --frozen-lockfile
 
@@ -69,24 +66,22 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
       - id: extract_ref
         run: echo ::set-output name=GIT_REF::$(echo ${GITHUB_REF##*/})
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.21.1'
+          go-version: stable
 
       - run: yarn install --frozen-lockfile
 
@@ -106,6 +101,7 @@ jobs:
     needs: [lint, test, build]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
