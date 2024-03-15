@@ -12,10 +12,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/Thiht/smocker/server/services"
-	"github.com/Thiht/smocker/server/types"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/services"
+	"github.com/smocker-dev/smocker/server/types"
 )
 
 type bodyDumpResponseWriter struct {

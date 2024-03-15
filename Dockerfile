@@ -1,8 +1,9 @@
-FROM golang:1.18-alpine AS build-backend
+ARG GO_VERSION=1.22
+FROM golang:${GO_VERSION}-alpine AS build-backend
 RUN apk add --no-cache make
 ARG VERSION=snapshot
 ARG COMMIT
-WORKDIR /go/src/github.com/Thiht/smocker
+WORKDIR /go/src/smocker
 COPY go.mod go.sum ./
 RUN go mod download
 COPY Makefile main.go ./
@@ -13,5 +14,5 @@ FROM alpine
 WORKDIR /opt
 EXPOSE 8080 8081
 COPY build/client client/
-COPY --from=build-backend /go/src/github.com/Thiht/smocker/build/* /opt/
+COPY --from=build-backend /go/src/smocker/build/* /opt/
 CMD ["/opt/smocker"]
