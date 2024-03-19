@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Thiht/smocker/server/types"
+	"github.com/smocker-dev/smocker/server/types"
 )
 
 const (

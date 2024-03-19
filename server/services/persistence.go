@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Thiht/smocker/server/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/types"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 )

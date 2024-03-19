@@ -3,11 +3,9 @@
 .vscode/
 build/
 coverage/
-docs/.vuepress/dist/
 node_modules/
 sessions
 !tests/sessions
 smocker
 smocker.test
-vendor/
 yarn-error.log

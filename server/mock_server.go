@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Thiht/smocker/server/config"
-	"github.com/Thiht/smocker/server/handlers"
-	"github.com/Thiht/smocker/server/services"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/config"
+	"github.com/smocker-dev/smocker/server/handlers"
+	"github.com/smocker-dev/smocker/server/services"
 )
 
 func NewMockServer(cfg config.Config) (*http.Server, services.Mocks) {

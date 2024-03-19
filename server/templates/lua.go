@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Thiht/smocker/server/types"
 	goJson "github.com/layeh/gopher-json"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/types"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	luar "layeh.com/gopher-luar"

@@ -1,13 +1,12 @@
 <h1 align="center">
-  <img src="docs/.vuepress/public/logo/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
+  <img src="./docs/logo-horizontal.png" alt="Smocker" height="100" title="Smocker logo by mandyellow" />
 </h1>
 
-[![CI](https://github.com/Thiht/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/Thiht/smocker/actions/workflows/main.yml)
-[![Netlify Status](https://img.shields.io/netlify/61d4e090-b242-419f-8d69-e9dee3d50a37?logo=netlify)](https://app.netlify.com/sites/smocker/deploys)
-[![Docker Repository](https://img.shields.io/badge/docker-thiht%2Fsmocker-blue?logo=docker)](https://hub.docker.com/r/thiht/smocker)
-[![Github Release](https://img.shields.io/github/v/release/Thiht/smocker.svg?logo=github)](https://github.com/Thiht/smocker/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Thiht/smocker)](https://goreportcard.com/report/github.com/Thiht/smocker)
-[![License](https://img.shields.io/github/license/Thiht/smocker?logo=open-source-initiative)](https://github.com/Thiht/smocker/blob/master/LICENSE)
+[![CI](https://github.com/smocker-dev/smocker/actions/workflows/main.yml/badge.svg)](https://github.com/smocker-dev/smocker/actions/workflows/main.yml)
+[![Docker Repository](https://img.shields.io/badge/ghcr.io%2Fsmocker--dev%2Fsmocker-blue?logo=docker&label=docker)](https://github.com/smocker-dev/smocker/pkgs/container/smocker)
+[![Github Release](https://img.shields.io/github/v/release/smocker-dev/smocker.svg?logo=github)](https://github.com/smocker-dev/smocker/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/smocker-dev/smocker)](https://goreportcard.com/report/github.com/smocker-dev/smocker)
+[![License](https://img.shields.io/github/license/smocker-dev/smocker?logo=open-source-initiative)](https://github.com/smocker-dev/smocker/blob/main/LICENSE)
 
 **Smocker** (server mock) is a simple and efficient HTTP mock server.
 
@@ -25,7 +24,6 @@ The documentation is available on [smocker.dev](https://smocker.dev).
 - [Development](#development)
   - [Backend](#backend)
   - [Frontend](#frontend)
-  - [Documentation](#documentation)
   - [Docker](#docker)
   - [Caddy](#caddy)
   - [HTTPS](#https)
@@ -42,7 +40,7 @@ docker run -d \
   -p 8080:8080 \
   -p 8081:8081 \
   --name smocker \
-  thiht/smocker
+  ghcr.io/smocker-dev/smocker
 ```
 
 ### Manual Deployment
@@ -50,7 +48,7 @@ docker run -d \
 ```sh
 # This will be the deployment folder for the Smocker instance
 mkdir -p /opt/smocker && cd /opt/smocker
-wget -P /tmp https://github.com/Thiht/smocker/releases/latest/download/smocker.tar.gz
+wget -P /tmp https://github.com/smocker-dev/smocker/releases/latest/download/smocker.tar.gz
 tar xf /tmp/smocker.tar.gz
 nohup ./smocker -mock-server-listen-port=8080 -config-listen-port=8081 &
 ```
@@ -65,9 +63,9 @@ curl localhost:8081/version
 
 Smocker exposes a configuration user interface. You can access it in your web browser on http://localhost:8081/.
 
-![History](docs/.vuepress/public/screenshots/screenshot-history.png)
+![History](docs/screenshots/screenshot-history.png)
 
-![Mocks](docs/.vuepress/public/screenshots/screenshot-mocks.png)
+![Mocks](docs/screenshots/screenshot-mocks.png)
 
 ## Usage
 
@@ -159,15 +157,6 @@ The frontend is written with TypeScript and React. You can use the following com
 - `yarn format`: automatically format the frontend code
 - `yarn test`: execute unit tests
 - `yarn test:watch`: execute unit tests, with live reload
-
-### Documentation
-
-The documentation is written in Markdown using [Vuepress](https://vuepress.vuejs.org/). You can use the following commands to manage the documentation:
-
-- `yarn install`: install the dependencies
-- `yarn docs:generate`: regenerate documentation screenshots (require the whole application to be started on the default ports)
-- `yarn docs:dev`: start the documentation in development mode, with live reload
-- `yarn docs:build`: generate the static production documentation
 
 ### Docker
 
