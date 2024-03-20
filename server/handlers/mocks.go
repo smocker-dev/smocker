@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Thiht/smocker/server/services"
-	"github.com/Thiht/smocker/server/templates"
-	"github.com/Thiht/smocker/server/types"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server/services"
+	"github.com/smocker-dev/smocker/server/templates"
+	"github.com/smocker-dev/smocker/server/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,9 +28,6 @@ func NewMocks(ms services.Mocks) *Mocks {
 }
 
 func (m *Mocks) GenericHandler(c echo.Context) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
 	log.Debugf("Received request:\n---\n%s\n", string(b))
@@ -91,7 +88,9 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 				response = mock.Response
 			}
 
+			m.mu.Lock()
 			matchingMock.State.TimesCount++
+			m.mu.Unlock()
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
@@ -107,7 +106,9 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 		if len(exceededMocks) > 0 {
 			for _, mock := range exceededMocks {
+				m.mu.Lock()
 				mock.State.TimesCount++
+				m.mu.Unlock()
 			}
 			resp["message"] = types.SmockerMockExceeded
 			resp["nearest"] = exceededMocks

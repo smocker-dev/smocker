@@ -1,4 +1,4 @@
-module github.com/Thiht/smocker
+module github.com/smocker-dev/smocker
 
 go 1.21
 

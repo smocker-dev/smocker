@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/Thiht/smocker/server"
-	"github.com/Thiht/smocker/server/config"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
+	"github.com/smocker-dev/smocker/server"
+	"github.com/smocker-dev/smocker/server/config"
 )
 
 var appName, buildVersion, buildCommit, buildDate string // nolint

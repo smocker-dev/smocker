@@ -2,27 +2,29 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - '*.*.*' # semver, will override latest
       - '*-preview' # preview, won't override latest
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
       - run: yarn install --frozen-lockfile
@@ -34,23 +36,22 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
+
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.21.1'
+          go-version: stable
 
       - run: yarn install --frozen-lockfile
 
@@ -63,30 +64,29 @@ jobs:
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
+        continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
       - id: extract_ref
         run: echo ::set-output name=GIT_REF::$(echo ${GITHUB_REF##*/})
 
-      - id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+          node-version-file: .nvmrc
           cache: yarn
 
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.21.1'
+          go-version: stable
 
       - run: yarn install --frozen-lockfile
 
@@ -97,7 +97,7 @@ jobs:
           make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} start-docker
 
       - if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: smocker-bin
           path: ./build/smocker.tar.gz
@@ -106,13 +106,14 @@ jobs:
     needs: [lint, test, build]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
       - id: extract_ref
         run: echo ::set-output name=GIT_REF::$(echo ${GITHUB_REF##*/})
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: smocker-bin
           path: ./build
@@ -122,22 +123,21 @@ jobs:
       - name: Docker login
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          platforms: linux/amd64,linux/arm64
 
       - name: Deploy on Docker registry
         run: make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} deploy-docker
 
       - name: Deploy on GitHub releases
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build/smocker.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

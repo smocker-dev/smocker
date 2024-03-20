@@ -9,11 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
-    "docs:generate": "node docs/refresh-screenshots.js",
-    "predocs:generate": "yarn add --peer --pure-lockfile puppeteer"
+    "test:watch": "jest --watch"
   },
   "targets": {
     "default": {
@@ -32,6 +28,7 @@
     "io-ts": "^2.2.7",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.19",
+    "lodash.debounce": "^4.0.8",
     "mermaid": "^8.5.2",
     "react": "^16.10.2",
     "react-codemirror2": "^7.2.1",
@@ -43,7 +40,7 @@
     "redux-observable": "^1.2.0",
     "rxjs": "^6.5.3",
     "typesafe-actions": "^5.1.0",
-    "use-lodash-debounce": "^1.1.0"
+    "use-lodash-debounce": "^1.3.0"
   },
   "devDependencies": {
     "@hot-loader/react-dom": "^16.10.2",
@@ -79,15 +76,7 @@
     "sass": "^1.26.9",
     "ts-jest": "^26.1.1",
     "tslib": "^2.3.0",
-    "typescript": "^3.8.3",
-    "vuepress": "^1.8.2",
-    "vuepress-plugin-fulltext-search": "^2.2.0",
-    "vuepress-plugin-mermaidjs": "^1.8.1",
-    "vuepress-plugin-one-click-copy": "^1.0.3",
-    "vuepress-plugin-zooming": "^1.1.7"
-  },
-  "peerDependencies": {
-    "puppeteer": "^11.0.0"
+    "typescript": "^3.8.3"
   },
   "resolutions": {
     "@types/react": "16.9.41"

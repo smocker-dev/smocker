@@ -47,7 +47,7 @@ const App = () => (
               Smocker version {window.version} &ndash; MIT Licensed
               <br />
               <a
-                href="https://github.com/Thiht/smocker"
+                href="https://github.com/smocker-dev/smocker"
                 title="Smocker on GitHub"
                 target="_blank"
                 rel="noreferrer"

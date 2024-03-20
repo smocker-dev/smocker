@@ -15,8 +15,7 @@ ifeq ($(RELEASE), 1)
 endif
 GO_LDFLAGS:=-ldflags="$(GO_LDFLAGS)"
 
-DOCKER_ACCOUNT?=thiht
-DOCKER_IMAGE=$(DOCKER_ACCOUNT)/$(APPNAME)
+DOCKER_IMAGE=ghcr.io/smocker-dev/smocker
 
 # See: https://docs.docker.com/engine/reference/commandline/tag/#extended-description
 # A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
@@ -59,11 +58,11 @@ start: $(REFLEX)
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build --persistence-directory ./sessions
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./sessions
 
 .PHONY: build
 build:
-	go build $(GO_LDFLAGS) -o ./build/$(APPNAME)
+	go build -trimpath $(GO_LDFLAGS) -o ./build/$(APPNAME)
 
 .PHONY: lint
 lint: $(GOLANGCILINT)
@@ -131,7 +130,7 @@ build/smocker.tar.gz:
 	$(MAKE) build
 	yarn install --frozen-lockfile --ignore-scripts
 	yarn build
-	cd build/; tar -cvf smocker.tar.gz *
+	cd build/; tar -czvf smocker.tar.gz *
 
 .PHONY: release
 release: build/smocker.tar.gz
@@ -146,8 +145,9 @@ start-caddy: $(CADDY)
 
 .PHONY: deploy-docker
 deploy-docker:
-	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes; docker buildx create --use
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	docker buildx create --use
 ifdef IS_SEMVER
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):latest .
 endif
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):$(DOCKER_TAG) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .
+	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
