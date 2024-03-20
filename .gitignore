@@ -4,7 +4,8 @@
 build/
 coverage/
 node_modules/
-sessions/
+sessions
+!tests/sessions
 smocker
 smocker.test
 yarn-error.log

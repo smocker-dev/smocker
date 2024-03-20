@@ -1,0 +1,32 @@
+name: Persistance
+version: "2"
+testcases:
+  - name: Check Mocks
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.state.id ShouldEqual YnJEM95SR
+  - name: Check History
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.context.mock_id ShouldEqual YnJEM95SR
+  - name: Check Sessions
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8081/sessions
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.id ShouldEqual 3giPMr5IR
+          - result.bodyjson.bodyjson0.history.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.mocks.__len__ ShouldEqual 1

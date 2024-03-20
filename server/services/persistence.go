@@ -109,8 +109,8 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 		return
 	}
 	var sessionsGroup errgroup.Group
-	for _, ses := range sessions {
-		session := *ses
+	for i := range sessions {
+		session := sessions[i]
 		sessionsGroup.Go(func() error {
 			if err := p.createSessionDirectory(session.ID); err != nil {
 				return err
@@ -161,8 +161,8 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	}
 	var sessionsGroup errgroup.Group
 	var sessionsLock sync.Mutex
-	for _, ses := range sessions {
-		session := *ses
+	for i := range sessions {
+		session := sessions[i]
 		sessionsGroup.Go(func() error {
 			historyFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, historyFileName))
 			if err != nil {

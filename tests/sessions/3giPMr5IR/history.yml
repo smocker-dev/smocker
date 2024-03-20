@@ -1,0 +1,16 @@
+- context:
+      mockid: YnJEM95SR
+      mocktype: static
+      delay: ""
+  request:
+      path: /test
+      method: GET
+      date: 2024-01-22T21:06:00.547178247+01:00
+  response:
+      status: 200
+      body:
+          message: test
+      headers:
+          Content-Type:
+            - application/json
+      date: 2024-01-22T21:06:00.547400418+01:00
