@@ -24,6 +24,7 @@ func (m Mocks) Clone() Mocks {
 }
 
 type Mock struct {
+	MockID          string               `json:"mockId,omitempty" yaml:"mockId"`
 	Request         MockRequest          `json:"request,omitempty" yaml:"request"`
 	Response        *MockResponse        `json:"response,omitempty" yaml:"response,omitempty"`
 	Context         *MockContext         `json:"context,omitempty" yaml:"context,omitempty"`
@@ -65,13 +66,13 @@ func (m *Mock) Validate() error {
 }
 
 func (m *Mock) Init() {
-	if m.State != nil && m.State.ID != "" {
-		m.State.CreationDate = time.Now()
+	m.State = &MockState{
+		CreationDate: time.Now(),
+	}
+	if m.MockID != "" {
+		m.State.ID = m.MockID
 	} else {
-		m.State = &MockState{
-			CreationDate: time.Now(),
-			ID:           shortid.MustGenerate(),
-		}
+		m.State.ID = shortid.MustGenerate()
 	}
 
 	if m.Context == nil {

@@ -72,10 +72,10 @@ func (a *Admin) AddMocks(c echo.Context) error {
 	}
 
 	for _, mock := range mocks {
-		if mock.State.ID != "" { // user has defined own mock ID
-			_, err := a.mocksServices.GetMockByID(sessionID, mock.State.ID)
+		if mock.MockID != "" { // user has defined own mock ID
+			_, err := a.mocksServices.GetMockByID(sessionID, mock.MockID)
 			if err == nil {
-				return echo.NewHTTPError(http.StatusConflict, "Mock ID: "+mock.State.ID+" already exists.")
+				return echo.NewHTTPError(http.StatusConflict, "Mock ID: "+mock.MockID+" already exists.")
 			}
 
 			if err != types.MockNotFound {
