@@ -1,45 +1,83 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
 
+	"github.com/kinbiko/jsonassert"
 	log "github.com/sirupsen/logrus"
-	"github.com/smartystreets/assertions"
+	"github.com/smarty/assertions"
 	"github.com/stretchr/objx"
 )
+
+type buffer struct {
+	bb bytes.Buffer
+}
+
+func (b *buffer) Errorf(msg string, args ...interface{}) {
+	b.bb.WriteString(fmt.Sprintf(msg, args...))
+}
+
+func (b *buffer) String() string {
+	return b.bb.String()
+}
 
 const (
 	DefaultMatcher = "ShouldEqual"
 )
 
-type Assertion func(actual interface{}, expected ...interface{}) string
+type Assertion func(actual any, expected ...any) string
 
 var asserts = map[string]Assertion{
-	"ShouldResemble":         assertions.ShouldResemble,
-	"ShouldAlmostEqual":      assertions.ShouldAlmostEqual,
-	"ShouldContainSubstring": assertions.ShouldContainSubstring,
-	"ShouldEndWith":          assertions.ShouldEndWith,
-	"ShouldEqual":            assertions.ShouldEqual,
-	"ShouldEqualJSON":        assertions.ShouldEqualJSON,
-	"ShouldStartWith":        assertions.ShouldStartWith,
-	"ShouldBeEmpty":          ShouldBeEmpty,
-	"ShouldMatch":            ShouldMatch,
+	"ShouldResemble":           assertions.ShouldResemble,
+	"ShouldAlmostEqual":        assertions.ShouldAlmostEqual,
+	"ShouldContainSubstring":   assertions.ShouldContainSubstring,
+	"ShouldEndWith":            assertions.ShouldEndWith,
+	"ShouldEqual":              assertions.ShouldEqual,
+	"ShouldEqualJSON":          assertions.ShouldEqualJSON,
+	"ShouldEqualUnorderedJSON": ShouldEqualUnorderedJSON,
+	"ShouldStartWith":          assertions.ShouldStartWith,
+	"ShouldBeEmpty":            ShouldBeEmpty,
+	"ShouldMatch":              ShouldMatch,
 
-	"ShouldNotResemble":         assertions.ShouldNotResemble,
-	"ShouldNotAlmostEqual":      assertions.ShouldNotAlmostEqual,
-	"ShouldNotContainSubstring": assertions.ShouldNotContainSubstring,
-	"ShouldNotEndWith":          assertions.ShouldNotEndWith,
-	"ShouldNotEqual":            assertions.ShouldNotEqual,
-	"ShouldNotStartWith":        assertions.ShouldNotStartWith,
-	"ShouldNotBeEmpty":          ShouldNotBeEmpty,
-	"ShouldNotMatch":            ShouldNotMatch,
+	"ShouldNotResemble":           assertions.ShouldNotResemble,
+	"ShouldNotAlmostEqual":        assertions.ShouldNotAlmostEqual,
+	"ShouldNotContainSubstring":   assertions.ShouldNotContainSubstring,
+	"ShouldNotEndWith":            assertions.ShouldNotEndWith,
+	"ShouldNotEqual":              assertions.ShouldNotEqual,
+	"ShouldNotEqualJSON":          ShouldNotEqualJSON,
+	"ShouldNotEqualUnorderedJSON": ShouldNotEqualUnorderedJSON,
+	"ShouldNotStartWith":          assertions.ShouldNotStartWith,
+	"ShouldNotBeEmpty":            ShouldNotBeEmpty,
+	"ShouldNotMatch":              ShouldNotMatch,
 }
 
-func ShouldMatch(value interface{}, patterns ...interface{}) string {
+func prepareUnorderedJSON(value any) any {
+	switch v := value.(type) {
+	case map[string]any:
+		for key, val := range v {
+			v[key] = prepareUnorderedJSON(val)
+		}
+		return v
+	case []any:
+		if len(v) < 2 {
+			return v
+		}
+		res := make([]any, 0, len(v)+1)
+		res = append(res, "<<UNORDERED>>") // Key element used by jsonassert to allow unordered lists
+		for _, val := range v {
+			res = append(res, prepareUnorderedJSON(val))
+		}
+		return res
+	}
+	return value
+}
+
+func ShouldMatch(value any, patterns ...any) string {
 	valueString, ok := value.(string)
 	if !ok {
 		return "ShouldMatch works only with strings"
@@ -59,15 +97,44 @@ func ShouldMatch(value interface{}, patterns ...interface{}) string {
 	return ""
 }
 
-func ShouldBeEmpty(value interface{}, patterns ...interface{}) string {
+func ShouldBeEmpty(value any, patterns ...any) string {
 	return assertions.ShouldBeEmpty(value)
 }
 
-func ShouldNotBeEmpty(value interface{}, patterns ...interface{}) string {
+func ShouldEqualUnorderedJSON(value any, expected ...any) string {
+	valueString, ok := value.(string)
+	if !ok {
+		return "ShouldEqualUnorderedJSON works only with strings"
+	}
+	if len(expected) != 1 {
+		return "ShouldEqualUnorderedJSON requires exactly one comparison value"
+	}
+	expectedString, ok := expected[0].(string)
+	if !ok {
+		return "ShouldEqualUnorderedJSON works only with strings"
+	}
+	var v any
+	if err := json.Unmarshal([]byte(valueString), &v); err != nil {
+		return "Received value is not valid JSON"
+	}
+	if err := json.Unmarshal([]byte(expectedString), &v); err != nil {
+		return "Expected value is not valid JSON"
+	}
+	b, err := json.Marshal(prepareUnorderedJSON(v))
+	if err != nil {
+		return "ShouldEqualUnorderedJSON failed to prepare expected JSON"
+	}
+	buf := buffer{}
+	ja := jsonassert.New(&buf)
+	ja.Assertf(valueString, string(b))
+	return buf.String()
+}
+
+func ShouldNotBeEmpty(value any, patterns ...any) string {
 	return assertions.ShouldNotBeEmpty(value)
 }
 
-func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
+func ShouldNotMatch(value any, patterns ...any) string {
 	valueString, ok := value.(string)
 	if !ok {
 		return "ShouldNotMatch works only with strings"
@@ -84,6 +151,64 @@ func ShouldNotMatch(value interface{}, patterns ...interface{}) string {
 		}
 	}
 
+	return ""
+}
+
+func ShouldNotEqualJSON(value any, expected ...any) string {
+	valueString, ok := value.(string)
+	if !ok {
+		return "ShouldNotEqualJSON works only with strings"
+	}
+	if len(expected) != 1 {
+		return "ShouldNotEqualJSON requires exactly one comparison value"
+	}
+	expectedString, ok := expected[0].(string)
+	if !ok {
+		return "ShouldNotEqualJSON works only with strings"
+	}
+	var v any
+	if err := json.Unmarshal([]byte(valueString), &v); err != nil {
+		return "Received value is not valid JSON"
+	}
+	if err := json.Unmarshal([]byte(expectedString), &v); err != nil {
+		return "Expected value is not valid JSON"
+	}
+
+	if res := assertions.ShouldEqualJSON(value, expected...); res == "" {
+		return fmt.Sprintf("Expected %q to not be equal to %q (but it did)!", valueString, expectedString)
+	}
+	return ""
+}
+
+func ShouldNotEqualUnorderedJSON(value any, expected ...any) string {
+	valueString, ok := value.(string)
+	if !ok {
+		return "ShouldNotEqualUnorderedJSON works only with strings"
+	}
+	if len(expected) != 1 {
+		return "ShouldNotEqualUnorderedJSON requires exactly one comparison value"
+	}
+	expectedString, ok := expected[0].(string)
+	if !ok {
+		return "ShouldNotEqualUnorderedJSON works only with strings"
+	}
+	var v any
+	if err := json.Unmarshal([]byte(valueString), &v); err != nil {
+		return "Received value is not valid JSON"
+	}
+	if err := json.Unmarshal([]byte(expectedString), &v); err != nil {
+		return "Expected value is not valid JSON"
+	}
+	b, err := json.Marshal(prepareUnorderedJSON(v))
+	if err != nil {
+		return "ShouldNotEqualUnorderedJSON failed to prepare expected JSON"
+	}
+	buf := buffer{}
+	ja := jsonassert.New(&buf)
+	ja.Assertf(valueString, string(b))
+	if buf.String() == "" {
+		return fmt.Sprintf("Expected JSON value %q to not be equivalent to JSON value %q regardless of list order (but it did)!", valueString, expectedString)
+	}
 	return ""
 }
 
@@ -143,7 +268,7 @@ func (sm *StringMatcher) UnmarshalJSON(data []byte) error {
 	return sm.Validate()
 }
 
-func (sm *StringMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (sm *StringMatcher) UnmarshalYAML(unmarshal func(any) error) error {
 	var s string
 	if err := unmarshal(&s); err == nil {
 		sm.Matcher = DefaultMatcher
@@ -210,7 +335,7 @@ func (sms *StringMatcherSlice) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (sms *StringMatcherSlice) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (sms *StringMatcherSlice) UnmarshalYAML(unmarshal func(any) error) error {
 	var s string
 	if err := unmarshal(&s); err == nil {
 		*sms = []StringMatcher{{
@@ -310,14 +435,14 @@ func (bm *BodyMatcher) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (bm BodyMatcher) MarshalYAML() (interface{}, error) {
+func (bm BodyMatcher) MarshalYAML() (any, error) {
 	if bm.bodyString != nil {
 		return bm.bodyString, nil
 	}
 	return bm.bodyJson, nil
 }
 
-func (bm *BodyMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (bm *BodyMatcher) UnmarshalYAML(unmarshal func(any) error) error {
 	var s StringMatcher
 	if err := unmarshal(&s); err == nil {
 		if _, ok := asserts[s.Matcher]; ok {

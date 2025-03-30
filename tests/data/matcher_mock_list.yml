@@ -95,3 +95,28 @@
   response:
     body: >
       {"message": "test13"}
+- request:
+    path: /test14
+    body:
+      matcher: ShouldNotEqualJSON
+      value: >
+        {"id": 1}
+  response:
+    body: >
+      {"message": "test15"}
+- request:
+    path: /test16
+    body:
+      matcher: ShouldEqualUnorderedJSON
+      value: '[{"messages": ["message4", "message3"]}, {"messages": ["message2", "message1"]}]'
+  response:
+    body: >
+      {"message": "test17"}
+- request:
+    path: /test18
+    body:
+      matcher: ShouldNotEqualUnorderedJSON
+      value: '[{"messages": ["message4", "message3"]}, {"messages": ["message2", "message1"]}]'
+  response:
+    body: >
+      {"message": "test19"}

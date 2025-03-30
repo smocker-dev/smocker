@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -181,7 +181,7 @@ func (d *Delay) UnmarshalJSON(data []byte) error {
 	return d.validate()
 }
 
-func (d *Delay) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (d *Delay) UnmarshalYAML(unmarshal func(any) error) error {
 	var s time.Duration
 	if err := unmarshal(&s); err == nil {
 		d.Min = s
@@ -250,7 +250,7 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

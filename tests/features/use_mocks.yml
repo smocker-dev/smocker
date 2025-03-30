@@ -157,7 +157,6 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test11
-
       - type: http
         method: POST
         url: http://localhost:8080/test10
@@ -175,13 +174,79 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual test13
-
       - type: http
         method: POST
         url: http://localhost:8080/test12
         headers:
           Content-Type: application/x-www-form-urlencoded
         body: key1=test2
+        assertions:
+          - result.statuscode ShouldEqual 666
+
+      - type: http
+        method: POST
+        url: http://localhost:8080/test14
+        body: '{"id": 2}'
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test15
+      - type: http
+        method: POST
+        url: http://localhost:8080/test14
+        body: '{"id": 1}'
+        assertions:
+          - result.statuscode ShouldEqual 666
+      - type: http
+        method: POST
+        url: http://localhost:8080/test14
+        body: <test>test</test> # The ShouldNotEqualJSON matcher should not work with invalid JSON
+        assertions:
+          - result.statuscode ShouldEqual 666
+
+      - type: http
+        method: POST
+        url: http://localhost:8080/test16
+        body: '[{"messages": ["message1", "message2"]}, {"messages": ["message3", "message4"]}]'
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test17
+      - type: http
+        method: POST
+        url: http://localhost:8080/test16
+        body: '[{"messages": ["message4", "message3"]}, {"messages": ["message2", "message1"]}]'
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test17
+      - type: http
+        method: POST
+        url: http://localhost:8080/test16
+        body: '{"id": 1}'
+        assertions:
+          - result.statuscode ShouldEqual 666
+
+      - type: http
+        method: POST
+        url: http://localhost:8080/test18
+        body: '{"id": 1}'
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.message ShouldEqual test19
+      - type: http
+        method: POST
+        url: http://localhost:8080/test18
+        body: '[{"messages": ["message1", "message2"]}, {"messages": ["message3", "message4"]}]'
+        assertions:
+          - result.statuscode ShouldEqual 666
+      - type: http
+        method: POST
+        url: http://localhost:8080/test18
+        body: '[{"messages": ["message4", "message3"]}, {"messages": ["message2", "message1"]}]'
+        assertions:
+          - result.statuscode ShouldEqual 666
+      - type: http
+        method: POST
+        url: http://localhost:8080/test18
+        body: <test>test</test> # The ShouldNotEqualUnorderedJSON matcher should not work with invalid JSON
         assertions:
           - result.statuscode ShouldEqual 666
 
