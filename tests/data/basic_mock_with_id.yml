@@ -1,0 +1,8 @@
+- request:
+    path: /test
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {"message": "test"}
+  mockId: "1"
