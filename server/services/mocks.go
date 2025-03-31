@@ -26,6 +26,7 @@ type Mocks interface {
 	GetHistory(sessionID string) (types.History, error)
 	GetHistoryByPath(sessionID, filterPath string) (types.History, error)
 	NewSession(name string) *types.Session
+	ResetSession(name string) *types.Session
 	UpdateSession(id, name string) (*types.Session, error)
 	GetLastSession() *types.Session
 	GetSessionByID(id string) (*types.Session, error)
@@ -220,6 +221,35 @@ func (s *mocks) NewSession(name string) *types.Session {
 
 	go s.persistence.StoreSession(s.sessions.Summarize(), session)
 	return session
+}
+
+func (s *mocks) ResetSession(name string) *types.Session {
+	s.mu.Lock()
+
+	var foundSession *types.Session
+	sessions := make([]*types.Session, 0, len(s.sessions))
+	for _, ses := range s.sessions {
+		session := *ses
+		if session.Name == name {
+			foundSession = &session
+			continue
+		}
+		sessions = append(sessions, &session)
+	}
+
+	if foundSession == nil {
+		s.mu.Unlock()
+		return s.NewSession(name)
+	}
+
+	foundSession.Date = time.Now()
+	foundSession.History = types.History{}
+	foundSession.Mocks = types.Mocks{}
+	s.sessions = append(sessions, foundSession)
+
+	go s.persistence.StoreSession(s.sessions.Summarize(), foundSession)
+	s.mu.Unlock()
+	return foundSession
 }
 
 func (s *mocks) UpdateSession(sessionID, name string) (*types.Session, error) {

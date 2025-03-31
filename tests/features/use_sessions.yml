@@ -130,3 +130,31 @@ testcases:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 3
           - result.bodyjson.bodyjson0.name ShouldEqual test4
+
+  - name: Override 'test4' session
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8081/sessions?name=test4&override=true
+      - type: http
+        method: GET
+        url: http://localhost:8081/history
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 0
+      - type: http
+        method: GET
+        url: http://localhost:8081/mocks
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 0
+      - type: http
+        method: GET
+        url: http://localhost:8081/sessions/summary
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.bodyjson0.name ShouldEqual test2
+          - result.bodyjson.bodyjson1.name ShouldEqual test3
+          - result.bodyjson.bodyjson2.name ShouldEqual test4
+          - result.bodyjson.bodyjson2.id ShouldEqual {{.RetrieveSessionsSummary.session_id}}
