@@ -333,3 +333,19 @@ func (bm *BodyMatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	bm.bodyJson = res
 	return nil
 }
+
+func NewJSONBodyMatcher(
+	bodyJson map[string]StringMatcher,
+) *BodyMatcher {
+	return &BodyMatcher{
+		bodyJson: bodyJson,
+	}
+}
+
+func NewStringBodyMatcher(
+	bodyString StringMatcher,
+) *BodyMatcher {
+	return &BodyMatcher{
+		bodyString: &bodyString,
+	}
+}
