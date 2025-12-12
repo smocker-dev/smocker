@@ -34,7 +34,8 @@ export const Mermaid = ({
       } catch (e) {
         setDiagram("");
         console.error(e);
-        setError(e.str || `${e}`);
+        const error = e as { str?: string };
+        setError(error.str || `${e}`);
       }
     }, 1);
   }, [name, chart]);

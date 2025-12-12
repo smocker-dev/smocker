@@ -15,9 +15,9 @@
     "noUnusedParameters": true,
     "removeComments": true,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": ["client/**/*"],
   "exclude": ["node_modules", "build", "client/coverage"]

@@ -79,7 +79,7 @@ function simplifyMultimap(multimap: { [x: string]: string[] }) {
     }
     newMultimap[key] = [...values];
     return newMultimap;
-  }, {});
+  }, {} as Record<string, string | string[]>);
 }
 
 const headersToClean = [
@@ -102,12 +102,16 @@ const headersToClean = [
 export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   let request: EntryRequest = { ...historyEntry.request };
   if (historyEntry.request.headers) {
-    request.headers = simplifyMultimap(historyEntry.request.headers);
+    request.headers = simplifyMultimap(
+      historyEntry.request.headers
+    ) as Multimap;
     // remove useless headers
     request.headers = omit(request.headers, headersToClean);
   }
   if (historyEntry.request.query_params) {
-    request.query_params = simplifyMultimap(historyEntry.request.query_params);
+    request.query_params = simplifyMultimap(
+      historyEntry.request.query_params
+    ) as Multimap;
   }
   request = omit(request, "body_string") as EntryRequest;
   request = omit(request, "date") as EntryRequest;
@@ -127,7 +131,7 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
 export const bodyMatcherToPaths = (
   bodyMatcher: unknown | Record<string, unknown>,
   currentPath = "",
-  result = {}
+  result: Record<string, unknown> = {}
 ): Record<string, unknown> => {
   if (Array.isArray(bodyMatcher)) {
     bodyMatcher.forEach((item, index) => {
@@ -152,7 +156,9 @@ export const bodyMatcherToPaths = (
 export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
   let response: EntryResponse = { ...historyEntry.response };
   if (historyEntry.response.headers) {
-    response.headers = simplifyMultimap(historyEntry.response.headers);
+    response.headers = simplifyMultimap(
+      historyEntry.response.headers
+    ) as Multimap;
     // remove useless headers
     response.headers = omit(response.headers, headersToClean);
   }
@@ -192,11 +198,12 @@ export const formatQueryParams = (
     Object.keys(params)
       .reduce((acc: string[], key) => {
         params[key].forEach((v: StringMatcher | string) => {
-          const value = v["value"] || v;
+          const isObject = typeof v === "object" && v !== null;
+          const value = isObject ? v.value : v;
           const encodedValue = encodeURIComponent(value);
           const param =
-            v["matcher"] && v["matcher"] !== defaultMatcher
-              ? `${key}=>(${v["matcher"]} "${encodedValue}")`
+            isObject && v.matcher && v.matcher !== defaultMatcher
+              ? `${key}=>(${v.matcher} "${encodedValue}")`
               : `${key}=${encodedValue}`;
           acc.push(param);
         });

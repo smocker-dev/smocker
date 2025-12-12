@@ -1,14 +1,9 @@
-import * as React from "react";
-import {
-  Col, Form, InputNumber,
-  Radio,
-  RadioChangeEvent,
-  Row
-} from "antd";
+import { Col, Form, InputNumber, Radio, RadioChangeEvent, Row } from "antd";
 import { getReasonPhrase } from "http-status-codes";
+import * as React from "react";
 import Code, { Language } from "../Code";
-import { defaultResponseStatus } from "./utils";
 import { KeyValueEditor } from "./KeyValueEditor";
+import { defaultResponseStatus } from "./utils";
 
 export const MockStaticResponseEditor = (): JSX.Element => {
   const [bodyLanguage, setBodyLanguage] = React.useState<Language>("json");
@@ -38,9 +33,10 @@ export const MockStaticResponseEditor = (): JSX.Element => {
           <InputNumber
             min={100}
             max={599}
-            onChange={(value?: string | number) => {
+            onChange={(value?: string | number | null) => {
               setResponseStatus(typeof value === "number" ? value : NaN);
-            }} />
+            }}
+          />
         </Form.Item>
         <span> {responseStatusText()}</span>
       </Form.Item>
@@ -56,11 +52,14 @@ export const MockStaticResponseEditor = (): JSX.Element => {
             <Radio.Group
               options={languages}
               value={bodyLanguage}
-              onChange={(e: RadioChangeEvent) => setBodyLanguage(e.target.value)}
+              onChange={(e: RadioChangeEvent) =>
+                setBodyLanguage(e.target.value)
+              }
               optionType="button"
               buttonStyle="solid"
               size="small"
-              style={{ marginBottom: 5 }} />
+              style={{ marginBottom: 5 }}
+            />
             <Form.Item name={["response", "body"]} noStyle>
               <Code language={bodyLanguage} />
             </Form.Item>

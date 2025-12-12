@@ -3,4 +3,7 @@ declare var basePath: string;
 declare var version: string;
 declare module "codemirror/mode/*";
 declare module "codemirror/addon/*";
-declare module "*.png";
+declare module "*.png" {
+  const value: string;
+  export default value;
+}

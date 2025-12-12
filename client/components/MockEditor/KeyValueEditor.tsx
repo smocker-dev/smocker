@@ -1,9 +1,9 @@
-import * as React from "react";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Select, Space } from "antd";
-import { defaultMatcher } from "../../modules/types";
-import { positiveMatchers, negativeMatchers, unaryMatchers } from "./utils";
 import { FormListFieldData, FormListOperation } from "antd/lib/form/FormList";
+import * as React from "react";
+import { defaultMatcher } from "../../modules/types";
+import { negativeMatchers, positiveMatchers, unaryMatchers } from "./utils";
 
 export interface KeyValueEditorProps {
   name: string[];
@@ -49,7 +49,7 @@ export const KeyValueEditorEngine = ({
         <Form.Item
           {...restField}
           name={[fieldName, "key"]}
-          fieldKey={[fieldKey, "key"]}
+          fieldKey={fieldKey ? [fieldKey, "key"] : undefined}
         >
           <Input placeholder="Key" />
         </Form.Item>
@@ -58,7 +58,7 @@ export const KeyValueEditorEngine = ({
           <Form.Item
             {...restField}
             name={[fieldName, "matcher"]}
-            fieldKey={[fieldKey, "matcher"]}
+            fieldKey={fieldKey ? [fieldKey, "matcher"] : undefined}
           >
             <Select>
               <Select.OptGroup label="Positive">
@@ -84,7 +84,7 @@ export const KeyValueEditorEngine = ({
             <Form.Item
               {...restField}
               name={[fieldName, "value"]}
-              fieldKey={[fieldKey, "value"]}
+              fieldKey={fieldKey ? [fieldKey, "value"] : undefined}
               hidden={unaryMatchers.includes(
                 getFieldValue([...name, fieldKey, "matcher"])
               )}

@@ -34,7 +34,7 @@ const ContentTypeYAML = "application/x-yaml";
 
 const extractError = (error: AjaxResponse | AjaxError | SmockerError) => {
   const ajaxError = error as AjaxResponse | AjaxError;
-  let message = ajaxError?.xhr?.response?.message || error["message"];
+  let message = ajaxError?.xhr?.response?.message || (error as any).message;
   if (message === "ajax error") {
     message =
       "Failed to connect to the server, please make sure it's still running";
