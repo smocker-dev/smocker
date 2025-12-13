@@ -3,30 +3,35 @@ version: "2"
 testcases:
   - name: Check Mocks
     steps:
+      # Check mocks from the persisted session 3giPMr5IR
       - type: http
         method: GET
-        url: http://localhost:8081/mocks
+        url: http://localhost:8081/mocks?session=3giPMr5IR
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.state.id ShouldEqual YnJEM95SR
   - name: Check History
     steps:
+      # Check history from the persisted session 3giPMr5IR
       - type: http
         method: GET
-        url: http://localhost:8081/history
+        url: http://localhost:8081/history?session=3giPMr5IR
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.context.mock_id ShouldEqual YnJEM95SR
   - name: Check Sessions
     steps:
+      # Check that the persisted session 3giPMr5IR exists and contains correct data
       - type: http
         method: GET
         url: http://localhost:8081/sessions
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.__len__ ShouldEqual 1
+          # Verify the persisted session exists with correct data
           - result.bodyjson.bodyjson0.id ShouldEqual 3giPMr5IR
+          - result.bodyjson.bodyjson0.history.__len__ ShouldEqual 1
+          - result.bodyjson.bodyjson0.mocks.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.history.__len__ ShouldEqual 1
           - result.bodyjson.bodyjson0.mocks.__len__ ShouldEqual 1

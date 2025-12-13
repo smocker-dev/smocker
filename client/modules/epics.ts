@@ -6,13 +6,13 @@ import { isActionOf } from "typesafe-actions";
 import { trimedPath } from "../modules/utils";
 import { Actions, actions } from "./actions";
 import {
-  decode,
-  GraphHistoryCodec,
-  HistoryCodec,
-  MocksCodec,
-  SessionCodec,
-  SessionsCodec,
-  SmockerError,
+    decode,
+    GraphHistoryCodec,
+    HistoryCodec,
+    MocksCodec,
+    SessionCodec,
+    SessionsCodec,
+    SmockerError,
 } from "./types";
 
 const {
@@ -34,7 +34,7 @@ const ContentTypeYAML = "application/x-yaml";
 
 const extractError = (error: AjaxResponse | AjaxError | SmockerError) => {
   const ajaxError = error as AjaxResponse | AjaxError;
-  let message = ajaxError?.xhr?.response?.message || (error as any).message;
+  let message = ajaxError?.xhr?.response?.message || (error as Error).message;
   if (message === "ajax error") {
     message =
       "Failed to connect to the server, please make sure it's still running";

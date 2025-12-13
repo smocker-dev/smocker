@@ -7,8 +7,9 @@ import "./Navbar.scss";
 
 const Navbar = (): JSX.Element => {
   const location = useLocation();
-  // @ts-ignore
-  const Logo = new URL("../assets/logo180.png", import.meta.url).href;
+  const Logo = (new URL("../assets/logo180.png", import.meta.url) as {
+    href: string;
+  }).href;
   return (
     <Layout.Header className="navbar">
       <Row justify="start" align="middle">

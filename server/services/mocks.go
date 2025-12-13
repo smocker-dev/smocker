@@ -48,7 +48,7 @@ func NewMocks(sessions types.Sessions, historyRetention int, persistence Persist
 		historyRetention: historyRetention,
 		persistence:      persistence,
 	}
-	if sessions != nil && len(sessions) > 0 {
+	if len(sessions) > 0 {
 		s.sessions = sessions
 		log.Infof("Initialized mock service with %d session(s)", len(sessions))
 	} else {
