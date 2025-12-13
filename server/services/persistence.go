@@ -140,25 +140,32 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.persistenceDirectory == "" {
+		log.Debug("Persistence directory not set, skipping session loading")
 		return nil, nil
 	}
+	log.Debugf("Loading sessions from %q", p.persistenceDirectory)
 	if _, err := os.Stat(p.persistenceDirectory); os.IsNotExist(err) {
+		log.WithError(err).Warnf("Persistence directory %q does not exist", p.persistenceDirectory)
 		return nil, err
 	}
 	file, err := os.Open(filepath.Join(p.persistenceDirectory, sessionsFileName))
 	if err != nil {
+		log.WithError(err).Errorf("Unable to open sessions file %q", sessionsFileName)
 		return nil, err
 	}
 	defer file.Close()
 	bytes, err := io.ReadAll(file)
 	if err != nil {
+		log.WithError(err).Errorf("Unable to read sessions file %q", sessionsFileName)
 		return nil, err
 	}
 	var sessions types.Sessions
 	err = yaml.Unmarshal(bytes, &sessions)
 	if err != nil {
+		log.WithError(err).Errorf("Unable to unmarshal sessions from %q", sessionsFileName)
 		return nil, err
 	}
+	log.Infof("Loading %d session(s) from persistence", len(sessions))
 	var sessionsGroup errgroup.Group
 	var sessionsLock sync.Mutex
 	for i := range sessions {
@@ -213,8 +220,10 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 		})
 	}
 	if err := sessionsGroup.Wait(); err != nil {
+		log.WithError(err).Error("Unable to load some sessions")
 		return nil, err
 	}
+	log.Infof("Successfully loaded %d session(s) from persistence", len(sessions))
 	return sessions, nil
 }
 

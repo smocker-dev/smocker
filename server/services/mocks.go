@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/types"
 	"github.com/teris-io/shortid"
 )
@@ -47,8 +48,11 @@ func NewMocks(sessions types.Sessions, historyRetention int, persistence Persist
 		historyRetention: historyRetention,
 		persistence:      persistence,
 	}
-	if sessions != nil {
+	if sessions != nil && len(sessions) > 0 {
 		s.sessions = sessions
+		log.Infof("Initialized mock service with %d session(s)", len(sessions))
+	} else {
+		log.Info("Initialized mock service with no sessions")
 	}
 	return s
 }
