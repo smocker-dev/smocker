@@ -1,0 +1,6 @@
+.DS_Store
+smocker
+
+.task/
+internal/tests/coverage/
+internal/tests/data/

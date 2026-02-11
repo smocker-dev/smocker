@@ -1,0 +1,913 @@
+openapi: 3.1.0
+info:
+  title: Smocker Config Server - OpenAPI
+  version: "2.0.0"
+  contact:
+    url: https://github.com/smocker-dev/smocker/issues
+    name: Smocker
+  license:
+    name: MIT
+    identifier: MIT
+
+externalDocs:
+  description: Smocker - Documentation
+  url: https://smocker.dev/
+
+servers:
+  - url: "http://{host}:{port}"
+    description: HTTP config server
+    variables:
+      host:
+        default: localhost
+        description: The host on which the config server is running
+      port:
+        default: "8081"
+        description: The config server port
+  - url: "https://{host}:{port}"
+    description: HTTPS config server
+    variables:
+      host:
+        default: localhost
+        description: The host on which the config server is running
+      port:
+        default: "8081"
+        description: The config server port
+
+paths:
+  /timelines:
+    post:
+      summary: Create a timeline
+      parameters:
+        - name: overwrite
+          in: query
+          description: Replace an existing timeline with the same ID
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: use
+          in: query
+          description: Use this timeline automatically as `current` after its creation
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        content:
+          application/yaml:
+            schema:
+              $ref: "#/components/schemas/CreateTimelineRequest"
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTimelineRequest"
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTimelineResponse"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: A timeline with this ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: List timelines
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timelines:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TimelineWithState"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/{id}:
+    put:
+      summary: Update a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: New name for the timeline
+                  minLength: 1
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timeline:
+                    $ref: "#/components/schemas/Timeline"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: Get a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timeline:
+                    $ref: "#/components/schemas/Timeline"
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Successful operation
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/{id}/use:
+    post:
+      summary: Use a timeline as current
+      tags:
+        - current
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to use as `current``
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Successful operation
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/{id}/mocks:
+    post:
+      summary: Push mocks to a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to push mocks to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                mocks:
+                  type: array
+                  items:
+                    oneOf:
+                      - $ref: "#/components/schemas/CreateMockStatic"
+                      - $ref: "#/components/schemas/CreateMockDynamic"
+                      - $ref: "#/components/schemas/CreateMockProxy"
+          application/json:
+            schema:
+              type: object
+              properties:
+                mocks:
+                  type: array
+                  items:
+                    oneOf:
+                      - $ref: "#/components/schemas/CreateMockStatic"
+                      - $ref: "#/components/schemas/CreateMockDynamic"
+                      - $ref: "#/components/schemas/CreateMockProxy"
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mocks:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/MockStatic"
+                        - $ref: "#/components/schemas/MockDynamic"
+                        - $ref: "#/components/schemas/MockProxy"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: List mocks of a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to get mocks from
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mocks:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/MockStatic"
+                        - $ref: "#/components/schemas/MockDynamic"
+                        - $ref: "#/components/schemas/MockProxy"
+        "404":
+          description: Timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/{id}/mocks/{mockID}:
+    get:
+      summary: Get a mock of a timeline
+      parameters:
+        - name: id
+          in: path
+          description: ID of the timeline to get the mock from
+          required: true
+          schema:
+            type: string
+        - name: mockID
+          in: path
+          description: ID of the mock to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MockStatic"
+                  - $ref: "#/components/schemas/MockDynamic"
+                  - $ref: "#/components/schemas/MockProxy"
+        "404":
+          description: Mock not found, or timeline not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/current:
+    get:
+      summary: Get the current timeline
+      tags:
+        - current
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timeline:
+                    $ref: "#/components/schemas/Timeline"
+        "404":
+          description: No `current` timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete the current timeline
+      tags:
+        - current
+      responses:
+        "204":
+          description: Successful operation
+        "404":
+          description: No `current` timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/current/mocks:
+    post:
+      summary: Push mocks to the current timeline
+      tags:
+        - current
+      requestBody:
+        content:
+          application/yaml:
+            schema:
+              type: object
+              properties:
+                mocks:
+                  type: array
+                  items:
+                    oneOf:
+                      - $ref: "#/components/schemas/CreateMockStatic"
+                      - $ref: "#/components/schemas/CreateMockDynamic"
+                      - $ref: "#/components/schemas/CreateMockProxy"
+          application/json:
+            schema:
+              type: object
+              properties:
+                mocks:
+                  type: array
+                  items:
+                    oneOf:
+                      - $ref: "#/components/schemas/CreateMockStatic"
+                      - $ref: "#/components/schemas/CreateMockDynamic"
+                      - $ref: "#/components/schemas/CreateMockProxy"
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mocks:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/MockStatic"
+                        - $ref: "#/components/schemas/MockDynamic"
+                        - $ref: "#/components/schemas/MockProxy"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No `current` timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: List mocks of the current timeline
+      tags:
+        - current
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mocks:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/MockStatic"
+                        - $ref: "#/components/schemas/MockDynamic"
+                        - $ref: "#/components/schemas/MockProxy"
+        "404":
+          description: No `current` timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /timelines/current/mocks/{mockID}:
+    get:
+      summary: Get a mock of the current timeline
+      tags:
+        - current
+      parameters:
+        - name: mockID
+          in: path
+          description: ID of the mock to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MockStatic"
+                  - $ref: "#/components/schemas/MockDynamic"
+                  - $ref: "#/components/schemas/MockProxy"
+        "404":
+          description: Mock not found, or no `current` timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /ping:
+    get:
+      summary: Ping the server
+      responses:
+        "204":
+          description: Pong
+
+  /version:
+    get:
+      summary: Get the server version
+      responses:
+        "200":
+          description: Server version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  app_name:
+                    type: string
+                  build_version:
+                    type: string
+                  build_commit:
+                    type: string
+                  build_date:
+                    type: string
+
+  /openapi.yml:
+    get:
+      summary: Get this OpenAPI specification
+      responses:
+        "200":
+          description: OpenAPI specification
+          content:
+            application/yaml:
+              schema:
+                type: object
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    # API schemas
+
+    CreateTimelineRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: If empty, a random UUIDv7 will be generated
+        name:
+          type: string
+          description: If empty, `id` will be used
+        mocks:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/CreateMockStatic"
+              - $ref: "#/components/schemas/CreateMockDynamic"
+              - $ref: "#/components/schemas/CreateMockProxy"
+      examples:
+        - id: my-timeline
+          name: My Timeline
+          mocks:
+            - request:
+                path: /api/v1/hello
+                method: GET
+              response:
+                status: 200
+                headers:
+                  Content-Type: application/json
+                body: |
+                  {
+                    "hello": "world"
+                  }
+              options:
+                times: 1
+
+    CreateMock:
+      type: object
+      properties:
+        options:
+          $ref: "#/components/schemas/MockOptions"
+        request:
+          $ref: "#/components/schemas/MockRequest"
+
+    CreateMockStatic:
+      allOf:
+        - $ref: "#/components/schemas/CreateMock"
+        - type: object
+          response:
+            $ref: "#/components/schemas/MockStaticResponse"
+
+    CreateMockDynamic:
+      allOf:
+        - $ref: "#/components/schemas/CreateMock"
+        - type: object
+          dynamic_response:
+            $ref: "#/components/schemas/MockDynamicResponse"
+
+    CreateMockProxy:
+      allOf:
+        - $ref: "#/components/schemas/CreateMock"
+        - type: object
+          proxy:
+            $ref: "#/components/schemas/MockProxyResponse"
+
+    CreateTimelineResponse:
+      type: object
+      properties:
+        timeline:
+          $ref: "#/components/schemas/Timeline"
+        mocks:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/MockStatic"
+              - $ref: "#/components/schemas/MockDynamic"
+              - $ref: "#/components/schemas/MockProxy"
+
+    # Domain schemas
+
+    Timeline:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TimelineWithState:
+      allOf:
+        - $ref: "#/components/schemas/Timeline"
+        - type: object
+          properties:
+            state:
+              type: object
+              properties:
+                is_current:
+                  type: boolean
+                  description: |
+                    Indicates if this timeline is the current one.
+                    Only one timeline can be current at a time.
+
+    Mock:
+      type: object
+      properties:
+        id:
+          type: string
+        timeline_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        options:
+          $ref: "#/components/schemas/MockOptions"
+        request:
+          $ref: "#/components/schemas/MockRequest"
+
+    MockStatic:
+      allOf:
+        - $ref: "#/components/schemas/Mock"
+        - type: object
+          response:
+            $ref: "#/components/schemas/MockStaticResponse"
+
+    MockDynamic:
+      allOf:
+        - $ref: "#/components/schemas/Mock"
+        - type: object
+          dynamic_response:
+            $ref: "#/components/schemas/MockDynamicResponse"
+
+    MockProxy:
+      allOf:
+        - $ref: "#/components/schemas/Mock"
+        - type: object
+          proxy:
+            $ref: "#/components/schemas/MockProxyResponse"
+
+    MockOptions:
+      types: object
+      properties:
+        times:
+          type: integer
+          description: |
+            Number of times the mock should be called.
+            0 means infinite.
+          minimum: 0
+          default: 0
+        delay:
+          oneOf:
+            - $ref: "#/components/schemas/Duration"
+            - type: object
+              properties:
+                min:
+                  $ref: "#/components/schemas/Duration"
+                max:
+                  $ref: "#/components/schemas/Duration"
+
+    MockRequest:
+      type: object
+      properties:
+        host:
+          $ref: "#/components/schemas/StringMatcher"
+        path:
+          $ref: "#/components/schemas/StringMatcher"
+        method:
+          $ref: "#/components/schemas/StringMatcher"
+        query_params:
+          $ref: "#/components/schemas/KeyValueMatcher"
+        headers:
+          $ref: "#/components/schemas/KeyValueMatcher"
+        body:
+          $ref: "#/components/schemas/BodyMatcher"
+
+    MockStaticResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          default: 200
+          externalDocs:
+            url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+        headers:
+          $ref: "#/components/schemas/Headers"
+        body:
+          type: string
+
+    MockDynamicResponse:
+      type: object
+      required:
+        - engine
+        - script
+      properties:
+        engine:
+          type: string
+          enum:
+            - go-template-yaml
+            - go-template-json
+        script:
+          type: string
+
+    MockProxyResponse:
+      type: object
+      properties:
+        host:
+          type: string
+        follow_redirects:
+          type: boolean
+        skip_verify_tls:
+          type: boolean
+        keep_host:
+          type: boolean
+        headers:
+          $ref: "#/components/schemas/Headers"
+
+    # Helper schemas
+
+    Matcher:
+      type: string
+      default: eq
+      enum:
+        - eq
+        - ==
+        - "!eq"
+        - "!="
+        - match
+        - =~
+        - "!match"
+        - "!~"
+
+    StringMatcher:
+      oneOf:
+        - type: string
+        - type: object
+          properties:
+            matcher:
+              $ref: "#/components/schemas/Matcher"
+            value:
+              type: string
+      examples:
+        - Value
+        - matcher: eq
+          value: Value
+
+    KeyValueMatcher:
+      type: object
+      additionalProperties:
+        oneOf:
+          - $ref: "#/components/schemas/StringMatcher"
+          - type: array
+            items:
+              $ref: "#/components/schemas/StringMatcher"
+      examples:
+        - Content-Type: application/json
+        - Content-Type: [application/json, application/yaml]
+        - Content-Type:
+            - matcher: eq
+              value: application/json
+            - matcher: eq
+              value: application/yaml
+
+    BodyMatcher:
+      description: |
+        Body matchers are used to match on a request body.
+        They can match on the raw body as a string, or on the keys of the parsed body (JSON, YAML, ...).
+      oneOf:
+        - $ref: "#/components/schemas/StringMatcher"
+        - type: object
+          additionalProperties:
+            $ref: "#/components/schemas/StringMatcher"
+      examples:
+        - |
+          {"body_key":"value"}
+        - body_key:
+            matcher: eq
+            value: value
+
+    Duration:
+      type: string
+      description: Duration in human readable format
+      examples:
+        - 300ms
+        - 5s
+        - 1m30s
+      externalDocs:
+        url: https://pkg.go.dev/time#ParseDuration
+
+    Headers:
+      type: object
+      additionalProperties:
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string

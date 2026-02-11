@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      args:
+        - GO_VERSION=1.25
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+      - 8081:8081
+    environment:
+      - SMOCKER_LOG_LEVEL=debug
+      - SMOCKER_PERSISTENCE=sqlite
+      - SMOCKER_SQLITE_DSN=/data/smocker.db
+    volumes:
+      - ./internal/tests/coverage:/coverage:rw
+      - ./internal/tests/data:/data:rw
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "localhost:8081/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

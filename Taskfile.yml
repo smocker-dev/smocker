@@ -1,0 +1,118 @@
+version: "3"
+
+env:
+  GOPATH:
+    sh: go env GOPATH
+
+vars:
+  # Build info
+  APPNAME: smocker
+  VERSION: snapshot
+  COMMIT:
+    sh: git rev-parse --verify HEAD
+  DATE:
+    sh: date +%FT%T%z
+  # Tools
+  GCL: "{{ .GOPATH }}/bin/golangci-lint"
+  REFLEX: "{{ .GOPATH }}/bin/reflex"
+  GOTESTSUM: "{{ .GOPATH }}/bin/gotestsum"
+
+tasks:
+  build:
+    desc: Build the project
+    vars:
+      GO_LDFLAGS: >-
+        -s -w
+        -X main.appName={{ .APPNAME }}
+        -X main.buildVersion={{ .VERSION }}
+        -X main.buildCommit={{ .COMMIT }} -X main.buildDate={{ .DATE }}
+    cmds:
+      - go build -trimpath -ldflags "{{.GO_LDFLAGS}}" -o {{.APPNAME}} ./internal
+
+  run:
+    aliases:
+      - serve
+      - start
+      - watch
+    desc: Run the project with live reload
+    deps:
+      - reflex:install
+    cmds:
+      - |
+        {{ .REFLEX }} --start-service \
+          --decoration='none' \
+          --regex='\.go$$' \
+          -- go run ./internal -log-level=debug
+
+  lint:
+    desc: Run linters
+    deps:
+      - golangci-lint:install
+    cmds:
+      - "{{ .GCL }} run"
+
+  format:
+    desc: Format the code
+    deps:
+      - golangci-lint:install
+    cmds:
+      - "{{ .GCL }} fmt"
+
+  test:unit:
+    desc: Run unit tests
+    deps:
+      - gotestsum:install
+    cmds:
+      - "{{ .GOTESTSUM }}"
+
+  test:integration:up:
+    desc: Set up integration tests
+    deps:
+      - test:integration:down
+    cmds:
+      - rm -rf ./internal/tests/coverage ./internal/tests/data
+      - docker compose up -d
+
+  test:integration:
+    desc: Run integration tests
+    deps:
+      - gotestsum:install
+    cmds:
+      - "{{ .GOTESTSUM }} -- -tags=integration ./..."
+
+  test:integration:down:
+    desc: Tear down integration tests
+    cmds:
+      - docker compose down
+
+  coverage:html:
+    desc: Generate HTML coverage report
+    cmds:
+      - docker compose down
+      - go tool covdata textfmt -i=internal/tests/coverage -o internal/tests/coverage/cover.out
+      - go tool cover -html=internal/tests/coverage/cover.out
+    sources:
+      - internal/tests/coverage
+    generates:
+      - internal/tests/coverage/cover.out
+
+  reflex:install:
+    status:
+      - test -f {{ .REFLEX }}
+    dir: /tmp
+    cmds:
+      - go install github.com/cespare/reflex@latest
+
+  golangci-lint:install:
+    status:
+      - test -f {{ .GCL }}
+    dir: /tmp
+    cmds:
+      - go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
+  gotestsum:install:
+    status:
+      - test -f {{ .GOTESTSUM }}
+    dir: /tmp
+    cmds:
+      - go install gotest.tools/gotestsum@latest

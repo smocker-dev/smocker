@@ -1,0 +1,28 @@
+ARG GO_VERSION=1
+
+FROM golang:${GO_VERSION}-alpine AS builder
+
+WORKDIR /go/src
+
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -trimpath -cover -o /go/bin/smocker ./internal
+
+FROM alpine/curl:latest
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /go/bin/smocker /usr/local/bin/smocker
+
+ENV GOCOVERDIR=/coverage
+RUN mkdir -p /data
+
+EXPOSE 8080 8081
+USER 1000
+
+ENTRYPOINT ["/usr/local/bin/smocker"]

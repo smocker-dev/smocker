@@ -1,0 +1,77 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - dupl
+    - embeddedstructfieldcheck
+    - err113
+    - exhaustive
+    - exhaustruct
+    - funcorder
+    - funlen
+    - gochecknoglobals
+    - gocognit
+    - gochecknoinits
+    - godot
+    - godox
+    - inamedparam
+    - gocyclo
+    - noinlineerr
+    - interfacebloat
+    - lll
+    - mnd
+    - nilnil
+    - nlreturn
+    - nonamedreturns
+    - recvcheck
+    - tagalign
+    - tagliatelle
+    - testpackage
+    - tparallel
+    - varnamelen
+    - wsl
+    - wsl_v5
+  settings:
+    paralleltest:
+      ignore-missing-subtests: true
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .WithROLock(
+        - .WithRWLock(
+        - json.Marshal(
+    revive:
+      rules:
+        - name: unexported-naming
+          disabled: true
+
+  exclusions:
+    generated: strict
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - wrapcheck
+        path: (.+)_test.go
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - blank
+      custom-order: true
+  exclusions:
+    generated: strict
