@@ -15,9 +15,10 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	_ "embed"
+	_ "time/tzdata"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite"
-	_ "time/tzdata"
 )
 
 func main() {

@@ -400,6 +400,11 @@ func (h *TimelinesHandler) PushMocksToCurrentTimeline(w http.ResponseWriter, r *
 func (h *TimelinesHandler) PushMocksToTimeline(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// This endpoint defaults to YAML if no Content-Type is provided
+	if r.Header.Get("Content-Type") == "" {
+		r.Header.Set("Content-Type", "application/yaml")
+	}
+
 	timelineID := strings.TrimSpace(r.PathValue("timelineID"))
 
 	var req struct {
