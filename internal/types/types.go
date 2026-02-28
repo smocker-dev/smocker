@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
-	"gopkg.in/yaml.v3"
 )
 
 type Timeline struct {
@@ -104,10 +104,10 @@ type MockOptions struct {
 type Duration time.Duration
 
 var (
-	_ json.Marshaler   = (*Duration)(nil)
-	_ json.Unmarshaler = (*Duration)(nil)
-	_ yaml.Marshaler   = (*Duration)(nil)
-	_ yaml.Unmarshaler = (*Duration)(nil)
+	_ json.Marshaler        = (*Duration)(nil)
+	_ json.Unmarshaler      = (*Duration)(nil)
+	_ yaml.BytesMarshaler   = (*Duration)(nil)
+	_ yaml.BytesUnmarshaler = (*Duration)(nil)
 )
 
 func (d Duration) MarshalJSON() ([]byte, error) {
@@ -138,13 +138,13 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 }
 
-func (d Duration) MarshalYAML() (any, error) {
-	return time.Duration(d).String(), nil
+func (d Duration) MarshalYAML() ([]byte, error) {
+	return yaml.Marshal(time.Duration(d).String())
 }
 
-func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
+func (d *Duration) UnmarshalYAML(data []byte) error {
 	var v any
-	if err := value.Decode(&v); err != nil {
+	if err := yaml.Unmarshal(data, &v); err != nil {
 		return fmt.Errorf("failed to unmarshal duration: %w", err)
 	}
 
@@ -172,8 +172,8 @@ type Delay struct {
 }
 
 var (
-	_ json.Unmarshaler = &Delay{}
-	_ yaml.Unmarshaler = &Delay{}
+	_ json.Unmarshaler      = &Delay{}
+	_ yaml.BytesUnmarshaler = &Delay{}
 )
 
 func (d *Delay) Validate() error {
@@ -205,9 +205,9 @@ func (d *Delay) UnmarshalJSON(data []byte) error {
 	return d.Validate()
 }
 
-func (d *Delay) UnmarshalYAML(value *yaml.Node) error {
+func (d *Delay) UnmarshalYAML(data []byte) error {
 	var delay Duration
-	if err := value.Decode(&delay); err == nil {
+	if err := yaml.Unmarshal(data, &delay); err == nil {
 		d.Min = delay
 		d.Max = delay
 		return d.Validate()
@@ -217,7 +217,7 @@ func (d *Delay) UnmarshalYAML(value *yaml.Node) error {
 		Min Duration `yaml:"min,flow"`
 		Max Duration `yaml:"max,flow"`
 	}
-	if err := value.Decode(&delayRange); err != nil {
+	if err := yaml.Unmarshal(data, &delayRange); err != nil {
 		return fmt.Errorf("failed to unmarshal delay: %w", err)
 	}
 

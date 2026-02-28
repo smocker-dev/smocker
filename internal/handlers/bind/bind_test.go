@@ -57,7 +57,7 @@ age: 30
 `),
 			want: map[string]any{
 				"name": "John",
-				"age":  30,
+				"age":  uint64(30),
 			},
 		},
 		"invalid YAML": {

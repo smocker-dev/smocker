@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/goccy/go-yaml"
 	"github.com/smocker-dev/smocker/internal/pkg/operators"
 	"github.com/smocker-dev/smocker/internal/pkg/selectors"
-	"gopkg.in/yaml.v3"
 )
 
 var ErrInvalidMatcher = errors.New("invalid matcher")
@@ -19,8 +19,8 @@ type StringMatcher struct {
 }
 
 var (
-	_ json.Unmarshaler = &StringMatcher{}
-	_ yaml.Unmarshaler = &StringMatcher{}
+	_ json.Unmarshaler      = &StringMatcher{}
+	_ yaml.BytesUnmarshaler = &StringMatcher{}
 )
 
 func (m StringMatcher) Validate() error {
@@ -90,9 +90,9 @@ func (m *StringMatcher) UnmarshalJSON(data []byte) error {
 //	foo:
 //	  matcher: eq
 //	  value: example value
-func (m *StringMatcher) UnmarshalYAML(value *yaml.Node) error {
+func (m *StringMatcher) UnmarshalYAML(data []byte) error {
 	var str string
-	if err := value.Decode(&str); err == nil {
+	if err := yaml.Unmarshal(data, &str); err == nil {
 		m.Matcher = operators.OperatorEquals
 		m.Value = str
 		return nil
@@ -102,7 +102,7 @@ func (m *StringMatcher) UnmarshalYAML(value *yaml.Node) error {
 		Matcher operators.Operator `yaml:"matcher"`
 		Value   string             `yaml:"value"`
 	}
-	if err := value.Decode(&strMatcher); err != nil {
+	if err := yaml.Unmarshal(data, &strMatcher); err != nil {
 		return fmt.Errorf("failed to unmarshal string matcher: %w", err)
 	}
 
@@ -114,8 +114,8 @@ func (m *StringMatcher) UnmarshalYAML(value *yaml.Node) error {
 type StringMatchers []StringMatcher
 
 var (
-	_ json.Unmarshaler = &StringMatchers{}
-	_ yaml.Unmarshaler = &StringMatchers{}
+	_ json.Unmarshaler      = &StringMatchers{}
+	_ yaml.BytesUnmarshaler = &StringMatchers{}
 )
 
 // Match ensures that all matchers in the slice match at least one of the values.
@@ -192,9 +192,9 @@ func (m *StringMatchers) UnmarshalJSON(data []byte) error {
 //	    value: example value 1
 //	  - matcher: eq
 //	    value: example value 2
-func (m *StringMatchers) UnmarshalYAML(value *yaml.Node) error {
+func (m *StringMatchers) UnmarshalYAML(data []byte) error {
 	var strMatcher StringMatcher
-	if err := value.Decode(&strMatcher); err == nil {
+	if err := yaml.Unmarshal(data, &strMatcher); err == nil {
 		*m = []StringMatcher{strMatcher}
 		return nil
 	} else if errors.Is(err, ErrInvalidMatcher) {
@@ -202,7 +202,7 @@ func (m *StringMatchers) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	var strMatchers []StringMatcher
-	if err := value.Decode(&strMatchers); err == nil {
+	if err := yaml.Unmarshal(data, &strMatchers); err == nil {
 		*m = strMatchers
 		return nil
 	} else {
@@ -237,10 +237,10 @@ type BodyMatcher struct {
 }
 
 var (
-	_ json.Unmarshaler = &BodyMatcher{}
-	_ json.Marshaler   = &BodyMatcher{}
-	_ yaml.Unmarshaler = &BodyMatcher{}
-	_ yaml.Marshaler   = &BodyMatcher{}
+	_ json.Unmarshaler      = &BodyMatcher{}
+	_ json.Marshaler        = &BodyMatcher{}
+	_ yaml.BytesUnmarshaler = &BodyMatcher{}
+	_ yaml.BytesMarshaler   = &BodyMatcher{}
 )
 
 func (m *BodyMatcher) Match(rawBody string, parsedBody any) bool {
@@ -304,23 +304,23 @@ func (m *BodyMatcher) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m BodyMatcher) MarshalYAML() (any, error) {
+func (m BodyMatcher) MarshalYAML() ([]byte, error) {
 	if m.Body != nil {
-		return m.Body, nil
+		return yaml.Marshal(m.Body)
 	}
 
-	return m.BodyFields, nil
+	return yaml.Marshal(m.BodyFields)
 }
 
-func (m *BodyMatcher) UnmarshalYAML(value *yaml.Node) error {
+func (m *BodyMatcher) UnmarshalYAML(data []byte) error {
 	var strMatcher StringMatcher
-	if err := value.Decode(&strMatcher); err == nil {
+	if err := yaml.Unmarshal(data, &strMatcher); err == nil {
 		m.Body = &strMatcher
 		return nil
 	}
 
 	var kvMatcher KeyValueMatcher
-	if err := value.Decode(&kvMatcher); err != nil {
+	if err := yaml.Unmarshal(data, &kvMatcher); err != nil {
 		return fmt.Errorf("failed to unmarshal body matcher: %w", err)
 	}
 

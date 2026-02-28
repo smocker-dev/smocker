@@ -8,7 +8,7 @@ import (
 	"reflect"
 
 	"github.com/clbanning/mxj/v2"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 func init() {

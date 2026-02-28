@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 // Strings can unmarshal a string as a slice string.
@@ -13,8 +13,8 @@ import (
 type Strings []string
 
 var (
-	_ json.Unmarshaler = &Strings{}
-	_ yaml.Unmarshaler = &Strings{}
+	_ json.Unmarshaler      = &Strings{}
+	_ yaml.BytesUnmarshaler = &Strings{}
 )
 
 func (ss *Strings) UnmarshalJSON(data []byte) error {
@@ -35,15 +35,15 @@ func (ss *Strings) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (ss *Strings) UnmarshalYAML(value *yaml.Node) error {
+func (ss *Strings) UnmarshalYAML(data []byte) error {
 	var str string
-	if err := value.Decode(&str); err == nil {
+	if err := yaml.Unmarshal(data, &str); err == nil {
 		*ss = append(*ss, str)
 		return nil
 	}
 
 	var strSlice []string
-	if err := value.Decode(&strSlice); err != nil {
+	if err := yaml.Unmarshal(data, &strSlice); err != nil {
 		return fmt.Errorf("failed to unmarshal strings: %w", err)
 	}
 

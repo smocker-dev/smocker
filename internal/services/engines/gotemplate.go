@@ -8,8 +8,8 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/goccy/go-yaml"
 	"github.com/smocker-dev/smocker/internal/types"
-	"gopkg.in/yaml.v3"
 )
 
 type goTemplateYAMLEngine struct{}

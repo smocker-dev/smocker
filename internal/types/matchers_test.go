@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/smocker-dev/smocker/internal/pkg/assert"
 	"github.com/smocker-dev/smocker/internal/pkg/operators"
 	"github.com/smocker-dev/smocker/internal/types"
-	"gopkg.in/yaml.v3"
 )
 
 func TestStringMatcher_Match(t *testing.T) {
@@ -147,11 +147,8 @@ matcher:
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			var node yaml.Node
-			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &node), nil)
-
 			var m types.StringMatcher
-			assert.Err(t, m.UnmarshalYAML(&node), tt.wantErr)
+			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &m), tt.wantErr)
 			if tt.wantErr == "" {
 				assert.Equal(t, tt.want.Matcher, m.Matcher)
 				assert.Equal(t, tt.want.Value, m.Value)
@@ -382,11 +379,8 @@ matcher:
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			var node yaml.Node
-			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &node), nil)
-
 			var m types.StringMatchers
-			assert.Err(t, m.UnmarshalYAML(&node), tt.wantErr)
+			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &m), tt.wantErr)
 			if tt.wantErr == "" {
 				assert.Equal(t, tt.want, m)
 			}
@@ -885,11 +879,8 @@ field:
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			var node yaml.Node
-			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &node), nil)
-
 			var m types.BodyMatcher
-			assert.Err(t, m.UnmarshalYAML(&node), tt.wantErr)
+			assert.Err(t, yaml.Unmarshal([]byte(tt.input), &m), tt.wantErr)
 			if tt.wantErr == "" {
 				if tt.want.Body != nil {
 					if m.Body == nil || *m.Body != *tt.want.Body {
