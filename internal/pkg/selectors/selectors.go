@@ -62,7 +62,7 @@ func (s Selector) PartialString(maxIndex int) string {
 			selector.WriteString(token)
 
 		case int:
-			selector.WriteString(fmt.Sprintf("[%d]", token))
+			fmt.Fprintf(&selector, "[%d]", token)
 
 		default:
 			panic(fmt.Sprintf("unexpected token type %T", token))

@@ -45,6 +45,7 @@ linters:
         - .WithROLock(
         - .WithRWLock(
         - json.Marshal(
+        - yaml.Marshal(
     revive:
       rules:
         - name: unexported-naming

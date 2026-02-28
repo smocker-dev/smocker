@@ -19,14 +19,15 @@ func Log(next http.Handler, ignoredPaths ...string) http.Handler {
 		}
 
 		start := time.Now().UTC()
-		slogAttrs := []any{
+		slogAttrs := make([]any, 0, 9)
+		slogAttrs = append(slogAttrs,
 			slog.Time("start_time", start),
 			slog.String("remote_addr", r.RemoteAddr),
 			slog.String("proto", r.Proto),
 			slog.String("method", r.Method),
 			slog.String("host", r.Host),
 			slog.String("path", r.URL.Path),
-		}
+		)
 
 		sw := &statusWriter{ResponseWriter: w}
 		next.ServeHTTP(sw, r)
