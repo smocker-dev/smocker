@@ -52,10 +52,16 @@ CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
 	cd /tmp; go get github.com/caddyserver/caddy/v2/...
 
+# All generated/runtime artifacts live under build/ so the repository root stays clean.
+BUILD_DIR=build
+SESSIONS_DIR=$(BUILD_DIR)/sessions
+COVERAGE_DIR=$(BUILD_DIR)/coverage
+
 .PHONY: persistence
 persistence:
-	rm -rf ./sessions || true
-	cp -r tests/sessions sessions
+	rm -rf ./$(SESSIONS_DIR) || true
+	mkdir -p $(BUILD_DIR)
+	cp -r tests/sessions $(SESSIONS_DIR)
 
 .PHONY: start
 start: $(REFLEX) persistence
@@ -63,7 +69,7 @@ start: $(REFLEX) persistence
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./sessions
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./$(SESSIONS_DIR)
 
 .PHONY: build
 build:
@@ -79,15 +85,15 @@ format:
 
 .PHONY: test
 test:
-	mkdir -p coverage
-	go test -v -race -coverprofile=coverage/test-cover.out ./server/...
+	mkdir -p $(COVERAGE_DIR)
+	go test -v -race -coverprofile=$(COVERAGE_DIR)/test-cover.out ./server/...
 
 PID_FILE=/tmp/$(APPNAME).test.pid
 .PHONY: test-integration
 test-integration: $(VENOM) check-default-ports persistence
-	mkdir -p coverage
-	go test -race -coverpkg="./..." -c . -o $(APPNAME).test
-	SMOCKER_PERSISTENCE_DIRECTORY=./sessions ./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
+	mkdir -p $(COVERAGE_DIR)
+	go test -race -coverpkg="./..." -c . -o $(BUILD_DIR)/$(APPNAME).test
+	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) $(BUILD_DIR)/$(APPNAME).test -test.coverprofile=$(COVERAGE_DIR)/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
 	sleep 5
 	$(VENOM) run tests/features/$(SUITE)
 	kill `cat $(PID_FILE)` 2> /dev/null || true
@@ -96,19 +102,19 @@ test-integration: $(VENOM) check-default-ports persistence
 start-integration: $(VENOM)
 	$(VENOM) run tests/features/$(SUITE)
 
-coverage/test-cover.out:
+$(COVERAGE_DIR)/test-cover.out:
 	$(MAKE) test
 
-coverage/test-integration-cover.out:
+$(COVERAGE_DIR)/test-integration-cover.out:
 	$(MAKE) test-integration
 
 .PHONY: coverage
-coverage: $(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out
-	$(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out > coverage/cover.out
+coverage: $(GOCOVMERGE) $(COVERAGE_DIR)/test-cover.out $(COVERAGE_DIR)/test-integration-cover.out
+	$(GOCOVMERGE) $(COVERAGE_DIR)/test-cover.out $(COVERAGE_DIR)/test-integration-cover.out > $(COVERAGE_DIR)/cover.out
 
 .PHONY: clean
 clean:
-	rm -rf ./build ./coverage
+	rm -rf ./$(BUILD_DIR)
 
 .PHONY: build-docker
 build-docker:
@@ -133,9 +139,10 @@ optimize:
 
 build/smocker.tar.gz:
 	$(MAKE) build
-	yarn install --frozen-lockfile --ignore-scripts
-	yarn build
-	cd build/; tar -czvf smocker.tar.gz *
+	npm ci --ignore-scripts
+	npm run build
+	# Package only the release artifacts, not test/runtime output that may also live in build/.
+	cd build/; tar -czvf smocker.tar.gz smocker client
 
 .PHONY: release
 release: build/smocker.tar.gz

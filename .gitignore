@@ -1,12 +1,5 @@
 .DS_Store
 .vscode/
-build/
-coverage/
 node_modules/
-sessions
-!tests/sessions
-smocker
-smocker.test
-# Playwright E2E artifacts
-test-results/
-playwright-report/
+# All build, test and runtime output goes here (see Makefile / vite.config.ts / playwright.config.ts).
+build/
