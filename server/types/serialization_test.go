@@ -39,7 +39,7 @@ var updateGolden = flag.Bool("update-golden", false, "regenerate golden serializ
 const (
 	dataDir     = "../../tests/data"
 	sessionsDir = "../../tests/sessions"
-	goldenDir   = "testdata/golden"
+	goldenDir   = "../../tests/serialization"
 )
 
 // loadFn reads a fixture file and returns a freshly-populated value of the right type.
