@@ -1,8 +1,6 @@
-import omit from "lodash/omit";
-import pickBy from "lodash/pickBy";
-import trimEnd from "lodash/trimEnd";
+import { debounce, omit, pickBy, trimEnd } from "es-toolkit";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   BodyMatcher,
   defaultMatcher,
@@ -69,17 +67,20 @@ export const entryToCurl = (historyEntry: Entry): string => {
 };
 
 function simplifyMultimap(multimap: { [x: string]: string[] }) {
-  return Object.entries(multimap).reduce((newMultimap, [key, values]) => {
-    if (values.length === 0) {
+  return Object.entries(multimap).reduce<Record<string, string | string[]>>(
+    (newMultimap, [key, values]) => {
+      if (values.length === 0) {
+        return newMultimap;
+      }
+      if (values.length === 1) {
+        newMultimap[key] = values[0];
+        return newMultimap;
+      }
+      newMultimap[key] = [...values];
       return newMultimap;
-    }
-    if (values.length === 1) {
-      newMultimap[key] = values[0];
-      return newMultimap;
-    }
-    newMultimap[key] = [...values];
-    return newMultimap;
-  }, {});
+    },
+    {}
+  );
 }
 
 const headersToClean = [
@@ -102,17 +103,21 @@ const headersToClean = [
 export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   let request: EntryRequest = { ...historyEntry.request };
   if (historyEntry.request.headers) {
-    request.headers = simplifyMultimap(historyEntry.request.headers);
+    request.headers = simplifyMultimap(historyEntry.request.headers) as Multimap;
     // remove useless headers
     request.headers = omit(request.headers, headersToClean);
   }
   if (historyEntry.request.query_params) {
-    request.query_params = simplifyMultimap(historyEntry.request.query_params);
+    request.query_params = simplifyMultimap(
+      historyEntry.request.query_params
+    ) as Multimap;
   }
-  request = omit(request, "body_string") as EntryRequest;
-  request = omit(request, "date") as EntryRequest;
-  request = omit(request, "origin") as EntryRequest;
-  request = pickBy(request) as EntryRequest; // remove nulls
+  request = omit(request as Record<string, unknown>, [
+    "body_string",
+    "date",
+    "origin",
+  ]) as EntryRequest;
+  request = pickBy(request, (value) => Boolean(value)) as EntryRequest; // remove nulls
   if (typeof request.body === "object" && request.body !== null) {
     request.body = bodyMatcherToPaths(request.body);
   }
@@ -127,7 +132,7 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
 export const bodyMatcherToPaths = (
   bodyMatcher: unknown | Record<string, unknown>,
   currentPath = "",
-  result = {}
+  result: Record<string, unknown> = {}
 ): Record<string, unknown> => {
   if (Array.isArray(bodyMatcher)) {
     bodyMatcher.forEach((item, index) => {
@@ -152,12 +157,16 @@ export const bodyMatcherToPaths = (
 export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
   let response: EntryResponse = { ...historyEntry.response };
   if (historyEntry.response.headers) {
-    response.headers = simplifyMultimap(historyEntry.response.headers);
+    response.headers = simplifyMultimap(
+      historyEntry.response.headers
+    ) as Multimap;
     // remove useless headers
     response.headers = omit(response.headers, headersToClean);
   }
-  response = omit(response, "date") as EntryResponse;
-  response = pickBy(response) as EntryResponse; // remove nulls
+  response = omit(response as Record<string, unknown>, [
+    "date",
+  ]) as EntryResponse;
+  response = pickBy(response, (value) => Boolean(value)) as EntryResponse; // remove nulls
   return response;
 };
 
@@ -191,12 +200,13 @@ export const formatQueryParams = (
     "?" +
     Object.keys(params)
       .reduce((acc: string[], key) => {
-        params[key].forEach((v: StringMatcher | string) => {
-          const value = v["value"] || v;
-          const encodedValue = encodeURIComponent(value);
+        (params[key] as (StringMatcher | string)[]).forEach((v) => {
+          const matcher = typeof v === "object" ? v.matcher : undefined;
+          const rawValue = typeof v === "object" ? v.value : v;
+          const encodedValue = encodeURIComponent(rawValue);
           const param =
-            v["matcher"] && v["matcher"] !== defaultMatcher
-              ? `${key}=>(${v["matcher"]} "${encodedValue}")`
+            matcher && matcher !== defaultMatcher
+              ? `${key}=>(${matcher} "${encodedValue}")`
               : `${key}=${encodedValue}`;
           acc.push(param);
         });
@@ -222,73 +232,43 @@ export const formatHeaderValue = (headerValue?: StringMatcherSlice): string => {
     .join(", ");
 };
 
-export const trimedPath = trimEnd(window.basePath, "/");
+// window.basePath is injected by the Go index.html template at runtime; guard against it being
+// undefined (e.g. in tests) — es-toolkit's trimEnd throws on undefined, unlike lodash's.
+export const trimedPath = trimEnd(window.basePath ?? "", "/");
 
-export type PollFunc<X, Y> = (params: X) => Y;
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = React.useState(value);
 
-export function usePoll<K, V>(
-  delay: number,
-  pollFunc: PollFunc<K, V>,
-  pollParams: K
-): [boolean, () => void, (poll: boolean) => void] {
-  const savedPollFunc = React.useRef<PollFunc<K, V>>();
-  const [init, setInit] = React.useState(false);
-  const [polling, setPolling] = React.useState(false);
-
-  // Remember the latest function.
   React.useEffect(() => {
-    savedPollFunc.current = pollFunc;
-  }, [pollFunc]);
+    const update = debounce(() => setDebounced(value), delay);
+    update();
+    return () => update.cancel();
+  }, [value, delay]);
 
-  // Set up the interval.
-  React.useEffect(() => {
-    function poll() {
-      if (savedPollFunc.current) {
-        savedPollFunc.current(pollParams);
-      }
-    }
-    if (!init || polling) {
-      poll();
-    }
-    if (polling && Boolean(delay)) {
-      const id = setInterval(poll, delay);
-      return () => clearInterval(id);
-    }
-    return undefined;
-  }, [delay, polling, init, pollParams]);
-
-  const togglePollingCb = React.useCallback(() => {
-    setPolling(!polling);
-    setInit(true);
-  }, [polling]);
-
-  const setPollingCb = React.useCallback((poll: boolean) => {
-    setPolling(poll);
-    setInit(true);
-  }, []);
-
-  return [polling, togglePollingCb, setPollingCb];
+  return debounced;
 }
 
 export const useQueryParams = (): [
   URLSearchParams,
   (params: Record<string, string>, replace?: boolean) => void
 ] => {
-  const history = useHistory();
-  const queryParams = new URLSearchParams(history.location.search);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
   const setQueryParams = React.useCallback(
     (params: Record<string, string>, replace = false) => {
-      const newQueryParams = new URLSearchParams(history.location.search);
+      const newQueryParams = new URLSearchParams(window.location.search);
       Object.entries(params).forEach(([key, value]) => {
         newQueryParams.set(key, value);
       });
-      if (replace) {
-        history.replace({ search: newQueryParams.toString() });
-      } else {
-        history.push({ search: newQueryParams.toString() });
-      }
+      // Preserve the current react-router location state (e.g. the mock prefilled into the
+      // editor via "Create a new mock from entry"): a query-only navigation must not discard it.
+      navigate(
+        { search: newQueryParams.toString() },
+        { replace, state: window.history.state?.usr ?? null }
+      );
     },
-    []
+    [navigate]
   );
 
   return [queryParams, setQueryParams];

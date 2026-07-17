@@ -11,7 +11,6 @@ import {
   Drawer,
   Empty,
   Form,
-  PageHeader,
   Pagination,
   Row,
   Spin,
@@ -21,11 +20,15 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import * as React from "react";
-import { connect } from "react-redux";
-import { Link, useParams } from "react-router-dom";
-import { Dispatch } from "redux";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
+import { Link, useLocation, useParams } from "react-router-dom";
+import {
+  useAddMocks,
+  useLockMocks,
+  useMocks,
+  useSessionsSummary,
+  useUnlockMocks,
+} from "../modules/api";
+import { useSession } from "../modules/session";
 import {
   dateFormat,
   defaultMatcher,
@@ -33,8 +36,6 @@ import {
   MockDynamicResponse,
   MockRequest,
   MockResponse,
-  Mocks,
-  SmockerError,
   StringMatcher,
   StringMatcherMap,
 } from "../modules/types";
@@ -43,11 +44,11 @@ import {
   formatHeaderValue,
   formatQueryParams,
   isStringMatcher,
-  usePoll,
 } from "../modules/utils";
 import Code from "./Code";
 import MockEditor from "./MockEditor/MockEditor";
 import "./Mocks.scss";
+import PageHeader from "./PageHeader";
 
 const renderTimes = (count: number, expected?: number) => {
   if (!expected) {
@@ -88,9 +89,9 @@ const MockResponseComponent = ({ mock }: { mock: Mock }) => {
           </tbody>
         </table>
       )}
-      {response.body && (
+      {response.body ? (
         <Code value={(response.body as string).trim()} language="json" />
-      )}
+      ) : null}
     </div>
   );
 };
@@ -277,7 +278,7 @@ const NewMockComponent = ({
       className="drawer"
       closable={false}
       onClose={onClose}
-      visible={display}
+      open={display}
       width="70vw"
       getContainer={false}
       footer={
@@ -289,67 +290,77 @@ const NewMockComponent = ({
         </div>
       }
     >
-      <Tabs defaultActiveKey={defaultValue.trim() === "" ? "1" : "2"}>
-        <Tabs.TabPane tab="Visual Editor" key="1">
-          <MockEditor onChange={changeMock} />
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Raw YAML Editor" key="2">
-          <Form className="form">
-            <Code
-              value={mock}
-              language="yaml"
-              onChange={changeMock}
-              collapsible={false}
-            />
-          </Form>
-        </Tabs.TabPane>
-      </Tabs>
+      <Tabs
+        defaultActiveKey={defaultValue.trim() === "" ? "1" : "2"}
+        items={[
+          {
+            key: "1",
+            label: "Visual Editor",
+            children: <MockEditor onChange={changeMock} />,
+          },
+          {
+            key: "2",
+            label: "Raw YAML Editor",
+            children: (
+              <Form className="form">
+                <Code
+                  value={mock}
+                  language="yaml"
+                  onChange={changeMock}
+                  collapsible={false}
+                />
+              </Form>
+            ),
+          },
+        ]}
+      />
     </Drawer>
   );
 };
 
 interface RouteProps {
   mock_id?: string;
+  [key: string]: string | undefined;
 }
 
-interface Props {
-  sessionID: string;
-  loading: boolean;
-  canPoll: boolean;
-  mocks: Mocks;
-  mockEditor: [boolean, string];
-  error: SmockerError | null;
-  fetch: (sessionID: string) => unknown;
-  addMocks: (mocks: string) => unknown;
-  lockMock: (mockID: string) => unknown;
-  unlockMock: (mockID: string) => unknown;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
-}
-
-const MocksComponent = ({
-  sessionID,
-  loading,
-  canPoll,
-  mocks,
-  mockEditor,
-  error,
-  fetch,
-  addMocks,
-  lockMock,
-  unlockMock,
-  setDisplayNewMock,
-}: Props) => {
+const MocksComponent = (): React.JSX.Element => {
   const minPageSize = 10;
 
   React.useEffect(() => {
     document.title = "Mocks | Smocker";
   });
   const { mock_id } = useParams<RouteProps>();
+  const location = useLocation();
+  const { selected: sessionID } = useSession();
+  const { data: sessions = [] } = useSessionsSummary();
+  const canPoll =
+    !sessionID ||
+    (sessions.length > 0 && sessionID === sessions[sessions.length - 1].id);
+
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
+  const [polling, setPolling] = React.useState(false);
+
+  const mocksQuery = useMocks(sessionID, {
+    refetchInterval: polling ? 10000 : false,
+  });
+  const mocks = mocksQuery.data ?? [];
+  const loading = mocksQuery.isFetching;
+  const error = mocksQuery.error;
+
+  const addMocksMut = useAddMocks();
+  const lockMocksMut = useLockMocks();
+  const unlockMocksMut = useUnlockMocks();
+
+  const initialNewMock = (location.state as { newMock?: string } | null)
+    ?.newMock;
+  const [displayNewMock, setDisplayNewMock] = React.useState(
+    Boolean(initialNewMock)
+  );
+  const [editorValue, setEditorValue] = React.useState(initialNewMock ?? "");
+
+  const togglePolling = () => setPolling((p) => !p);
   const ref = React.createRef<HTMLDivElement>();
-  const displayNewMock = mockEditor[0];
   React.useLayoutEffect(() => {
     if (ref.current) {
       ref.current.scrollIntoView({
@@ -397,6 +408,8 @@ const MocksComponent = ({
         />
       </Row>
     );
+    const lockMock = (mockID: string) => lockMocksMut.mutate([mockID]);
+    const unlockMock = (mockID: string) => unlockMocksMut.mutate([mockID]);
     body = (
       <>
         {pagination}
@@ -415,11 +428,18 @@ const MocksComponent = ({
     );
   }
 
-  const handleAddNewMock = () => setDisplayNewMock(true, "");
-  const handleCancelNewMock = () => setDisplayNewMock(false, "");
+  const handleAddNewMock = () => {
+    setEditorValue("");
+    setDisplayNewMock(true);
+  };
+  const handleCancelNewMock = () => {
+    setDisplayNewMock(false);
+    setEditorValue("");
+  };
   const handleSaveNewMock = (newMocks: string) => {
-    setDisplayNewMock(false, "");
-    addMocks(newMocks);
+    setDisplayNewMock(false);
+    setEditorValue("");
+    addMocksMut.mutate(newMocks);
   };
   return (
     <div className="mocks" ref={ref}>
@@ -465,7 +485,7 @@ const MocksComponent = ({
       {displayNewMock && (
         <NewMockComponent
           display={displayNewMock}
-          defaultValue={mockEditor[1]}
+          defaultValue={editorValue}
           onSave={handleSaveNewMock}
           onClose={handleCancelNewMock}
         />
@@ -474,29 +494,4 @@ const MocksComponent = ({
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, mocks } = state;
-    const canPoll =
-      !sessions.selected ||
-      sessions.selected === sessions.list[sessions.list.length - 1].id;
-    return {
-      sessionID: sessions.selected,
-      loading: mocks.loading,
-      mocks: mocks.list,
-      mockEditor: mocks.editor,
-      error: mocks.error,
-      canPoll,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: (sessionID: string) =>
-      dispatch(actions.fetchMocks.request(sessionID)),
-    addMocks: (mocks: string) => dispatch(actions.addMocks.request({ mocks })),
-    lockMock: (mockID: string) => dispatch(actions.lockMocks.request([mockID])),
-    unlockMock: (mockID: string) =>
-      dispatch(actions.unlockMocks.request([mockID])),
-    setDisplayNewMock: (display: boolean, defaultValue: string) =>
-      dispatch(actions.openMockEditor([display, defaultValue])),
-  })
-)(MocksComponent);
+export default MocksComponent;

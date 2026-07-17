@@ -1,0 +1,19 @@
+.page-header {
+  padding: 16px 24px;
+
+  .page-header-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .page-header-title {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  .page-header-content {
+    padding-top: 12px;
+  }
+}

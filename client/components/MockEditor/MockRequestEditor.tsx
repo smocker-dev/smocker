@@ -5,16 +5,18 @@ import { BodyMatcherEditor } from "./BodyMatcherEditor";
 import { KeyValueEditor } from "./KeyValueEditor";
 import classNames from "classnames";
 
-export const MockRequestEditor = (): JSX.Element => {
+export const MockRequestEditor = (): React.JSX.Element => {
   const methodSelector = (
     <Form.Item name={["request", "method"]} noStyle>
-      <Select>
-        <Select.Option value="GET">GET</Select.Option>
-        <Select.Option value="POST">POST</Select.Option>
-        <Select.Option value="PUT">PUT</Select.Option>
-        <Select.Option value="PATCH">PATCH</Select.Option>
-        <Select.Option value="DELETE">DELETE</Select.Option>
-      </Select>
+      <Select
+        options={[
+          { value: "GET", label: "GET" },
+          { value: "POST", label: "POST" },
+          { value: "PUT", label: "PUT" },
+          { value: "PATCH", label: "PATCH" },
+          { value: "DELETE", label: "DELETE" },
+        ]}
+      />
     </Form.Item>
   );
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Form, InputNumber, Switch } from "antd";
 
-export const MockContextEditor = (): JSX.Element => (
+export const MockContextEditor = (): React.JSX.Element => (
   <div className="inline-form-items">
     <Form.Item name={["context", "times_enabled"]} noStyle>
       <Switch size="small" />

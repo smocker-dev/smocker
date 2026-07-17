@@ -1,7 +1,9 @@
 import { Alert, Spin } from "antd";
-import mermaidAPI from "mermaid";
+import mermaid from "mermaid";
 import * as React from "react";
 import "./Mermaid.scss";
+
+mermaid.initialize({ startOnLoad: false });
 
 export const Mermaid = ({
   name,
@@ -13,30 +15,40 @@ export const Mermaid = ({
   chart: string;
   loading?: boolean;
   onChange?: (svg: string) => unknown;
-}): JSX.Element => {
+}): React.JSX.Element => {
   const [diagram, setDiagram] = React.useState("");
   const [error, setError] = React.useState("");
   const [spinner, setSpinner] = React.useState(Boolean(loading));
 
   React.useEffect(() => {
+    let cancelled = false;
     setSpinner(true);
-    const cb = (svg = "") => {
-      setSpinner(false);
-      setDiagram(svg);
-      setError("");
-      onChange && onChange(svg);
-    };
-    setTimeout(() => {
+    (async () => {
       try {
-        mermaidAPI.parse(chart);
-        mermaidAPI.initialize({ startOnLoad: false });
-        mermaidAPI.render(name, chart, cb);
+        await mermaid.parse(chart);
+        const { svg } = await mermaid.render(name, chart);
+        if (cancelled) {
+          return;
+        }
+        setSpinner(false);
+        setDiagram(svg);
+        setError("");
+        if (onChange) {
+          onChange(svg);
+        }
       } catch (e) {
+        if (cancelled) {
+          return;
+        }
+        setSpinner(false);
         setDiagram("");
         console.error(e);
-        setError(e.str || `${e}`);
+        setError(`${e}`);
       }
-    }, 1);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [name, chart]);
 
   return (

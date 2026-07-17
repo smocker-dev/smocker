@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Divider, Form, Radio } from "antd";
 import Code from "../Code";
-import yaml from "js-yaml";
+import { dump } from "js-yaml";
 import { defaultMatcher } from "../../modules/types";
 import "./MockEditor.scss";
 import classNames from "classnames";
@@ -16,7 +16,7 @@ interface MockEditorProps {
   onChange?: (value: string) => unknown;
 }
 
-const MockEditor = ({ onChange }: MockEditorProps): JSX.Element => {
+const MockEditor = ({ onChange }: MockEditorProps): React.JSX.Element => {
   const initialValues: MockEditorForm = {
     request: {
       method: "GET",
@@ -40,7 +40,7 @@ const MockEditor = ({ onChange }: MockEditorProps): JSX.Element => {
 
   const [form] = Form.useForm<MockEditorForm>();
   const [mockString, setMockString] = React.useState(
-    yaml.safeDump(MockEditorFormToMock(initialValues), { skipInvalid: true })
+    dump(MockEditorFormToMock(initialValues), { skipInvalid: true })
   );
 
   const responseTypes = [
@@ -55,11 +55,11 @@ const MockEditor = ({ onChange }: MockEditorProps): JSX.Element => {
       initialValues={initialValues}
       onValuesChange={(_, values) => {
         setMockString(
-          yaml.safeDump(MockEditorFormToMock(values), { skipInvalid: true })
+          dump(MockEditorFormToMock(values), { skipInvalid: true })
         );
         if (onChange) {
           onChange(
-            yaml.safeDump([MockEditorFormToMock(values)], { skipInvalid: true })
+            dump([MockEditorFormToMock(values)], { skipInvalid: true })
           );
         }
       }}

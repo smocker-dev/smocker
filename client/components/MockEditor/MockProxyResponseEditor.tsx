@@ -5,7 +5,7 @@ import {
 } from "antd";
 import { KeyValueEditor } from "./KeyValueEditor";
 
-export const MockProxyResponseEditor = (): JSX.Element => (
+export const MockProxyResponseEditor = (): React.JSX.Element => (
   <Row gutter={24}>
     <Col span={12}>
       <Form.Item label="Host" name={["proxy", "host"]}>

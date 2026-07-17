@@ -10,7 +10,7 @@ import Code, { Language } from "../Code";
 import { defaultResponseStatus } from "./utils";
 import { KeyValueEditor } from "./KeyValueEditor";
 
-export const MockStaticResponseEditor = (): JSX.Element => {
+export const MockStaticResponseEditor = (): React.JSX.Element => {
   const [bodyLanguage, setBodyLanguage] = React.useState<Language>("json");
   const [responseStatus, setResponseStatus] = React.useState(
     defaultResponseStatus
@@ -35,10 +35,10 @@ export const MockStaticResponseEditor = (): JSX.Element => {
     <>
       <Form.Item label="HTTP status">
         <Form.Item name={["response", "status"]} noStyle>
-          <InputNumber
+          <InputNumber<number>
             min={100}
             max={599}
-            onChange={(value?: string | number) => {
+            onChange={(value) => {
               setResponseStatus(typeof value === "number" ? value : NaN);
             }} />
         </Form.Item>

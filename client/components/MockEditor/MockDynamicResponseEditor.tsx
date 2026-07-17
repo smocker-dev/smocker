@@ -2,18 +2,16 @@ import * as React from "react";
 import { Form, Select } from "antd";
 import Code from "../Code";
 
-export const MockDynamicResponseEditor = (): JSX.Element => (
+export const MockDynamicResponseEditor = (): React.JSX.Element => (
   <>
     <Form.Item label="Engine" name={["dynamic_response", "engine"]}>
-      <Select>
-        <Select.Option value="go_template_yaml">
-          Go Template (YAML)
-        </Select.Option>
-        <Select.Option value="go_template_json">
-          Go Template (JSON)
-        </Select.Option>
-        <Select.Option value="lua">Lua</Select.Option>
-      </Select>
+      <Select
+        options={[
+          { value: "go_template_yaml", label: "Go Template (YAML)" },
+          { value: "go_template_json", label: "Go Template (JSON)" },
+          { value: "lua", label: "Lua" },
+        ]}
+      />
     </Form.Item>
 
     <Form.Item

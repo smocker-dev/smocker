@@ -11,21 +11,18 @@ import {
   Empty,
   Form,
   Input,
-  PageHeader,
   Row,
   Spin,
 } from "antd";
 import * as React from "react";
-import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import { Dispatch } from "redux";
-import { useDebounce } from "use-lodash-debounce";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
+import { useHistorySummary } from "../modules/api";
+import { useSession } from "../modules/session";
 import { GraphHistory } from "../modules/types";
-import { cleanQueryParams, useQueryParams } from "../modules/utils";
+import { cleanQueryParams, useDebounce, useQueryParams } from "../modules/utils";
 import Code from "./Code";
 import { Mermaid } from "./Mermaid";
+import PageHeader from "./PageHeader";
 import "./Visualize.scss";
 
 const EditGraph = ({
@@ -46,7 +43,7 @@ const EditGraph = ({
       className="drawer"
       closable={true}
       onClose={onClose}
-      visible={display}
+      open={display}
       width="50vw"
       getContainer={false}
     >
@@ -62,17 +59,11 @@ const EditGraph = ({
   );
 };
 
-interface Props {
-  sessionID: string;
-  graph: GraphHistory;
-  loading: boolean;
-  visualize: (sessionID: string, src: string, dest: string) => unknown;
-}
-
-const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
+const Visualize = (): React.JSX.Element => {
   React.useEffect(() => {
     document.title = "Visualize | Smocker";
   });
+  const { selected: sessionID } = useSession();
   const [queryParams, setQueryParams] = useQueryParams();
 
   const [diagram, setDiagram] = React.useState("");
@@ -80,17 +71,24 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   const [dest, setDest] = React.useState(
     queryParams.get("destination-header") || ""
   );
+  // Committed src/dest that actually drive the fetch (mount + Regenerate),
+  // reproducing the old behavior where typing didn't refetch on its own.
+  const [submitted, setSubmitted] = React.useState({ src, dest });
   const [editGraph, setEditGraph] = React.useState(false);
   const [svg, setSVG] = React.useState("");
   const debouncedDiagram = useDebounce(diagram, 1000);
 
+  const historyQuery = useHistorySummary(
+    sessionID,
+    submitted.src,
+    submitted.dest
+  );
+  const graph: GraphHistory = historyQuery.data ?? [];
+  const loading = historyQuery.isFetching;
+
   React.useEffect(() => {
     setDiagram(computeGraph(graph));
   }, [graph]);
-
-  React.useLayoutEffect(() => {
-    visualize(sessionID, src, dest);
-  }, [sessionID]);
 
   const handleChangeSrc = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQueryParams({ "source-header": event.target.value }, true);
@@ -100,7 +98,7 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
     setQueryParams({ "destination-header": event.target.value }, true);
     setDest(event.target.value);
   };
-  const handleGenerate = () => visualize(sessionID, src, dest);
+  const handleGenerate = () => setSubmitted({ src, dest });
   const handleEditGraph = () => setEditGraph(true);
   const handleChangeGraph = (diag: string) => setDiagram(diag);
   const handleCloseEditGraph = () => setEditGraph(false);
@@ -124,10 +122,15 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
         extra={
           <div className="action buttons">
             <Link
-              to={(location) => ({
-                ...cleanQueryParams(location),
-                pathname: "/pages/history",
-              })}
+              to={(() => {
+                const cleaned = cleanQueryParams({
+                  search: window.location.search,
+                });
+                return {
+                  pathname: "/pages/history",
+                  search: cleaned.search,
+                };
+              })()}
             >
               <Button icon={<ArrowLeftOutlined />}>Back to History</Button>
             </Link>
@@ -147,27 +150,33 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
         <p className="no-margin">
           This is a graphical representation of call history.
         </p>
-        <Collapse bordered={false} defaultActiveKey={[""]} className="collapse">
-          <Collapse.Panel
-            header="Customize diagram generation"
-            key="1"
-            className="collapse-panel"
-          >
-            <Form layout="horizontal" initialValues={{ src, dest }}>
-              <Row>
-                <Form.Item label="Source Header" name="src">
-                  <Input value={src} onChange={handleChangeSrc} />
-                </Form.Item>
-                <Form.Item label="Destination Header" name="dest">
-                  <Input value={dest} onChange={handleChangeDest} />
-                </Form.Item>
-                <Button type="primary" onClick={handleGenerate}>
-                  Regenerate
-                </Button>
-              </Row>
-            </Form>
-          </Collapse.Panel>
-        </Collapse>
+        <Collapse
+          bordered={false}
+          defaultActiveKey={[""]}
+          className="collapse"
+          items={[
+            {
+              key: "1",
+              label: "Customize diagram generation",
+              className: "collapse-panel",
+              children: (
+                <Form layout="horizontal" initialValues={{ src, dest }}>
+                  <Row>
+                    <Form.Item label="Source Header" name="src">
+                      <Input value={src} onChange={handleChangeSrc} />
+                    </Form.Item>
+                    <Form.Item label="Destination Header" name="dest">
+                      <Input value={dest} onChange={handleChangeDest} />
+                    </Form.Item>
+                    <Button type="primary" onClick={handleGenerate}>
+                      Regenerate
+                    </Button>
+                  </Row>
+                </Form>
+              ),
+            },
+          ]}
+        />
         <Spin spinning={loading || diagram !== debouncedDiagram}>
           <Row className="container">
             {!emptyDiagram && (
@@ -197,20 +206,7 @@ const Visualize = ({ sessionID, graph, loading, visualize }: Props) => {
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, history } = state;
-    return {
-      sessionID: sessions.selected,
-      graph: history.graph,
-      loading: history.loading,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    visualize: (sessionID: string, src: string, dest: string) =>
-      dispatch(actions.summarizeHistory.request({ sessionID, src, dest })),
-  })
-)(Visualize);
+export default Visualize;
 
 const computeGraph = (graph: GraphHistory): string => {
   const endpoints: Record<string, string> = {};

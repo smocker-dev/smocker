@@ -8,7 +8,6 @@ import {
   Alert,
   Button,
   Empty,
-  PageHeader,
   Pagination,
   Row,
   Select,
@@ -17,26 +16,24 @@ import {
   Typography,
 } from "antd";
 import dayjs from "dayjs";
+import { orderBy } from "es-toolkit";
 import { getReasonPhrase } from "http-status-codes";
-import yaml from "js-yaml";
-import orderBy from "lodash/orderBy";
+import { dump } from "js-yaml";
 import * as React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router-dom";
-import useLocalStorage from "react-use-localstorage";
-import { Dispatch } from "redux";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
-import { dateFormat, Entry, History, SmockerError } from "../modules/types";
+import { Link, useLocation } from "react-router-dom";
+import { useLocalStorage } from "usehooks-ts";
+import { useHistory, useSessionsSummary } from "../modules/api";
+import { useSession } from "../modules/session";
+import { dateFormat, Entry, SmockerError } from "../modules/types";
 import {
   cleanupRequest,
   cleanupResponse,
   entryToCurl,
   formatQueryParams,
-  usePoll,
 } from "../modules/utils";
 import Code from "./Code";
 import "./History.scss";
+import PageHeader from "./PageHeader";
 
 const TableRow = ([key, values]: [string, string[]]) => (
   <tr key={key}>
@@ -45,161 +42,157 @@ const TableRow = ([key, values]: [string, string[]]) => (
   </tr>
 );
 
-const EntryComponent = React.memo(
-  ({
-    value,
-    handleDisplayNewMock,
-  }: {
-    value: Entry;
-    handleDisplayNewMock: () => unknown;
-  }) => {
-    const path =
-      value.request.path + formatQueryParams(value.request.query_params);
+const newMockFromEntry = (entry: Entry): string => {
+  const request = cleanupRequest(entry);
+  const response =
+    entry.response.status < 600
+      ? cleanupResponse(entry)
+      : {
+          // Sane default response
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: "",
+        };
+  return dump([{ request, response }]);
+};
 
-    let responseStatusColor = "blue";
+const EntryComponent = React.memo(({ value }: { value: Entry }) => {
+  const path =
+    value.request.path + formatQueryParams(value.request.query_params);
+
+  let responseStatusColor = "blue";
+  if (value.response.status >= 600) {
+    responseStatusColor = "magenta";
+  } else if (value.context.mock_type === "proxy") {
+    if (value.response.status >= 500) {
+      responseStatusColor = "red";
+    } else if (value.response.status >= 400) {
+      responseStatusColor = "orange";
+    }
+  }
+
+  let responseStatusTitle = "Unknown HTTP status code";
+  try {
+    responseStatusTitle = getReasonPhrase(value.response.status);
+  } catch {
     if (value.response.status >= 600) {
-      responseStatusColor = "magenta";
-    } else if (value.context.mock_type === "proxy") {
-      if (value.response.status >= 500) {
-        responseStatusColor = "red";
-      } else if (value.response.status >= 400) {
-        responseStatusColor = "orange";
-      }
+      responseStatusTitle = "Smocker error";
     }
+  }
 
-    let responseStatusTitle = "Unknown HTTP status code";
-    try {
-      responseStatusTitle = getReasonPhrase(value.response.status);
-    } catch {
-      if (value.response.status >= 600) {
-        responseStatusTitle = "Smocker error";
-      }
-    }
-
-    return (
-      <div className="entry">
-        <div className="request">
-          <div className="details">
-            <Tag color="blue">{value.request.method}</Tag>
-            <Typography.Text ellipsis className="path" title={path}>
-              {path}
-            </Typography.Text>
-            <span className="date">
-              {dayjs(value.request.date).format(dateFormat)}
-            </span>
-          </div>
-          {value.request.headers && (
-            <table>
-              <tbody>
-                {Object.entries(value.request.headers).map((entry) =>
-                  TableRow(entry)
-                )}
-              </tbody>
-            </table>
-          )}
-          {value.request.body && (
-            <Code
-              value={
-                JSON.stringify(value.request.body, null, "  ") ||
-                `${value.request.body}`
-              }
-              language="json"
-            />
-          )}
-          <div className="actions">
-            <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
-              Copy as curl
-            </Typography.Paragraph>
-          </div>
+  return (
+    <div className="entry">
+      <div className="request">
+        <div className="details">
+          <Tag color="blue">{value.request.method}</Tag>
+          <Typography.Text ellipsis className="path" title={path}>
+            {path}
+          </Typography.Text>
+          <span className="date">
+            {dayjs(value.request.date).format(dateFormat)}
+          </span>
         </div>
-        <div className="response">
-          <div className="details">
-            {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
-            <Tag color={responseStatusColor} title={responseStatusTitle}>
-              {value.response.status}
-            </Tag>
-            {value.response.status >= 600 && (
-              <Typography.Text
-                className="error"
-                ellipsis
-                title={(value.response.body as SmockerError).message}
-              >
-                {(value.response.body as SmockerError).message}
-              </Typography.Text>
-            )}
-            {value.context.mock_id && (
-              <span>
-                <Link to={`/pages/mocks/${value.context.mock_id}`}>
-                  Matched Mock
-                </Link>
-              </span>
-            )}
-            <span className="date">
-              {dayjs(value.response.date).format(dateFormat)}
-            </span>
-          </div>
-          <Typography.Paragraph>
-            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
-              <Button block type="dashed">
-                <PlusCircleOutlined />
-                {value.response.status >= 600
-                  ? "Create a new mock from request"
-                  : "Create a new mock from entry"}
-              </Button>
-            </Link>
+        {value.request.headers && (
+          <table>
+            <tbody>
+              {Object.entries(value.request.headers).map((entry) =>
+                TableRow(entry)
+              )}
+            </tbody>
+          </table>
+        )}
+        {value.request.body ? (
+          <Code
+            value={
+              JSON.stringify(value.request.body, null, "  ") ||
+              `${value.request.body}`
+            }
+            language="json"
+          />
+        ) : null}
+        <div className="actions">
+          <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
+            Copy as curl
           </Typography.Paragraph>
-          {value.response.headers && (
-            <table>
-              <tbody>
-                {Object.entries(value.response.headers).map((entry) =>
-                  TableRow(entry)
-                )}
-              </tbody>
-            </table>
-          )}
-          {value.response.body && (
-            <Code
-              value={
-                JSON.stringify(value.response.body, null, "  ") ||
-                `${value.response.body}`
-              }
-              language="json"
-            />
-          )}
-          {value.context.delay && (
-            <Typography.Paragraph className="delay">
-              This response was delayed by <span>{value.context.delay}</span>
-            </Typography.Paragraph>
-          )}
         </div>
       </div>
-    );
-  }
-);
+      <div className="response">
+        <div className="details">
+          {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
+          <Tag color={responseStatusColor} title={responseStatusTitle}>
+            {value.response.status}
+          </Tag>
+          {value.response.status >= 600 && (
+            <Typography.Text
+              className="error"
+              ellipsis
+              title={(value.response.body as SmockerError).message}
+            >
+              {(value.response.body as SmockerError).message}
+            </Typography.Text>
+          )}
+          {value.context.mock_id && (
+            <span>
+              <Link to={`/pages/mocks/${value.context.mock_id}`}>
+                Matched Mock
+              </Link>
+            </span>
+          )}
+          <span className="date">
+            {dayjs(value.response.date).format(dateFormat)}
+          </span>
+        </div>
+        <Typography.Paragraph>
+          <Link to="/pages/mocks" state={{ newMock: newMockFromEntry(value) }}>
+            <Button block type="dashed">
+              <PlusCircleOutlined />
+              {value.response.status >= 600
+                ? "Create a new mock from request"
+                : "Create a new mock from entry"}
+            </Button>
+          </Link>
+        </Typography.Paragraph>
+        {value.response.headers && (
+          <table>
+            <tbody>
+              {Object.entries(value.response.headers).map((entry) =>
+                TableRow(entry)
+              )}
+            </tbody>
+          </table>
+        )}
+        {value.response.body ? (
+          <Code
+            value={
+              JSON.stringify(value.response.body, null, "  ") ||
+              `${value.response.body}`
+            }
+            language="json"
+          />
+        ) : null}
+        {value.context.delay && (
+          <Typography.Paragraph className="delay">
+            This response was delayed by <span>{value.context.delay}</span>
+          </Typography.Paragraph>
+        )}
+      </div>
+    </div>
+  );
+});
 EntryComponent.displayName = "Entry";
 
-interface Props {
-  sessionID: string;
-  loading: boolean;
-  canPoll: boolean;
-  historyEntries: History;
-  error: SmockerError | null;
-  fetch: (sessionID: string) => unknown;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
-}
-
-const HistoryComponent = ({
-  sessionID,
-  historyEntries,
-  loading,
-  canPoll,
-  error,
-  fetch,
-  setDisplayNewMock,
-}: Props) => {
+const HistoryComponent = (): React.JSX.Element => {
   React.useEffect(() => {
     document.title = "History | Smocker";
   });
+
+  const { selected: sessionID } = useSession();
+  const { data: sessions = [] } = useSessionsSummary();
+  const canPoll =
+    !sessionID ||
+    (sessions.length > 0 && sessionID === sessions[sessions.length - 1].id);
+
+  const location = useLocation();
 
   // Filters and order
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
@@ -213,7 +206,16 @@ const HistoryComponent = ({
   const minPageSize = 10;
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
+  const [polling, setPolling] = React.useState(false);
+
+  const historyQuery = useHistory(sessionID, {
+    refetchInterval: polling ? 10000 : false,
+  });
+  const historyEntries = historyQuery.data ?? [];
+  const loading = historyQuery.isFetching;
+  const error = historyQuery.error;
+
+  const togglePolling = () => setPolling((p) => !p);
 
   const ref = React.createRef<HTMLDivElement>();
   React.useLayoutEffect(() => {
@@ -231,8 +233,8 @@ const HistoryComponent = ({
   } else {
     const filteredEntries = orderBy(
       historyEntries,
-      `${entryField}.date`,
-      order as "asc" | "desc"
+      [(entry) => (entryField === "request" ? entry.request.date : entry.response.date)],
+      [order as "asc" | "desc"]
     ).filter((entry) => {
       if (filter === "http-errors") {
         return entry.response.status >= 400 && entry.response.status <= 599;
@@ -252,19 +254,6 @@ const HistoryComponent = ({
         body = <Empty description="The history is empty." />;
       }
     } else {
-      const handleDisplayNewMock = (entry: Entry) => () => {
-        const request = cleanupRequest(entry);
-        const response =
-          entry.response.status < 600
-            ? cleanupResponse(entry)
-            : {
-                // Sane default response
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-                body: "",
-              };
-        return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
-      };
       const onChangePage = (p: number) => setPage(p);
       const onChangePageSize = (p: number, ps: number) => {
         setPage(p);
@@ -298,11 +287,7 @@ const HistoryComponent = ({
               Math.min(page * pageSize, filteredEntries.length)
             )
             .map((entry, index) => (
-              <EntryComponent
-                key={`entry-${index}`}
-                value={entry}
-                handleDisplayNewMock={handleDisplayNewMock(entry)}
-              />
+              <EntryComponent key={`entry-${index}`} value={entry} />
             ))}
           {filteredEntries.length > minPageSize && pagination}
         </>
@@ -317,6 +302,11 @@ const HistoryComponent = ({
     setPage(1);
     setFilter(value);
   };
+  const filterOptions = [
+    { value: "all", label: "everything" },
+    { value: "http-errors", label: "HTTP errors only" },
+    { value: "smocker-errors", label: "Smocker errors only" },
+  ];
   return (
     <div className="history" ref={ref}>
       <PageHeader
@@ -324,10 +314,7 @@ const HistoryComponent = ({
         extra={
           <div className="action buttons">
             <Link
-              to={(location) => ({
-                ...location,
-                pathname: "/pages/visualize",
-              })}
+              to={{ pathname: "/pages/visualize", search: location.search }}
             >
               <Button
                 type="primary"
@@ -365,20 +352,12 @@ const HistoryComponent = ({
           are displayed first. Show
           <Select
             defaultValue={filter}
-            bordered={false}
-            showArrow={false}
+            variant="borderless"
             className="ant-btn-link"
-            dropdownStyle={{
-              minWidth: 180, // required to allow all the text to fit in the dropdown
-            }}
+            popupMatchSelectWidth={180}
             onChange={onFilter}
-          >
-            <Select.Option value="all">everything</Select.Option>
-            <Select.Option value="http-errors">HTTP errors only</Select.Option>
-            <Select.Option value="smocker-errors">
-              Smocker errors only
-            </Select.Option>
-          </Select>
+            options={filterOptions}
+          />
           .
         </div>
         <Spin delay={300} spinning={loading && historyEntries.length === 0}>
@@ -389,25 +368,4 @@ const HistoryComponent = ({
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, history } = state;
-    const canPoll =
-      !sessions.selected ||
-      (sessions.list &&
-        sessions.selected === sessions.list[sessions.list.length - 1].id);
-    return {
-      sessionID: sessions.selected,
-      loading: history.loading,
-      historyEntries: history.list,
-      error: history.error,
-      canPoll,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: (sessionID: string) =>
-      dispatch(actions.fetchHistory.request(sessionID)),
-    setDisplayNewMock: (display: boolean, defaultValue: string) =>
-      dispatch(actions.openMockEditor([display, defaultValue])),
-  })
-)(HistoryComponent);
+export default HistoryComponent;

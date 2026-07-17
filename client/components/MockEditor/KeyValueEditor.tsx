@@ -1,9 +1,16 @@
 import * as React from "react";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Select, Space } from "antd";
+import {
+  Button,
+  Form,
+  FormListFieldData,
+  FormListOperation,
+  Input,
+  Select,
+  Space,
+} from "antd";
 import { defaultMatcher } from "../../modules/types";
 import { positiveMatchers, negativeMatchers, unaryMatchers } from "./utils";
-import { FormListFieldData, FormListOperation } from "antd/lib/form/FormList";
 
 export interface KeyValueEditorProps {
   name: string[];
@@ -13,7 +20,7 @@ export interface KeyValueEditorProps {
 export const KeyValueEditor = ({
   name,
   withMatchers,
-}: KeyValueEditorProps): JSX.Element => (
+}: KeyValueEditorProps): React.JSX.Element => (
   <Form.List name={name}>
     {(fields, actions) => (
       <KeyValueEditorEngine
@@ -26,6 +33,23 @@ export const KeyValueEditor = ({
   </Form.List>
 );
 
+const matcherOptions = [
+  {
+    label: "Positive",
+    options: positiveMatchers.map((matcher) => ({
+      value: matcher,
+      label: matcher,
+    })),
+  },
+  {
+    label: "Negative",
+    options: negativeMatchers.map((matcher) => ({
+      value: matcher,
+      label: matcher,
+    })),
+  },
+];
+
 export interface KeyValueEditorEngineProps extends KeyValueEditorProps {
   fields: FormListFieldData[];
   actions: FormListOperation;
@@ -36,9 +60,9 @@ export const KeyValueEditorEngine = ({
   withMatchers,
   fields,
   actions,
-}: KeyValueEditorEngineProps): JSX.Element => (
+}: KeyValueEditorEngineProps): React.JSX.Element => (
   <div style={{ margin: "auto" }}>
-    {fields.map(({ key, name: fieldName, fieldKey, ...restField }) => (
+    {fields.map(({ key, name: fieldName, ...restField }) => (
       <Space
         key={key}
         style={{ display: "flex", justifyContent: "center" }}
@@ -46,36 +70,13 @@ export const KeyValueEditorEngine = ({
       >
         <MinusCircleOutlined onClick={() => actions.remove(fieldName)} />
 
-        <Form.Item
-          {...restField}
-          name={[fieldName, "key"]}
-          fieldKey={[fieldKey, "key"]}
-        >
+        <Form.Item {...restField} name={[fieldName, "key"]}>
           <Input placeholder="Key" />
         </Form.Item>
 
         {withMatchers && (
-          <Form.Item
-            {...restField}
-            name={[fieldName, "matcher"]}
-            fieldKey={[fieldKey, "matcher"]}
-          >
-            <Select>
-              <Select.OptGroup label="Positive">
-                {positiveMatchers.map((matcher) => (
-                  <Select.Option key={matcher} value={matcher}>
-                    {matcher}
-                  </Select.Option>
-                ))}
-              </Select.OptGroup>
-              <Select.OptGroup label="Negative">
-                {negativeMatchers.map((matcher) => (
-                  <Select.Option key={matcher} value={matcher}>
-                    {matcher}
-                  </Select.Option>
-                ))}
-              </Select.OptGroup>
-            </Select>
+          <Form.Item {...restField} name={[fieldName, "matcher"]}>
+            <Select options={matcherOptions} />
           </Form.Item>
         )}
 
@@ -84,9 +85,8 @@ export const KeyValueEditorEngine = ({
             <Form.Item
               {...restField}
               name={[fieldName, "value"]}
-              fieldKey={[fieldKey, "value"]}
               hidden={unaryMatchers.includes(
-                getFieldValue([...name, fieldKey, "matcher"])
+                getFieldValue([...name, fieldName, "matcher"])
               )}
             >
               <Input placeholder="Value" />

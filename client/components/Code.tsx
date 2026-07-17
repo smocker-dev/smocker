@@ -1,26 +1,16 @@
+import { json } from "@codemirror/lang-json";
+import { xml } from "@codemirror/lang-xml";
+import { yaml } from "@codemirror/lang-yaml";
+import { StreamLanguage } from "@codemirror/language";
+import { lua } from "@codemirror/legacy-modes/mode/lua";
+import { Diagnostic, linter, lintGutter } from "@codemirror/lint";
+import { Extension } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
+import CodeMirror from "@uiw/react-codemirror";
 import { Collapse } from "antd";
-import { EditorConfiguration } from "codemirror";
-import "codemirror/addon/fold/brace-fold";
-import "codemirror/addon/fold/comment-fold";
-import "codemirror/addon/fold/foldcode";
-import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/addon/fold/indent-fold";
-import "codemirror/addon/lint/lint";
-import "codemirror/addon/lint/lint.css";
-import "codemirror/addon/lint/yaml-lint";
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/mode/ruby/ruby";
-import "codemirror/mode/xml/xml";
-import "codemirror/mode/yaml/yaml";
-import "codemirror/theme/material.css";
-import jsyaml from "js-yaml";
+import { load } from "js-yaml";
 import * as React from "react";
-import { Controlled, UnControlled } from "react-codemirror2";
 import "./Code.scss";
-
-window.jsyaml = jsyaml;
 
 const largeBodyLength = 5000;
 
@@ -41,98 +31,99 @@ interface Props {
   onChange?: (value: string) => unknown;
 }
 
-const codeMirrorOptions: EditorConfiguration = {
-  theme: "material",
-  lineWrapping: true,
-  readOnly: true,
-  viewportMargin: Infinity,
-  foldGutter: true,
-  gutters: ["CodeMirror-foldgutter"],
-  indentWithTabs: false,
-  indentUnit: 2,
-  smartIndent: false,
-  extraKeys: {
-    // Insert spaces when using the Tab key
-    Tab: (cm) => cm.replaceSelection("  ", "end"),
-  },
+const yamlLinter = linter((view: EditorView): Diagnostic[] => {
+  const diagnostics: Diagnostic[] = [];
+  const contents = view.state.doc.toString();
+  if (!contents.trim()) {
+    return diagnostics;
+  }
+  try {
+    load(contents);
+  } catch (error) {
+    const mark = (error as { mark?: { position?: number } }).mark;
+    const position =
+      mark && typeof mark.position === "number"
+        ? Math.min(mark.position, contents.length)
+        : 0;
+    diagnostics.push({
+      from: position,
+      to: position,
+      severity: "error",
+      message: (error as Error).message,
+    });
+  }
+  return diagnostics;
+});
+
+const languageExtensions = (language: Language): Extension[] => {
+  switch (language) {
+    case "json":
+    case "go_template_json":
+      return [json()];
+    case "yaml":
+    case "go_template":
+    case "go_template_yaml":
+      return [yaml(), yamlLinter, lintGutter()];
+    case "xml":
+      return [xml()];
+    case "lua":
+      return [StreamLanguage.define(lua)];
+    default:
+      return [];
+  }
 };
+
+const baseExtensions: Extension[] = [EditorView.lineWrapping];
 
 const Code = ({
   value,
   language,
-  onChange: onBeforeChange,
+  onChange,
   collapsible = true,
-}: Props): JSX.Element => {
-  let mode: string = language;
-  switch (mode) {
-    case "lua":
-      mode = "ruby"; // because lua mode doesn't handle fold
-      break;
+}: Props): React.JSX.Element => {
+  const readOnly = !onChange;
+  const extensions = React.useMemo(
+    () => [...baseExtensions, ...languageExtensions(language)],
+    [language]
+  );
 
-    case "json":
-    case "go_template_json":
-      mode = "application/json";
-      break;
-
-    case "go_template":
-    case "go_template_yaml":
-      mode = "yaml";
-      break;
-
-    case "xml":
-      mode = "application/xml";
-      break;
-  }
-
-  let body = null;
-  if (!onBeforeChange) {
-    body = (
-      <UnControlled
-        className="code-editor"
-        value={value}
-        options={{
-          ...codeMirrorOptions,
-          mode,
-        }}
-      />
-    );
-  }
-
-  const onBeforeChangeWrapper = (_: unknown, __: unknown, newValue: string) => {
-    if (onBeforeChange) {
-      onBeforeChange(newValue);
-    }
-  };
-  body = (
-    <Controlled
+  // Keep parity with the legacy editor: readonly previews (no onChange) had no
+  // line numbers, editable instances did.
+  const body = (
+    <CodeMirror
       className="code-editor"
       value={value || ""}
-      options={{
-        ...codeMirrorOptions,
-        mode,
-        readOnly: false,
-        lineNumbers: true,
-        lint: true,
-        gutters: [
-          ...(codeMirrorOptions?.gutters ?? []),
-          "CodeMirror-linenumbers",
-          "CodeMirror-lint-markers",
-        ],
+      theme="dark"
+      editable={!readOnly}
+      readOnly={readOnly}
+      extensions={extensions}
+      basicSetup={{
+        lineNumbers: !readOnly,
+        foldGutter: true,
+        highlightActiveLine: !readOnly,
+        highlightActiveLineGutter: !readOnly,
+        indentOnInput: true,
       }}
-      onBeforeChange={onBeforeChangeWrapper}
+      indentWithTab={false}
+      onChange={(newValue) => {
+        if (onChange) {
+          onChange(newValue);
+        }
+      }}
     />
   );
 
   if (collapsible && value && value.length > largeBodyLength) {
     return (
-      <Collapse>
-        <Collapse.Panel
-          header="This payload is huge. Click to display it"
-          key="1"
-        >
-          {body}
-        </Collapse.Panel>
-      </Collapse>
+      <Collapse
+        items={[
+          {
+            key: "1",
+            label: "This payload is huge. Click to display it",
+            children: body,
+          },
+        ]}
+      />
     );
   }
   return body;

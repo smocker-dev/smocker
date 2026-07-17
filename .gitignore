@@ -1,5 +1,4 @@
 .DS_Store
-.parcel-cache/
 .vscode/
 build/
 coverage/
@@ -8,4 +7,6 @@ sessions
 !tests/sessions
 smocker
 smocker.test
-yarn-error.log
+# Playwright E2E artifacts
+test-results/
+playwright-report/

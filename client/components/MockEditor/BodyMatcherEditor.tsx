@@ -10,7 +10,7 @@ interface BodyMatcherEditorProps {
 
 export const BodyMatcherEditor = ({
   name,
-}: BodyMatcherEditorProps): JSX.Element => {
+}: BodyMatcherEditorProps): React.JSX.Element => {
   const [initialized, setInitialized] = React.useState(false);
   const [rawJSON, setRawJSON] = React.useState("");
 
