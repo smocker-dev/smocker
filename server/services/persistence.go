@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -17,6 +16,12 @@ const (
 	historyFileName  = "history.yml"
 	mocksFileName    = "mocks.yml"
 	sessionsFileName = "sessions.yml"
+
+	// maxPersistenceConcurrency bounds how many session files are read/written in parallel.
+	// Persistence spawns work per session, so without a cap a large number of sessions could
+	// exhaust the process's file descriptors ("too many open files"). errgroup.Go blocks once
+	// this many goroutines are in flight.
+	maxPersistenceConcurrency = 16
 )
 
 type Persistence interface {
@@ -110,6 +115,7 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 		return
 	}
 	var sessionsGroup errgroup.Group
+	sessionsGroup.SetLimit(maxPersistenceConcurrency)
 	for i := range sessions {
 		session := sessions[i]
 		sessionsGroup.Go(func() error {
@@ -146,66 +152,46 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 	if _, err := os.Stat(p.persistenceDirectory); os.IsNotExist(err) {
 		return nil, err
 	}
-	file, err := os.Open(filepath.Join(p.persistenceDirectory, sessionsFileName))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	bytes, err := io.ReadAll(file)
+	data, err := os.ReadFile(filepath.Join(p.persistenceDirectory, sessionsFileName))
 	if err != nil {
 		return nil, err
 	}
 	var sessions types.Sessions
-	err = yaml.Unmarshal(bytes, &sessions)
-	if err != nil {
+	if err := yaml.Unmarshal(data, &sessions); err != nil {
 		return nil, err
 	}
-	var sessionsGroup errgroup.Group
+
+	// Load each session's history and mocks independently and resiliently: a missing or
+	// unreadable per-session file must never discard the other sessions. Previously a single
+	// incomplete session directory made the whole load fail and wiped every persisted session on
+	// restart (the recurring persistence reports). The session name always loads from the
+	// summary, and whatever history/mocks are readable are kept.
 	var sessionsLock sync.Mutex
+	var group errgroup.Group
+	group.SetLimit(maxPersistenceConcurrency)
 	for i := range sessions {
 		session := sessions[i]
-		sessionsGroup.Go(func() error {
-			historyFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, historyFileName))
+		group.Go(func() error {
+			history, err := loadPersistedFile[types.History](p.persistenceDirectory, session.ID, historyFileName)
 			if err != nil {
-				slog.Error(fmt.Sprintf("Unable to open history file for session %q", session.ID), "error", err)
-				return err
-			}
-			defer historyFile.Close()
-			bytes, err := io.ReadAll(historyFile)
-			if err != nil {
-				return err
-			}
-			var history types.History
-			err = yaml.Unmarshal(bytes, &history)
-			if err != nil {
-				return err
+				logPersistedLoadError("history", session.ID, err)
+				return nil
 			}
 			sessionsLock.Lock()
 			session.History = history
 			sessionsLock.Unlock()
 			return nil
 		})
-		sessionsGroup.Go(func() error {
-			mocksFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, mocksFileName))
+		group.Go(func() error {
+			mocks, err := loadPersistedFile[types.Mocks](p.persistenceDirectory, session.ID, mocksFileName)
 			if err != nil {
-				slog.Error(fmt.Sprintf("Unable to open mocks file for session %q", session.ID), "error", err)
-				return err
+				logPersistedLoadError("mocks", session.ID, err)
+				return nil
 			}
-			defer mocksFile.Close()
-			bytes, err := io.ReadAll(mocksFile)
-			if err != nil {
-				return err
-			}
-			var mocks types.Mocks
-			err = yaml.Unmarshal(bytes, &mocks)
-			if err != nil {
-				return err
-			}
-
 			// mocks are stored as a stack so we need to reverse the list from mocks file
 			orderedMocks := make(types.Mocks, 0, len(mocks))
-			for i := len(mocks) - 1; i >= 0; i-- {
-				orderedMocks = append(orderedMocks, mocks[i])
+			for j := len(mocks) - 1; j >= 0; j-- {
+				orderedMocks = append(orderedMocks, mocks[j])
 			}
 			sessionsLock.Lock()
 			session.Mocks = orderedMocks
@@ -213,10 +199,27 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 			return nil
 		})
 	}
-	if err := sessionsGroup.Wait(); err != nil {
-		return nil, err
-	}
+	_ = group.Wait() // per-file errors are handled above; the load itself never fails here
 	return sessions, nil
+}
+
+// loadPersistedFile reads and YAML-decodes a per-session persistence file (history or mocks).
+func loadPersistedFile[T any](dir, sessionID, name string) (T, error) {
+	var v T
+	data, err := os.ReadFile(filepath.Join(dir, sessionID, name))
+	if err != nil {
+		return v, err
+	}
+	return v, yaml.Unmarshal(data, &v)
+}
+
+// logPersistedLoadError reports a per-session load problem without aborting the whole load.
+func logPersistedLoadError(kind, sessionID string, err error) {
+	if os.IsNotExist(err) {
+		slog.Debug(fmt.Sprintf("No %s file for session %q, treating as empty", kind, sessionID))
+		return
+	}
+	slog.Warn(fmt.Sprintf("Unable to load %s for session %q, ignoring it", kind, sessionID), "error", err)
 }
 
 func (p *persistence) createSessionDirectory(sessionID string) error {
