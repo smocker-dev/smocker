@@ -1,0 +1,14 @@
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldMatch
+        value: .*
+  response:
+    body: |
+        {"message": "test"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json

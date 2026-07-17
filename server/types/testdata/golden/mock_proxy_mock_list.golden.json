@@ -1,0 +1,210 @@
+[
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/posts/1"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "proxy": {
+      "host": "https://jsonplaceholder.typicode.com",
+      "delay": {}
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/todos"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "query_params": {
+        "userId": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "host": "https://jsonplaceholder.typicode.com",
+      "delay": {}
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/redirect-to"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "proxy": {
+      "host": "https://httpbin.org",
+      "delay": {}
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/redirect-to"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "headers": {
+        "X-Follow-Redirect": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "host": "https://httpbin.org",
+      "delay": {},
+      "follow_redirect": true
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/get"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "proxy": {
+      "host": "https://httpbin.org",
+      "delay": {}
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/get"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "headers": {
+        "X-Keep-Host": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "host": "https://httpbin.org",
+      "delay": {},
+      "keep_host": true
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/headers"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "proxy": {
+      "host": "https://httpbin.org",
+      "delay": {},
+      "headers": {
+        "custom": [
+          "foobar"
+        ],
+        "multi": [
+          "foo",
+          "baz"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "GET"
+      },
+      "headers": {
+        "X-Filter": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "badssl"
+          }
+        ],
+        "X-Value": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "insecure"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "host": "https://self-signed.badssl.com",
+      "delay": {},
+      "skip_verify_tls": true
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "GET"
+      },
+      "headers": {
+        "X-Filter": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "badssl"
+          }
+        ],
+        "X-Value": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "secure"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "host": "https://self-signed.badssl.com",
+      "delay": {}
+    }
+  }
+]

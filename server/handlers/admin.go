@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/services"
 	"github.com/smocker-dev/smocker/server/types"
 )
@@ -176,7 +176,7 @@ func (a *Admin) GetHistory(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 
-		log.WithError(err).Error("Failed to retrieve history")
+		slog.Error("Failed to retrieve history", "error", err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return respondAccordingAccept(c, history)
@@ -259,7 +259,7 @@ func (a *Admin) SummarizeHistory(c echo.Context) error {
 	if err == types.SessionNotFound {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
-		log.WithError(err).Error("Failed to retrieve session")
+		slog.Error("Failed to retrieve session", "error", err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 

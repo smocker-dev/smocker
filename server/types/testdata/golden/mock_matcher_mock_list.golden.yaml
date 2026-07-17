@@ -1,0 +1,148 @@
+- request:
+    path:
+        matcher: ShouldMatch
+        value: /.*
+    method:
+        matcher: ShouldEqual
+        value: GET
+  response:
+    body: |
+        {"message": "test"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldContainSubstring
+        value: PO
+  response:
+    body: |
+        {"message": "test2"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: DELETE
+    body:
+        matcher: ShouldEqualJSON
+        value: "{\"id\": 1}\n"
+  response:
+    body: |
+        {"message": "test3"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: PUT
+    headers:
+        Content-Type:
+            - matcher: ShouldMatch
+              value: application/.*
+  response:
+    body: |
+        {"message": "test4"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: PATCH
+    query_params:
+        test:
+            - matcher: ShouldEqual
+              value: "true"
+        test2: [{matcher: ShouldContainSubstring, value: test3}]
+  response:
+    body: |
+        {"message": "test5"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test6
+    method:
+        matcher: ShouldMatch
+        value: .*
+    body:
+        matcher: ShouldNotBeEmpty
+        value: ""
+  response:
+    body: |
+        {"message": "test7"}
+    status: 0
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test8
+    method:
+        matcher: ShouldMatch
+        value: .*
+    body:
+        matcher: ShouldNotBeEmpty
+        value: ""
+    query_params:
+        test:
+            - matcher: ShouldContainSubstring
+              value: "true"
+  response:
+    body: |
+        {"message": "test9"}
+    status: 0
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test10
+    method:
+        matcher: ShouldMatch
+        value: .*
+    body:
+        key1:
+            matcher: ShouldEqual
+            value: test
+  response:
+    body: |
+        {"message": "test11"}
+    status: 0
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test12
+    method:
+        matcher: ShouldMatch
+        value: .*
+    body:
+        key1[0]:
+            matcher: ShouldEqual
+            value: test
+    headers:
+        Content-Type:
+            - matcher: ShouldEqual
+              value: application/x-www-form-urlencoded
+  response:
+    body: |
+        {"message": "test13"}
+    status: 0

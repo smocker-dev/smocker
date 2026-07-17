@@ -1,0 +1,24 @@
+[
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  }
+]

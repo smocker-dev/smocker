@@ -1,0 +1,213 @@
+[
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/encoded%2Fpath"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"encoded path\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "POST"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test2\"}\n",
+      "status": 0,
+      "delay": {
+        "min": 10000000,
+        "max": 10000000
+      },
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "DELETE"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test3\"}\n",
+      "status": 0,
+      "delay": {
+        "max": 10000000
+      },
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "query_params": {
+        "foo": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "bar"
+          },
+          {
+            "matcher": "ShouldEqual",
+            "value": "baz"
+          }
+        ]
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test4\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "headers": {
+        "X-Custom-Header": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "bar"
+          }
+        ]
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test5\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      },
+      "headers": {
+        "X-Custom-Header-1": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "bar"
+          }
+        ],
+        "X-Custom-Header-2": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "foo"
+          },
+          {
+            "matcher": "ShouldEqual",
+            "value": "bar"
+          }
+        ],
+        "X-Custom-Header-3": [
+          {
+            "matcher": "ShouldEqual",
+            "value": "foo"
+          },
+          {
+            "matcher": "ShouldEqual",
+            "value": "bar"
+          },
+          {
+            "matcher": "ShouldMatch",
+            "value": "baz.*"
+          }
+        ]
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test6\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  }
+]

@@ -7,13 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/services"
 	"github.com/smocker-dev/smocker/server/types"
 )
@@ -63,11 +63,11 @@ func HistoryMiddleware(s services.Mocks) echo.MiddlewareFunc {
 			if c.Response().Header().Get("Content-Encoding") == "gzip" {
 				r, err := gzip.NewReader(responseBody)
 				if err != nil {
-					log.WithError(err).Error("Unable to uncompress response body")
+					slog.Error("Unable to uncompress response body", "error", err)
 				} else {
 					responseBytes, err = io.ReadAll(r)
 					if err != nil {
-						log.WithError(err).Error("Unable to read uncompressed response body")
+						slog.Error("Unable to read uncompressed response body", "error", err)
 						responseBytes = responseBody.Bytes()
 					}
 				}
@@ -118,16 +118,16 @@ func loggerMiddleware() echo.MiddlewareFunc {
 
 			headers := fmt.Sprintf("%+v", req.Header)
 
-			entry := log.WithFields(log.Fields{
-				"start":     start.Format(time.RFC3339),
-				"remote-ip": c.RealIP(),
-				"host":      req.Host,
-				"uri":       req.RequestURI,
-				"method":    req.Method,
-				"path":      p,
-				"headers":   headers,
-				"bytes-in":  bytesIn,
-			})
+			entry := slog.With(
+				"start", start.Format(time.RFC3339),
+				"remote-ip", c.RealIP(),
+				"host", req.Host,
+				"uri", req.RequestURI,
+				"method", req.Method,
+				"path", p,
+				"headers", headers,
+				"bytes-in", bytesIn,
+			)
 			entry.Debug("Handling request...")
 
 			if err := next(c); err != nil {
@@ -136,12 +136,12 @@ func loggerMiddleware() echo.MiddlewareFunc {
 
 			res := c.Response()
 			end := time.Now()
-			entry = entry.WithFields(log.Fields{
-				"end":       end.Format(time.RFC3339),
-				"status":    res.Status,
-				"latency":   end.Sub(start).String(),
-				"bytes-out": res.Size,
-			})
+			entry = entry.With(
+				"end", end.Format(time.RFC3339),
+				"status", res.Status,
+				"latency", end.Sub(start).String(),
+				"bytes-out", res.Size,
+			)
 
 			switch {
 			case res.Status < 400:
@@ -169,7 +169,7 @@ func recoverMiddleware() echo.MiddlewareFunc {
 					}
 					stack := make([]byte, 4<<10) // 4 KB
 					length := runtime.Stack(stack, true)
-					log.WithError(err).Errorf("[PANIC RECOVER] %s", stack[:length])
+					slog.Error(fmt.Sprintf("[PANIC RECOVER] %s", stack[:length]), "error", err)
 					c.Error(err)
 				}
 			}()

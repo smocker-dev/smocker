@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/smocker-dev/smocker/server/types"
-	"github.com/teris-io/shortid"
 )
 
 var (
@@ -210,7 +209,7 @@ func (s *mocks) NewSession(name string) *types.Session {
 	defer s.mu.Unlock()
 
 	session := &types.Session{
-		ID:      shortid.MustGenerate(),
+		ID:      types.NewID(),
 		Name:    name,
 		Date:    time.Now(),
 		History: history,

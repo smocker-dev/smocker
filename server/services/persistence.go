@@ -1,12 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/types"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
@@ -46,12 +47,12 @@ func (p *persistence) StoreMocks(sessionID string, mocks types.Mocks) {
 	}
 	err := p.createSessionDirectory(sessionID)
 	if err != nil {
-		log.Errorf("unable to create directory for session %q: %v", sessionID, err)
+		slog.Error(fmt.Sprintf("unable to create directory for session %q: %v", sessionID, err))
 		return
 	}
 	err = p.persistMocks(sessionID, mocks)
 	if err != nil {
-		log.Errorf("unable to store mocks for session %q: %v", sessionID, err)
+		slog.Error(fmt.Sprintf("unable to store mocks for session %q: %v", sessionID, err))
 	}
 }
 
@@ -63,12 +64,12 @@ func (p *persistence) StoreHistory(sessionID string, history types.History) {
 	}
 	err := p.createSessionDirectory(sessionID)
 	if err != nil {
-		log.Errorf("unable to create directory for session %q: %v", sessionID, err)
+		slog.Error(fmt.Sprintf("unable to create directory for session %q: %v", sessionID, err))
 		return
 	}
 	err = p.persistHistory(sessionID, history)
 	if err != nil {
-		log.Errorf("unable to store history for session %q: %v", sessionID, err)
+		slog.Error(fmt.Sprintf("unable to store history for session %q: %v", sessionID, err))
 	}
 }
 
@@ -79,7 +80,7 @@ func (p *persistence) StoreSession(summary []types.SessionSummary, session *type
 		return
 	}
 	if err := p.createSessionDirectory(session.ID); err != nil {
-		log.Errorf("unable to create directory for session %q: %v", session.ID, err)
+		slog.Error(fmt.Sprintf("unable to create directory for session %q: %v", session.ID, err))
 		return
 	}
 
@@ -94,7 +95,7 @@ func (p *persistence) StoreSession(summary []types.SessionSummary, session *type
 		return p.persistSessionsSummary(summary)
 	})
 	if err := sessionGroup.Wait(); err != nil {
-		log.Errorf("unable to store session %q: %v", session.ID, err)
+		slog.Error(fmt.Sprintf("unable to store session %q: %v", session.ID, err))
 	}
 }
 
@@ -105,7 +106,7 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 		return
 	}
 	if err := p.cleanAll(); err != nil {
-		log.Error("unable to clean directory: ", err)
+		slog.Error("unable to clean directory", "error", err)
 		return
 	}
 	var sessionsGroup errgroup.Group
@@ -132,7 +133,7 @@ func (p *persistence) StoreSessions(sessions types.Sessions) {
 		return p.persistSessionsSummary(sessions.Summarize())
 	})
 	if err := sessionsGroup.Wait(); err != nil {
-		log.Error("unable to store sessions: ", err)
+		slog.Error("unable to store sessions", "error", err)
 	}
 }
 
@@ -166,7 +167,7 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 		sessionsGroup.Go(func() error {
 			historyFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, historyFileName))
 			if err != nil {
-				log.WithError(err).Errorf("Unable to open history file for session %q", session.ID)
+				slog.Error(fmt.Sprintf("Unable to open history file for session %q", session.ID), "error", err)
 				return err
 			}
 			defer historyFile.Close()
@@ -187,7 +188,7 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 		sessionsGroup.Go(func() error {
 			mocksFile, err := os.Open(filepath.Join(p.persistenceDirectory, session.ID, mocksFileName))
 			if err != nil {
-				log.WithError(err).Errorf("Unable to open mocks file for session %q", session.ID)
+				slog.Error(fmt.Sprintf("Unable to open mocks file for session %q", session.ID), "error", err)
 				return err
 			}
 			defer mocksFile.Close()
@@ -219,7 +220,7 @@ func (p *persistence) LoadSessions() (types.Sessions, error) {
 }
 
 func (p *persistence) createSessionDirectory(sessionID string) error {
-	log.Debugf("Create directory for session %q", sessionID)
+	slog.Debug(fmt.Sprintf("Create directory for session %q", sessionID))
 	sessionDirectory := filepath.Join(p.persistenceDirectory, sessionID)
 	if err := os.MkdirAll(sessionDirectory, os.ModePerm); err != nil && !os.IsExist(err) {
 		return err
@@ -228,7 +229,7 @@ func (p *persistence) createSessionDirectory(sessionID string) error {
 }
 
 func (p *persistence) persistHistory(sessionID string, h types.History) error {
-	log.Debugf("Persist history for session %q", sessionID)
+	slog.Debug(fmt.Sprintf("Persist history for session %q", sessionID))
 	history, err := yaml.Marshal(h)
 	if err != nil {
 		return err
@@ -241,7 +242,7 @@ func (p *persistence) persistHistory(sessionID string, h types.History) error {
 }
 
 func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
-	log.Debugf("Persist mocks for session %q", sessionID)
+	slog.Debug(fmt.Sprintf("Persist mocks for session %q", sessionID))
 	// we need to reverse mocks before storage in order to have a reusable mocks file as mocks are stored as a stack
 	orderedMocks := make(types.Mocks, 0, len(m))
 	for i := len(m) - 1; i >= 0; i-- {
@@ -259,7 +260,7 @@ func (p *persistence) persistMocks(sessionID string, m types.Mocks) error {
 }
 
 func (p *persistence) persistSessionsSummary(summary []types.SessionSummary) error {
-	log.Debug("Persist sessions summary")
+	slog.Debug("Persist sessions summary")
 	sessions, err := yaml.Marshal(summary)
 	if err != nil {
 		return err
@@ -273,13 +274,13 @@ func (p *persistence) persistSessionsSummary(summary []types.SessionSummary) err
 
 func (p *persistence) cleanAll() error {
 	if err := os.MkdirAll(p.persistenceDirectory, os.ModePerm); err != nil && !os.IsExist(err) {
-		log.WithError(err).Errorf("Unable to ensure that directory %q exists", p.persistenceDirectory)
+		slog.Error(fmt.Sprintf("Unable to ensure that directory %q exists", p.persistenceDirectory), "error", err)
 		return err
 	}
-	log.Debug("Cleanning old sessions")
+	slog.Debug("Cleanning old sessions")
 	files, err := os.ReadDir(p.persistenceDirectory)
 	if err != nil {
-		log.WithError(err).Errorf("Unable to browse directory %q", p.persistenceDirectory)
+		slog.Error(fmt.Sprintf("Unable to browse directory %q", p.persistenceDirectory), "error", err)
 		return err
 	}
 	for _, file := range files {

@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.22
+ARG GO_VERSION=1.26
 FROM golang:${GO_VERSION}-alpine AS build-backend
 RUN apk add --no-cache make
 ARG VERSION=snapshot
