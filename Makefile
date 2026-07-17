@@ -102,6 +102,23 @@ test-integration: $(VENOM) check-default-ports persistence
 start-integration: $(VENOM)
 	$(VENOM) run tests/features/$(SUITE)
 
+# End-to-end UI non-regression tests (Playwright). Builds the client and backend, serves the
+# built client through smocker (seeded with tests/sessions), runs the suite, then stops the
+# server. Requires the Playwright browser to be installed (npx playwright install chromium).
+E2E_MOCK_PORT ?= 8080
+E2E_ADMIN_PORT ?= 8081
+.PHONY: test-e2e
+test-e2e: build persistence
+	npm run build
+	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) ./$(BUILD_DIR)/$(APPNAME) \
+		--static-files ./$(BUILD_DIR)/client \
+		--mock-server-listen-port=$(E2E_MOCK_PORT) --config-listen-port=$(E2E_ADMIN_PORT) \
+		> $(BUILD_DIR)/e2e-smocker.log 2>&1 & \
+	SMK_PID=$$!; \
+	for i in $$(seq 1 30); do curl -sf localhost:$(E2E_ADMIN_PORT)/version >/dev/null 2>&1 && break; sleep 0.3; done; \
+	SMOCKER_E2E_URL=http://localhost:$(E2E_ADMIN_PORT) npx playwright test --config tests/e2e/playwright.config.ts; \
+	RC=$$?; kill $$SMK_PID 2>/dev/null || true; exit $$RC
+
 $(COVERAGE_DIR)/test-cover.out:
 	$(MAKE) test
 
