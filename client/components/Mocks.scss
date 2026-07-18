@@ -17,6 +17,20 @@
     }
   }
 
+  .toolbar {
+    gap: 1em;
+
+    .list-search {
+      max-width: 320px;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+  }
+
   .action.buttons {
     button {
       margin-left: 0.5em;
@@ -44,13 +58,37 @@
       margin-bottom: 0.5em;
       border-bottom: 1px dashed $color-grey-dark;
 
+      .lock-wrap {
+        display: inline-flex;
+        align-items: center;
+      }
+
       .label {
         font-weight: bolder;
         margin-right: 0.5em;
       }
 
+      .actions {
+        display: flex;
+        align-items: center;
+
+        // Icon-only link buttons: square and padding-free so the tooltip centers on the icon
+        // rather than on a wide padded box, and both variants (editable / disabled) sit evenly.
+        .mock-buttons {
+          display: flex;
+          align-items: center;
+          gap: 0;
+
+          button {
+            width: 2em;
+            padding: 0;
+          }
+        }
+      }
+
       .date {
         flex: 1 1 auto;
+        margin-left: 0.5em;
         text-align: right;
         font-weight: bolder;
       }
@@ -59,6 +97,13 @@
     .content {
       display: flex;
       flex-direction: row;
+
+      // The raw-YAML view takes the full width instead of the request/response split.
+      &.yaml {
+        display: block;
+        padding: 0 1em 1em;
+      }
+
       .request,
       .response {
         width: 50%;

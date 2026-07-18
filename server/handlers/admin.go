@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -79,6 +80,60 @@ func (a *Admin) AddMocks(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Mocks registered successfully",
+	})
+}
+
+func (a *Admin) sessionIDFromQuery(c echo.Context) string {
+	sessionID := c.QueryParam("session")
+	if sessionID == "" {
+		sessionID = a.mocksServices.GetLastSession().ID
+	}
+	return sessionID
+}
+
+// mockMutationError maps a service edit/delete error to the right HTTP status.
+func mockMutationError(err error) error {
+	switch {
+	case errors.Is(err, types.MockEditForbidden):
+		return echo.NewHTTPError(http.StatusConflict, err.Error())
+	case errors.Is(err, types.MockNotFound), errors.Is(err, types.SessionNotFound):
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	default:
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+}
+
+func (a *Admin) UpdateMock(c echo.Context) error {
+	sessionID := a.sessionIDFromQuery(c)
+	id := c.Param("id")
+
+	var mocks types.Mocks
+	if err := bindAccordingAccept(c, &mocks); err != nil {
+		return err
+	}
+	if len(mocks) != 1 {
+		return echo.NewHTTPError(http.StatusBadRequest, "expected exactly one mock to update")
+	}
+	if err := mocks[0].Validate(); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	updated, err := a.mocksServices.UpdateMock(sessionID, id, mocks[0])
+	if err != nil {
+		return mockMutationError(err)
+	}
+	return c.JSON(http.StatusOK, updated)
+}
+
+func (a *Admin) DeleteMock(c echo.Context) error {
+	sessionID := a.sessionIDFromQuery(c)
+	id := c.Param("id")
+
+	if err := a.mocksServices.DeleteMock(sessionID, id); err != nil {
+		return mockMutationError(err)
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "Mock deleted successfully",
 	})
 }
 
@@ -182,6 +237,14 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	return respondAccordingAccept(c, history)
 }
 
+func (a *Admin) DeleteHistory(c echo.Context) error {
+	sessionID := a.sessionIDFromQuery(c)
+	if err := a.mocksServices.ClearHistory(sessionID); err != nil {
+		return mockMutationError(err)
+	}
+	return respondAccordingAccept(c, types.History{})
+}
+
 func (a *Admin) GetSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
 	return respondAccordingAccept(c, sessions)
@@ -223,6 +286,14 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 		Name: session.Name,
 		Date: session.Date,
 	})
+}
+
+func (a *Admin) DeleteSession(c echo.Context) error {
+	id := c.Param("id")
+	if err := a.mocksServices.DeleteSession(id); err != nil {
+		return mockMutationError(err)
+	}
+	return respondAccordingAccept(c, a.mocksServices.GetSessions().Summarize())
 }
 
 func (a *Admin) ImportSession(c echo.Context) error {

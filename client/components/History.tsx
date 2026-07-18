@@ -1,14 +1,19 @@
 import {
+  DeleteOutlined,
   PartitionOutlined,
   PauseCircleFilled,
   PlayCircleFilled,
   PlusCircleOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import {
   Alert,
+  App,
   Button,
   Empty,
+  Input,
   Pagination,
+  Popconfirm,
   Row,
   Select,
   Spin,
@@ -22,7 +27,11 @@ import { dump } from "js-yaml";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLocalStorage } from "usehooks-ts";
-import { useHistory, useSessionsSummary } from "../modules/api";
+import {
+  useDeleteHistory,
+  useHistory,
+  useSessionsSummary,
+} from "../modules/api";
 import { useSession } from "../modules/session";
 import { dateFormat, Entry, SmockerError } from "../modules/types";
 import {
@@ -37,6 +46,13 @@ import Code from "./Code";
 import "./History.scss";
 import NewMock from "./NewMock";
 import PageHeader from "./PageHeader";
+
+// Lowercased, whitespace-joined view of an entry's searchable fields, used by the filter box.
+const entryHaystack = (entry: Entry): string =>
+  [entry.request.method, entry.request.path, String(entry.response.status)]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
 const TableRow = ([key, values]: [string, string[]]) => (
   <tr key={key}>
@@ -215,14 +231,20 @@ const HistoryComponent = (): React.JSX.Element => {
   );
   const [filter, setFilter] = useLocalStorage("history.filter", "all");
 
-  // Pagination — kept in the URL query (?page, ?page-size) so a given page is shareable.
+  // Pagination and search — kept in the URL query (?page, ?page-size, ?search) so a given view
+  // is shareable.
   const minPageSize = 10;
   const [queryParams, setQueryParams] = useQueryParams();
   const page = Math.max(1, Number(queryParams.get("page")) || 1);
   const pageSize = Number(queryParams.get("page-size")) || minPageSize;
+  const search = queryParams.get("search") ?? "";
   const setPage = (p: number) => setQueryParams({ page: String(p) });
   const setPageAndSize = (p: number, ps: number) =>
     setQueryParams({ page: String(p), "page-size": String(ps) });
+  // Store the query in the URL and reset to the first page. Replace (not push) so typing doesn't
+  // flood the browser history with a stack of one-character-apart entries.
+  const onSearch = (value: string) =>
+    setQueryParams({ search: value, page: "1" }, true);
   const [polling, setPolling] = React.useState(false);
 
   // Mock creation drawer opened in place from an entry (no navigation to the Mocks page).
@@ -241,6 +263,18 @@ const HistoryComponent = (): React.JSX.Element => {
 
   const togglePolling = () => setPolling((p) => !p);
 
+  const { message } = App.useApp();
+  const clearHistoryMut = useDeleteHistory();
+  const handleClearHistory = () =>
+    clearHistoryMut.mutate(
+      { sessionID },
+      {
+        onSuccess: () => message.success("Session history cleared"),
+        onError: (e) =>
+          message.error(`Can't clear history — ${(e as Error).message}`),
+      },
+    );
+
   const ref = React.useRef<HTMLDivElement>(null);
   const prevPageRef = React.useRef(page);
   const prevPageSizeRef = React.useRef(pageSize);
@@ -256,6 +290,7 @@ const HistoryComponent = (): React.JSX.Element => {
   if (error) {
     body = <Alert message={error.message} type="error" showIcon />;
   } else {
+    const needle = search.trim().toLowerCase();
     const filteredEntries = orderBy(
       historyEntries,
       [
@@ -265,47 +300,76 @@ const HistoryComponent = (): React.JSX.Element => {
       [order as "asc" | "desc"],
     ).filter((entry) => {
       if (filter === "http-errors") {
-        return entry.response.status >= 400 && entry.response.status <= 599;
+        if (!(entry.response.status >= 400 && entry.response.status <= 599)) {
+          return false;
+        }
       }
       if (filter === "smocker-errors") {
-        return entry.response.status >= 600 && entry.response.status <= 699;
+        if (!(entry.response.status >= 600 && entry.response.status <= 699)) {
+          return false;
+        }
       }
-      return true;
+      return !needle || entryHaystack(entry).includes(needle);
     });
 
-    if (filteredEntries.length === 0) {
-      if (filter === "http-errors") {
-        body = <Empty description="No HTTP errors in the history." />;
-      } else if (filter === "smocker-errors") {
-        body = <Empty description="No Smocker errors in the history." />;
-      } else {
-        body = <Empty description="The history is empty." />;
+    const onChangePage = (p: number) => setPage(p);
+    const onChangePageSize = (p: number, ps: number) => setPageAndSize(p, ps);
+    const paginationEl = (
+      <Pagination
+        hideOnSinglePage={filteredEntries.length <= minPageSize}
+        showSizeChanger
+        pageSize={pageSize}
+        current={page}
+        onChange={onChangePage}
+        onShowSizeChange={onChangePageSize}
+        total={filteredEntries.length}
+      />
+    );
+    // Top toolbar: search on the left, pagination (and the loading spinner) on the right.
+    const topBar = (
+      <Row justify="space-between" align="middle" className="container toolbar">
+        <Input
+          allowClear
+          className="list-search"
+          placeholder="Filter by method, path, status…"
+          prefix={<SearchOutlined />}
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+        />
+        <div className="pagination">
+          {paginationEl}
+          <Spin spinning={loading} />
+        </div>
+      </Row>
+    );
+    const bottomBar = (
+      <Row justify="end" align="middle" className="container">
+        {paginationEl}
+      </Row>
+    );
+
+    if (historyEntries.length === 0) {
+      // No calls at all: show a plain message, no toolbar/filter.
+      body = <Empty description="The history is empty." />;
+    } else if (filteredEntries.length === 0) {
+      // Entries exist but none match the active filter/search: keep the toolbar so the user can
+      // adjust it, and explain why the list is empty.
+      let emptyMessage = "No entries match the filter.";
+      if (!needle && filter === "http-errors") {
+        emptyMessage = "No HTTP errors in the history.";
+      } else if (!needle && filter === "smocker-errors") {
+        emptyMessage = "No Smocker errors in the history.";
       }
-    } else {
-      const onChangePage = (p: number) => setPage(p);
-      const onChangePageSize = (p: number, ps: number) => setPageAndSize(p, ps);
-      const pagination = (
-        <Row justify="space-between" align="middle" className="container">
-          <div>
-            <Pagination
-              hideOnSinglePage={filteredEntries.length <= minPageSize}
-              showSizeChanger
-              pageSize={pageSize}
-              current={page}
-              onChange={onChangePage}
-              onShowSizeChange={onChangePageSize}
-              total={filteredEntries.length}
-            />
-          </div>
-          <Spin
-            spinning={loading}
-            className={filteredEntries.length <= minPageSize ? "absolute" : ""}
-          />
-        </Row>
-      );
       body = (
         <>
-          {pagination}
+          {topBar}
+          <Empty description={emptyMessage} />
+        </>
+      );
+    } else {
+      body = (
+        <>
+          {topBar}
           {filteredEntries
             .slice(
               Math.max((page - 1) * pageSize, 0),
@@ -318,7 +382,7 @@ const HistoryComponent = (): React.JSX.Element => {
                 onCreateMock={handleCreateMock}
               />
             ))}
-          {filteredEntries.length > minPageSize && pagination}
+          {filteredEntries.length > minPageSize && bottomBar}
         </>
       );
     }
@@ -342,6 +406,16 @@ const HistoryComponent = (): React.JSX.Element => {
         title="History"
         extra={
           <div className="action buttons">
+            {canPoll && (
+              <Button
+                loading={loading}
+                onClick={togglePolling}
+                danger={polling}
+                icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
+              >
+                Autorefresh
+              </Button>
+            )}
             <Link
               to={{ pathname: "/pages/visualize", search: location.search }}
             >
@@ -353,15 +427,25 @@ const HistoryComponent = (): React.JSX.Element => {
                 Visualize
               </Button>
             </Link>
-            {canPoll && (
-              <Button
-                loading={loading}
-                onClick={togglePolling}
-                danger={polling}
-                icon={polling ? <PauseCircleFilled /> : <PlayCircleFilled />}
+            {canPoll && historyEntries.length > 0 && (
+              <Popconfirm
+                title="Clear the session history?"
+                description="Mock call counters reset; the mocks themselves are kept."
+                okText="Yes, clear"
+                okButtonProps={{ danger: true }}
+                placement="bottomRight"
+                onConfirm={handleClearHistory}
               >
-                Autorefresh
-              </Button>
+                <Button
+                  type="primary"
+                  danger
+                  loading={clearHistoryMut.isPending}
+                  icon={<DeleteOutlined />}
+                  className="clear-history-button"
+                >
+                  Clear History
+                </Button>
+              </Popconfirm>
             )}
           </div>
         }
