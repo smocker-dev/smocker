@@ -15,6 +15,12 @@ import (
 
 var MockNotFound = fmt.Errorf("mock not found")
 
+// MockEditForbidden is returned when editing or deleting a mock is refused because the session has
+// already received calls. Mocks are append-only once the history references them (a history entry
+// is tied to the mock that answered it), so edition/deletion is only allowed while the session's
+// history is still empty.
+var MockEditForbidden = fmt.Errorf("cannot edit or delete a mock once the session has received calls")
+
 type Mocks []*Mock
 
 func (m Mocks) Clone() Mocks {

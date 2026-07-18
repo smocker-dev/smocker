@@ -1,4 +1,6 @@
 import {
+  DeleteOutlined,
+  EditOutlined,
   LockFilled,
   PauseCircleFilled,
   PlayCircleFilled,
@@ -10,15 +12,19 @@ import {
   Button,
   Empty,
   Pagination,
+  Popconfirm,
   Row,
   Spin,
   Tag,
   Typography,
 } from "antd";
 import dayjs from "dayjs";
+import { dump } from "js-yaml";
 import * as React from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
+  useDeleteMock,
+  useHistory,
   useLockMocks,
   useMocks,
   useSessionsSummary,
@@ -204,12 +210,21 @@ const MockComponent = ({
   loading,
   lockMock,
   unlockMock,
+  editable,
+  deleting,
+  onEdit,
+  onDelete,
 }: {
   mock: Mock;
   canPoll: boolean;
   loading: boolean;
   lockMock: (mockID: string) => unknown;
   unlockMock: (mockID: string) => unknown;
+  // A mock can be edited or deleted only while the session has received no calls yet.
+  editable: boolean;
+  deleting: boolean;
+  onEdit: (mock: Mock) => unknown;
+  onDelete: (mockID: string) => unknown;
 }) => {
   const onLockMock = () => lockMock(mock.state.id);
   const onUnlockMock = () => unlockMock(mock.state.id);
@@ -245,9 +260,35 @@ const MockComponent = ({
             {mock.state.id}
           </Link>
         </div>
-        <span className="date">
-          {dayjs(mock.state.creation_date).format(dateFormat)}
-        </span>
+        <div>
+          {editable && (
+            <>
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                title="Edit this mock"
+                onClick={() => onEdit(mock)}
+              />
+              <Popconfirm
+                title="Delete this mock?"
+                okText="Delete"
+                okButtonProps={{ danger: true }}
+                onConfirm={() => onDelete(mock.state.id)}
+              >
+                <Button
+                  type="link"
+                  danger
+                  icon={<DeleteOutlined />}
+                  loading={deleting}
+                  title="Delete this mock"
+                />
+              </Popconfirm>
+            </>
+          )}
+          <span className="date">
+            {dayjs(mock.state.creation_date).format(dateFormat)}
+          </span>
+        </div>
       </div>
       <div className="content">
         <MockRequestComponent request={mock.request} />
@@ -294,15 +335,25 @@ const MocksComponent = (): React.JSX.Element => {
   const loading = mocksQuery.isFetching;
   const error = mocksQuery.error;
 
+  // A mock may be edited/deleted only while the session has received no calls (empty history),
+  // matching the append-only guarantee the history relies on. Require the history query to have
+  // resolved first, so the controls don't flash on sessions that actually have calls.
+  const historyQuery = useHistory(sessionID);
+  const editable =
+    canPoll && historyQuery.isSuccess && historyQuery.data.length === 0;
+
   const lockMocksMut = useLockMocks();
   const unlockMocksMut = useUnlockMocks();
+  const deleteMockMut = useDeleteMock();
 
   const initialNewMock = (location.state as { newMock?: string } | null)
     ?.newMock;
-  // Value of the mock creation drawer, or null when it is closed.
+  // Value of the mock creation/edition drawer, or null when it is closed. editMockId is set when
+  // the drawer edits an existing mock (PUT) rather than creating a new one (POST).
   const [newMockValue, setNewMockValue] = React.useState<string | null>(
     initialNewMock ?? null,
   );
+  const [editMockId, setEditMockId] = React.useState<string | null>(null);
 
   const togglePolling = () => setPolling((p) => !p);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -315,6 +366,15 @@ const MocksComponent = (): React.JSX.Element => {
     prevPageSizeRef.current = pageSize;
     return scrollToPage(ref.current, goingBack);
   }, [page, pageSize]);
+  // Open the drawer pre-filled with the mock (without its server-managed state) in edit mode.
+  const handleEditMock = (mock: Mock) => {
+    const { state: _state, ...definition } = mock;
+    setEditMockId(mock.state.id);
+    setNewMockValue(dump([definition]));
+  };
+  const handleDeleteMock = (mockID: string) =>
+    deleteMockMut.mutate({ sessionID, id: mockID });
+
   const isEmpty = mocks.length === 0;
   let filteredMocks = mocks;
   let body = null;
@@ -364,6 +424,10 @@ const MocksComponent = (): React.JSX.Element => {
             loading={loading}
             lockMock={lockMock}
             unlockMock={unlockMock}
+            editable={editable}
+            deleting={deleteMockMut.isPending}
+            onEdit={handleEditMock}
+            onDelete={handleDeleteMock}
           />
         ))}
         {filteredMocks.length > minPageSize && pagination}
@@ -371,8 +435,14 @@ const MocksComponent = (): React.JSX.Element => {
     );
   }
 
-  const handleAddNewMock = () => setNewMockValue("");
-  const handleCloseNewMock = () => setNewMockValue(null);
+  const handleAddNewMock = () => {
+    setEditMockId(null);
+    setNewMockValue("");
+  };
+  const handleCloseNewMock = () => {
+    setNewMockValue(null);
+    setEditMockId(null);
+  };
   return (
     <div className="mocks" ref={ref}>
       <PageHeader
@@ -415,7 +485,12 @@ const MocksComponent = (): React.JSX.Element => {
         </Spin>
       </PageHeader>
       {newMockValue !== null && (
-        <NewMock defaultValue={newMockValue} onClose={handleCloseNewMock} />
+        <NewMock
+          defaultValue={newMockValue}
+          editId={editMockId ?? undefined}
+          sessionId={sessionID}
+          onClose={handleCloseNewMock}
+        />
       )}
     </div>
   );

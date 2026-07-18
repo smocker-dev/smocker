@@ -151,6 +151,27 @@ export const postUnlockMocks = async (ids: string[]): Promise<Mocks> => {
   return MocksSchema.parse(data);
 };
 
+export const putUpdateMock = async (args: {
+  sessionID?: string;
+  id: string;
+  mock: string;
+}): Promise<void> => {
+  await request(`/mocks/${args.id}${sessionQuery(args.sessionID)}`, {
+    method: "PUT",
+    body: args.mock,
+    contentType: ContentTypeYAML,
+  });
+};
+
+export const deleteMock = async (args: {
+  sessionID?: string;
+  id: string;
+}): Promise<void> => {
+  await request(`/mocks/${args.id}${sessionQuery(args.sessionID)}`, {
+    method: "DELETE",
+  });
+};
+
 export const postReset = async (): Promise<void> => {
   await request("/reset", { method: "POST" });
 };
@@ -251,6 +272,22 @@ export const useAddMocks = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: postAddMocks,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+  });
+};
+
+export const useUpdateMock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: putUpdateMock,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+  });
+};
+
+export const useDeleteMock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteMock,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
   });
 };

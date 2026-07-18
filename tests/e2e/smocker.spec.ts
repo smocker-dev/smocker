@@ -25,7 +25,9 @@ test.describe.configure({ mode: "serial" });
 
 // --- Shell & routing -------------------------------------------------------------------------
 
-test("app shell: navbar, sidebar, seeded session, no page errors", async ({ page }) => {
+test("app shell: navbar, sidebar, seeded session, no page errors", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
 
@@ -53,7 +55,9 @@ test("root redirects to history with a session selected", async ({ page }) => {
 test("navbar & footer links point to the right targets", async ({ page }) => {
   await page.goto(HISTORY);
   // Navbar nav anchors (nav href carries a ?session= query).
-  await expect(page.locator('a[href^="/pages/history?"]').first()).toBeVisible();
+  await expect(
+    page.locator('a[href^="/pages/history?"]').first(),
+  ).toBeVisible();
   await expect(page.locator('a[href^="/pages/mocks?"]').first()).toBeVisible();
   // External links open in a new tab.
   await expect(
@@ -62,14 +66,18 @@ test("navbar & footer links point to the right targets", async ({ page }) => {
   await expect(
     page.locator('a[href="https://github.com/smocker-dev/smocker"]').first(),
   ).toHaveAttribute("target", "_blank");
-  await expect(page.locator('a[href="https://smocker.dev"]').first()).toBeVisible();
+  await expect(
+    page.locator('a[href="https://smocker.dev"]').first(),
+  ).toBeVisible();
 });
 
 test("history entry: 'Matched Mock' link and 'Create a new mock from entry' button", async ({
   page,
 }) => {
   await page.goto(HISTORY);
-  await expect(page.locator(`a[href="/pages/mocks/${MOCK_ID}"]`).first()).toBeVisible();
+  await expect(
+    page.locator(`a[href="/pages/mocks/${MOCK_ID}"]`).first(),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Create a new mock from entry/ }).first(),
   ).toBeVisible();
@@ -91,6 +99,9 @@ test("mocks page shows the seeded mock", async ({ page }) => {
   await expect(page.getByText(intro.mocks)).toBeVisible();
   await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
   await expect(page.getByText("Add Mocks").first()).toBeVisible();
+  // The seeded session has a call in its history, so the mock is not editable/deletable.
+  await expect(page.getByTitle("Edit this mock")).toHaveCount(0);
+  await expect(page.getByTitle("Delete this mock")).toHaveCount(0);
 });
 
 test("visualize page renders the sequence diagram", async ({ page }) => {
@@ -145,7 +156,9 @@ test("mock detail: clicking a mock filters to it and browser back returns to the
   await expect(page.getByText(intro.mocks)).toBeVisible();
 });
 
-test("'Add Mocks' opens the editor with Save/Cancel and closes on Cancel", async ({ page }) => {
+test("'Add Mocks' opens the editor with Save/Cancel and closes on Cancel", async ({
+  page,
+}) => {
   await page.goto(MOCKS);
   await page.getByRole("button", { name: "Add Mocks" }).click();
   await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
@@ -155,7 +168,9 @@ test("'Add Mocks' opens the editor with Save/Cancel and closes on Cancel", async
   await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0);
 });
 
-test("'Create a new mock from entry' opens the prefilled editor in place", async ({ page }) => {
+test("'Create a new mock from entry' opens the prefilled editor in place", async ({
+  page,
+}) => {
   await page.goto(HISTORY);
   await expect(page).toHaveURL(/session=/);
   await expect(page.getByText(intro.history)).toBeVisible();
@@ -185,11 +200,16 @@ test("create a mock via the Visual Editor form", async ({ page }) => {
 
 test("create a mock via the Raw YAML editor", async ({ page }) => {
   // The raw editor is a CodeMirror instance; driving it differs between CM5 (legacy) and CM6.
-  test.skip(LEGACY, "raw-editor driving is CodeMirror-version specific; covered on the new UI");
+  test.skip(
+    LEGACY,
+    "raw-editor driving is CodeMirror-version specific; covered on the new UI",
+  );
   await page.goto(MOCKS);
   await page.getByRole("button", { name: "Add Mocks" }).click();
   await page.getByRole("tab", { name: /Raw YAML/i }).click();
-  const editor = page.locator('.cm-content[contenteditable="true"]:visible').first();
+  const editor = page
+    .locator('.cm-content[contenteditable="true"]:visible')
+    .first();
   await editor.click();
   await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.press("Delete");
@@ -210,7 +230,10 @@ test("lock and unlock a mock", async ({ page }) => {
       .locator("button:has(.anticon-lock), button:has(.anticon-unlock)")
       .first();
   await expect(lockToggle()).toBeVisible();
-  const isLockEndpoint = (r: { url(): string; request(): { method(): string } }) =>
+  const isLockEndpoint = (r: {
+    url(): string;
+    request(): { method(): string };
+  }) =>
     /\/mocks\/(un)?lock$/.test(new URL(r.url()).pathname) &&
     r.request().method() === "POST";
 
@@ -240,7 +263,9 @@ test("'New Session' creates and selects a new session", async ({ page }) => {
   await expect(page.getByText(/Session #\d+/)).toHaveCount(before + 1);
 });
 
-test("selecting 'Session #1' in the sidebar shows its seeded mock", async ({ page }) => {
+test("selecting 'Session #1' in the sidebar shows its seeded mock", async ({
+  page,
+}) => {
   await page.goto(MOCKS);
   await page.getByText("Session #1", { exact: true }).click();
   await expect(page).toHaveURL(/session=/);
@@ -254,6 +279,49 @@ test("'Reset Sessions' clears mocks and history", async ({ page }) => {
   await page.getByRole("button", { name: "Reset Sessions" }).click();
   await expect(page.getByText("No mocks found.")).toBeVisible();
   await expect(page.getByText(new RegExp(MOCK_ID))).toHaveCount(0);
+});
+
+test("edit and delete a mock when the session has no calls", async ({
+  page,
+}) => {
+  await page.goto(MOCKS);
+  // Start from an empty history so the mock is editable (independent of the other tests' order).
+  await page.getByText("Session #1", { exact: true }).click();
+  await page.getByRole("button", { name: "Reset Sessions" }).click();
+  await expect(page.getByText("No mocks found.")).toBeVisible();
+
+  // Create a mock in the (empty-history) session.
+  await page.getByRole("button", { name: "Add Mocks" }).click();
+  await page.locator("#request_path").fill("/editable-mock");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0);
+  await expect(page.getByText("/editable-mock").first()).toBeVisible();
+
+  // With an empty history the mock exposes Edit/Delete controls.
+  await expect(page.getByTitle("Edit this mock").first()).toBeVisible();
+
+  // Edit it: the drawer opens pre-filled; change the path via the raw editor and save.
+  await page.getByTitle("Edit this mock").first().click();
+  await expect(page.getByText("Edit mock")).toBeVisible();
+  await page.getByRole("tab", { name: /Raw YAML/i }).click();
+  const editor = page
+    .locator('.ant-drawer .cm-content[contenteditable="true"]:visible')
+    .first();
+  await editor.click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.press("Delete");
+  await editor.pressSequentially(
+    "[{request: {path: /edited-mock}, response: {status: 200, body: hi}}]",
+  );
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0);
+  await expect(page.getByText("/edited-mock").first()).toBeVisible();
+  await expect(page.getByText("/editable-mock")).toHaveCount(0);
+
+  // Delete it (Popconfirm), and the list empties.
+  await page.getByTitle("Delete this mock").first().click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(page.getByText("/edited-mock")).toHaveCount(0);
 });
 
 // Runs last: renaming changes the "Session #1" label the other tests rely on. After Reset there

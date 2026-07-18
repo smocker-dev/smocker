@@ -1,6 +1,6 @@
 import { Alert, Button, Drawer, Form, Tabs } from "antd";
 import * as React from "react";
-import { useAddMocks } from "../modules/api";
+import { useAddMocks, useUpdateMock } from "../modules/api";
 import {
   parseYamlForVisualEditor,
   validateMocksForSave,
@@ -10,18 +10,26 @@ import type { MockEditorForm } from "./MockEditor/convert";
 import MockEditor from "./MockEditor/MockEditor";
 import "./NewMock.scss";
 
-// Mock creation drawer, self-contained (owns the editor value and the add-mocks mutation) so it
-// can be dropped onto any page. The YAML string is the single source of truth: the Visual Editor
+// Mock creation/edition drawer, self-contained (owns the editor value and the mutation) so it can
+// be dropped onto any page. The YAML string is the single source of truth: the Visual Editor
 // writes to it continuously, and switching back to it re-hydrates from that YAML — but only if the
 // YAML is a single mock valid against the schema (otherwise the switch is blocked with an error).
+// When editId is set the drawer edits an existing mock (PUT) instead of creating one (POST).
 export const NewMock = ({
   defaultValue = "",
+  editId,
+  sessionId,
   onClose,
 }: {
   defaultValue?: string;
+  editId?: string;
+  sessionId?: string;
   onClose: () => void;
 }): React.JSX.Element => {
   const addMocksMut = useAddMocks();
+  const updateMockMut = useUpdateMock();
+  const isEdit = editId !== undefined;
+  const saving = addMocksMut.isPending || updateMockMut.isPending;
   const [mock, setMock] = React.useState(defaultValue);
   const [view, setView] = React.useState<"visual" | "raw">(
     defaultValue.trim() === "" ? "visual" : "raw",
@@ -42,13 +50,18 @@ export const NewMock = ({
       return;
     }
     // Keep the drawer open on failure (e.g. a server-side error) so the mock isn't lost.
-    addMocksMut.mutate(mock, {
+    const opts = {
       onSuccess: () => onClose(),
-      onError: (e) => {
+      onError: (e: unknown) => {
         setError(`Can't save — ${(e as Error).message}`);
         setView("raw");
       },
-    });
+    };
+    if (isEdit) {
+      updateMockMut.mutate({ sessionID: sessionId, id: editId, mock }, opts);
+    } else {
+      addMocksMut.mutate(mock, opts);
+    }
   };
 
   const onChangeView = (key: string) => {
@@ -79,7 +92,7 @@ export const NewMock = ({
 
   return (
     <Drawer
-      title="Add new mocks"
+      title={isEdit ? "Edit mock" : "Add new mocks"}
       placement="right"
       className="drawer"
       closable={false}
@@ -89,11 +102,7 @@ export const NewMock = ({
       footer={
         <div className="action buttons">
           <Button onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            type="primary"
-            loading={addMocksMut.isPending}
-          >
+          <Button onClick={handleSubmit} type="primary" loading={saving}>
             Save
           </Button>
         </div>

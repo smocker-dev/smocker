@@ -17,6 +17,8 @@ var (
 
 type Mocks interface {
 	AddMock(sessionID string, mock *types.Mock) (*types.Mock, error)
+	UpdateMock(sessionID, id string, mock *types.Mock) (*types.Mock, error)
+	DeleteMock(sessionID, id string) error
 	GetMocks(sessionID string) (types.Mocks, error)
 	GetMockByID(sessionID, id string) (*types.Mock, error)
 	LockMocks(ids []string) types.Mocks
@@ -65,6 +67,62 @@ func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, err
 	session.Mocks = append(types.Mocks{newMock}, session.Mocks...)
 	go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
 	return newMock, nil
+}
+
+// UpdateMock replaces the definition of an existing mock in place, keeping its identity (ID and
+// creation date). It is only allowed while the session's history is still empty, because a history
+// entry is tied to the mock that answered it; see types.MockEditForbidden.
+func (s *mocks) UpdateMock(sessionID, id string, newMock *types.Mock) (*types.Mock, error) {
+	session, err := s.GetSessionByID(sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(session.History) > 0 {
+		return nil, types.MockEditForbidden
+	}
+
+	for _, mock := range session.Mocks {
+		if mock.State.ID == id {
+			// Preserve the existing identity/state; only the definition changes.
+			newMock.State = mock.State
+			if newMock.Context == nil {
+				newMock.Context = &types.MockContext{}
+			}
+			*mock = *newMock
+			go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
+			return mock, nil
+		}
+	}
+	return nil, types.MockNotFound
+}
+
+// DeleteMock removes a mock from the session. Like UpdateMock, it is only allowed while the
+// session's history is still empty.
+func (s *mocks) DeleteMock(sessionID, id string) error {
+	session, err := s.GetSessionByID(sessionID)
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(session.History) > 0 {
+		return types.MockEditForbidden
+	}
+
+	for i, mock := range session.Mocks {
+		if mock.State.ID == id {
+			session.Mocks = append(session.Mocks[:i], session.Mocks[i+1:]...)
+			go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
+			return nil
+		}
+	}
+	return types.MockNotFound
 }
 
 func (s *mocks) GetMocks(sessionID string) (types.Mocks, error) {
