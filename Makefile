@@ -21,7 +21,7 @@ DOCKER_IMAGE=ghcr.io/smocker-dev/smocker
 # A tag name must be valid ASCII and may contain lowercase and uppercase letters, digits, underscores, periods and dashes.
 # A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
 DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
-IS_SEMVER:=$(shell echo $(DOCKER_TAG) | grep -E "^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$$")
+IS_SEMVER:=$(shell echo $(DOCKER_TAG) | grep -E "^v?[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$$")
 
 LEVEL=debug
 
