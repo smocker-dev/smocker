@@ -174,6 +174,7 @@ smoke-docker:
 check-default-ports:
 	@lsof -i:8080 > /dev/null && (echo "Port 8080 already in use"; exit 1) || true
 	@lsof -i:8081 > /dev/null && (echo "Port 8081 already in use"; exit 1) || true
+	@lsof -i:$(PROXY_TARGET_PORT) > /dev/null && (echo "Port $(PROXY_TARGET_PORT) (go-httpbin) already in use"; exit 1) || true
 
 .PHONY: optimize
 optimize:
