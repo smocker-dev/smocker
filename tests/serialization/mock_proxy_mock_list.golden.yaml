@@ -28,7 +28,7 @@
         matcher: ShouldMatch
         value: .*
   proxy:
-    host: https://httpbin.org
+    host: http://localhost:8090
 - request:
     path:
         matcher: ShouldEqual
@@ -41,7 +41,7 @@
             - matcher: ShouldEqual
               value: "true"
   proxy:
-    host: https://httpbin.org
+    host: http://localhost:8090
     follow_redirect: true
 - request:
     path:
@@ -51,7 +51,7 @@
         matcher: ShouldMatch
         value: .*
   proxy:
-    host: https://httpbin.org
+    host: http://localhost:8090
 - request:
     path:
         matcher: ShouldEqual
@@ -64,7 +64,7 @@
             - matcher: ShouldEqual
               value: "true"
   proxy:
-    host: https://httpbin.org
+    host: http://localhost:8090
     keep_host: true
 - request:
     path:
@@ -74,7 +74,7 @@
         matcher: ShouldMatch
         value: .*
   proxy:
-    host: https://httpbin.org
+    host: http://localhost:8090
     headers:
         custom:
             - foobar

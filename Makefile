@@ -44,6 +44,13 @@ VENOM=$(GOPATH)/bin/venom
 $(VENOM):
 	go install github.com/ovh/venom/cmd/venom@$(VENOMVERSION)
 
+# Local proxy target for the integration tests: a self-hosted httpbin (go-httpbin) so the
+# proxy mocks don't depend on the flaky public httpbin.org.
+GOHTTPBINVERSION:=v2.18.3
+GOHTTPBIN=$(GOPATH)/bin/go-httpbin
+$(GOHTTPBIN):
+	go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@$(GOHTTPBINVERSION)
+
 GOCOVMERGE=$(GOPATH)/bin/gocovmerge
 $(GOCOVMERGE):
 	go install github.com/wadey/gocovmerge@latest
@@ -90,14 +97,19 @@ test:
 	go test -v -race -coverprofile=$(COVERAGE_DIR)/test-cover.out ./server/...
 
 PID_FILE=/tmp/$(APPNAME).test.pid
+HTTPBIN_PID_FILE=/tmp/$(APPNAME).httpbin.pid
+PROXY_TARGET_PORT ?= 8090
 .PHONY: test-integration
-test-integration: $(VENOM) check-default-ports persistence
+test-integration: $(VENOM) $(GOHTTPBIN) check-default-ports persistence
 	mkdir -p $(COVERAGE_DIR)
 	go test -race -coverpkg="./..." -c . -o $(BUILD_DIR)/$(APPNAME).test
+	$(GOHTTPBIN) -port $(PROXY_TARGET_PORT) >/dev/null 2>&1 & echo $$! > $(HTTPBIN_PID_FILE)
 	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) $(BUILD_DIR)/$(APPNAME).test -test.coverprofile=$(COVERAGE_DIR)/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
 	sleep 5
-	$(VENOM) run tests/features/$(SUITE)
-	kill `cat $(PID_FILE)` 2> /dev/null || true
+	@ret=0; $(VENOM) run tests/features/$(SUITE) || ret=$$?; \
+		kill `cat $(PID_FILE)` 2>/dev/null || true; \
+		kill `cat $(HTTPBIN_PID_FILE)` 2>/dev/null || true; \
+		exit $$ret
 
 .PHONY: start-integration
 start-integration: $(VENOM)
