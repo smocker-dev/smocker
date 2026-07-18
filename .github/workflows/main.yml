@@ -3,11 +3,12 @@ on:
   push:
     branches:
       - main
-    # Release flavor is derived from the tag suffix in the deploy job:
+    # Release flavor is derived from the tag suffix in the deploy job. Convention: prefix tags
+    # with "v" (bare X.Y.Z is still accepted for backward compatibility).
     tags:
-      - '*.*.*' # stable semver (e.g. 1.2.3): published and marked "Latest"
-      - '*-preview' # pre-release (e.g. 1.2.3-preview): published, never "Latest"
-      - '*-draft' # draft (e.g. 1.2.3-draft): unpublished for review, never "Latest"
+      - '*.*.*' # stable semver (e.g. v1.2.3): published and marked "Latest"
+      - '*-preview' # pre-release (e.g. v1.2.3-preview): published, never "Latest"
+      - '*-draft' # draft (e.g. v1.2.3-draft): unpublished for review, never "Latest"
   pull_request:
     branches:
       - main
@@ -107,6 +108,9 @@ jobs:
           make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} RELEASE=1 release
           make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} build-docker
           make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} start-docker
+
+      - name: Smoke-test the docker image
+        run: make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} smoke-docker
 
       - if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

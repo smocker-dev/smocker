@@ -121,11 +121,12 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 	/* Response writing */
 
-	// Headers
+	// Headers: assign to the header map directly instead of Add()/Set(), which canonicalize the
+	// key (e.g. "BrokerProperties" -> "Brokerproperties"). Smocker preserves the exact casing the
+	// mock declares, matching servers that treat header names case-sensitively.
+	header := c.Response().Header()
 	for key, values := range response.Headers {
-		for _, value := range values {
-			c.Response().Header().Add(key, value)
-		}
+		header[key] = []string(values)
 	}
 
 	// Delay

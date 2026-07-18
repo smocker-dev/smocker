@@ -60,7 +60,13 @@ export const entryToCurl = (historyEntry: Entry): string => {
   );
 
   if (request.body) {
-    command.push(`--data '${escapeQuote(JSON.stringify(request.body))}'`);
+    // A raw/urlencoded body is already a string; only JSON bodies need serializing. Stringifying
+    // a string would wrap it in extra quotes (--data '"a=b"').
+    const data =
+      typeof request.body === "string"
+        ? request.body
+        : JSON.stringify(request.body);
+    command.push(`--data '${escapeQuote(data)}'`);
   }
 
   return command.join(" ");
