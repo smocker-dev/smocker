@@ -115,8 +115,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      // FIXME: we shouldn't have the " if the client sent raw text
-      `curl -XPOST '/test' --data '"value containing \\'single quotes\\'"'`,
+      `curl -XPOST '/test' --data 'value containing \\'single quotes\\''`,
     );
   });
 });
