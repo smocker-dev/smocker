@@ -42,7 +42,7 @@ const EditGraph = ({
 }) => {
   return (
     <Drawer
-      title="Edit"
+      title="Edit diagram"
       placement="right"
       className="drawer"
       closable={true}

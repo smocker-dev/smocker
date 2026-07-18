@@ -88,6 +88,10 @@ export const putUpdateSession = async (session: Session): Promise<Session> => {
   return SessionSchema.parse(data);
 };
 
+export const deleteSession = async (id: string): Promise<void> => {
+  await request(`/sessions/${id}`, { method: "DELETE" });
+};
+
 export const postUploadSessions = async (
   sessions: Sessions,
 ): Promise<Sessions> => {
@@ -168,6 +172,14 @@ export const deleteMock = async (args: {
   id: string;
 }): Promise<void> => {
   await request(`/mocks/${args.id}${sessionQuery(args.sessionID)}`, {
+    method: "DELETE",
+  });
+};
+
+export const deleteHistory = async (args: {
+  sessionID?: string;
+}): Promise<void> => {
+  await request(`/history${sessionQuery(args.sessionID)}`, {
     method: "DELETE",
   });
 };
@@ -260,6 +272,14 @@ export const useUpdateSession = () => {
   });
 };
 
+export const useDeleteSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteSession,
+    onSuccess: () => invalidateAll(queryClient),
+  });
+};
+
 export const useUploadSessions = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -289,6 +309,18 @@ export const useDeleteMock = () => {
   return useMutation({
     mutationFn: deleteMock,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+  });
+};
+
+export const useDeleteHistory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteHistory,
+    onSuccess: () => {
+      // Clearing the history also resets mock call counters and re-enables edition.
+      queryClient.invalidateQueries({ queryKey: ["history"] });
+      queryClient.invalidateQueries({ queryKey: ["mocks"] });
+    },
   });
 };
 

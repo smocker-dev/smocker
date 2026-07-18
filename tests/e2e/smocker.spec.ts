@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { APIRequestContext, expect, test } from "@playwright/test";
 
 // Non-regression (TNR) suite locking the OBSERVABLE FEATURES of the Smocker web UI against a
 // server seeded with tests/sessions (session "Session #1" id 3giPMr5IR, one mock GET /test ->
@@ -22,6 +22,30 @@ const intro = {
 };
 
 test.describe.configure({ mode: "serial" });
+
+// Create a fresh session (which becomes the latest, hence editable) seeded with `count` mocks,
+// via the admin API — used to get enough volume to exercise pagination without clicking through
+// the UI. Returns the new session id. POST /mocks with no ?session targets the latest session.
+async function seedMockSession(
+  request: APIRequestContext,
+  baseURL: string,
+  count: number,
+): Promise<string> {
+  const created = await request.post(`${baseURL}/sessions`);
+  expect(created.ok()).toBeTruthy();
+  const { id } = await created.json();
+  const yaml = Array.from(
+    { length: count },
+    (_unused, i) =>
+      `- request: {method: GET, path: /paged-${i}}\n  response: {status: 200, body: "item ${i}"}`,
+  ).join("\n");
+  const posted = await request.post(`${baseURL}/mocks`, {
+    headers: { "Content-Type": "application/x-yaml" },
+    data: yaml,
+  });
+  expect(posted.ok()).toBeTruthy();
+  return id;
+}
 
 // --- Shell & routing -------------------------------------------------------------------------
 
@@ -92,6 +116,30 @@ test("history page shows the seeded call", async ({ page }) => {
   await expect(page.getByText("Matched Mock").first()).toBeVisible();
   await expect(page.getByText("Copy as curl").first()).toBeVisible();
   await expect(page.getByText("Autorefresh").first()).toBeVisible();
+  // The seeded session is the latest and has an entry, so the clear-history control is offered.
+  await expect(
+    page.getByRole("button", { name: "Clear History" }),
+  ).toBeVisible();
+});
+
+test("history can be filtered with the search box (shareable via URL)", async ({
+  page,
+}) => {
+  await page.goto(HISTORY);
+  await expect(page.getByText("/test", { exact: true }).first()).toBeVisible();
+  const search = page.getByPlaceholder(/filter by method/i);
+  await search.fill("nomatchxyz");
+  await expect(page.getByText("No entries match the filter.")).toBeVisible();
+  // The query lives in the URL, so it can be shared.
+  await expect(page).toHaveURL(/search=nomatchxyz/);
+  await search.fill("/test");
+  await expect(page.getByText("/test", { exact: true }).first()).toBeVisible();
+  // Opening a URL that carries a search pre-applies it.
+  await page.goto(`${HISTORY}?search=nomatchxyz`);
+  await expect(page.getByText("No entries match the filter.")).toBeVisible();
+  await expect(page.getByPlaceholder(/filter by method/i)).toHaveValue(
+    "nomatchxyz",
+  );
 });
 
 test("mocks page shows the seeded mock", async ({ page }) => {
@@ -99,9 +147,47 @@ test("mocks page shows the seeded mock", async ({ page }) => {
   await expect(page.getByText(intro.mocks)).toBeVisible();
   await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
   await expect(page.getByText("Add Mocks").first()).toBeVisible();
-  // The seeded session has a call in its history, so the mock is not editable/deletable.
-  await expect(page.getByTitle("Edit this mock")).toHaveCount(0);
-  await expect(page.getByTitle("Delete this mock")).toHaveCount(0);
+  // The seeded session has a call in its history, so the edit/delete controls are disabled and a
+  // notice offers to clear the history.
+  await expect(
+    page.getByRole("button", { name: "Edit this mock" }).first(),
+  ).toBeDisabled();
+  await expect(
+    page.getByText(/this session has calls in its history/i),
+  ).toBeVisible();
+});
+
+test("mocks can be filtered with the search box (shareable via URL)", async ({
+  page,
+}) => {
+  await page.goto(MOCKS);
+  await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
+  const search = page.getByPlaceholder(/filter mocks/i);
+  await search.fill("nomatchxyz");
+  await expect(page.getByText("No mocks match the filter.")).toBeVisible();
+  // The query lives in the URL, so it can be shared.
+  await expect(page).toHaveURL(/search=nomatchxyz/);
+  await search.fill("/test");
+  await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
+  // Opening a URL that carries a search pre-applies it.
+  await page.goto(`${MOCKS}?search=nomatchxyz`);
+  await expect(page.getByText("No mocks match the filter.")).toBeVisible();
+  await expect(page.getByPlaceholder(/filter mocks/i)).toHaveValue(
+    "nomatchxyz",
+  );
+});
+
+test("a mock can be viewed as raw YAML", async ({ page }) => {
+  test.skip(LEGACY, "the YAML view is a new-UI feature");
+  await page.goto(MOCKS);
+  await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
+  await page.getByRole("button", { name: "View as YAML" }).first().click();
+  const yaml = page.locator(".mock .content.yaml .cm-content").first();
+  await expect(yaml).toContainText("request");
+  await expect(yaml).toContainText("/test");
+  // Toggling back returns to the formatted request/response view.
+  await page.getByRole("button", { name: "View formatted" }).first().click();
+  await expect(page.locator(".mock .content.yaml")).toHaveCount(0);
 });
 
 test("visualize page renders the sequence diagram", async ({ page }) => {
@@ -181,6 +267,30 @@ test("'Create a new mock from entry' opens the prefilled editor in place", async
   // The drawer opens on the History page itself — no navigation to the Mocks page.
   await expect(page).toHaveURL(/\/pages\/history/);
   await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+});
+
+// --- Edit gating (mutations; runs after every history-reading test) --------------------------
+
+test("clearing the history re-enables editing the seeded mock", async ({
+  page,
+}) => {
+  await page.goto(MOCKS);
+  await page.getByText("Session #1", { exact: true }).click();
+  await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
+  // The seeded session has a call, so edit/delete are disabled and a notice offers to clear it.
+  await expect(
+    page.getByRole("button", { name: "Edit this mock" }).first(),
+  ).toBeDisabled();
+  const notice = page.getByText(/this session has calls in its history/i);
+  await expect(notice).toBeVisible();
+  // Clear the history (Popconfirm), and the mock becomes editable while staying in the list.
+  await page.getByRole("button", { name: "Clear history" }).click();
+  await page.getByRole("button", { name: "Yes, clear" }).click();
+  await expect(notice).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Edit this mock" }).first(),
+  ).toBeEnabled();
+  await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
 });
 
 // --- Mock creation (mutations) ---------------------------------------------------------------
@@ -298,10 +408,12 @@ test("edit and delete a mock when the session has no calls", async ({
   await expect(page.getByText("/editable-mock").first()).toBeVisible();
 
   // With an empty history the mock exposes Edit/Delete controls.
-  await expect(page.getByTitle("Edit this mock").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit this mock" }).first(),
+  ).toBeVisible();
 
   // Edit it: the drawer opens pre-filled; change the path via the raw editor and save.
-  await page.getByTitle("Edit this mock").first().click();
+  await page.getByRole("button", { name: "Edit this mock" }).first().click();
   await expect(page.getByText("Edit mock")).toBeVisible();
   await page.getByRole("tab", { name: /Raw YAML/i }).click();
   const editor = page
@@ -319,7 +431,7 @@ test("edit and delete a mock when the session has no calls", async ({
   await expect(page.getByText("/editable-mock")).toHaveCount(0);
 
   // Delete it (Popconfirm), and the list empties.
-  await page.getByTitle("Delete this mock").first().click();
+  await page.getByRole("button", { name: "Delete this mock" }).first().click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(page.getByText("/edited-mock")).toHaveCount(0);
 });
@@ -330,15 +442,9 @@ test("rename a session", async ({ page }) => {
   await page.goto(HISTORY);
   await page.getByText("Session #1", { exact: true }).click();
   await page.locator(".anticon-edit").first().click();
-  // The edit control reveals an input pre-filled with the current name and a Save button.
-  const boxes = page.getByRole("textbox");
-  let input = boxes.first();
-  for (let i = 0; i < (await boxes.count()); i++) {
-    if ((await boxes.nth(i).inputValue()) === "Session #1") {
-      input = boxes.nth(i);
-      break;
-    }
-  }
+  // The edit popover reveals an input pre-filled with the current name and a Save button.
+  const input = page.locator(".ant-popover input").first();
+  await expect(input).toHaveValue("Session #1");
   await input.fill("Renamed by TNR");
   await page.getByRole("button", { name: "Save" }).first().click();
   await expect(page.getByText("Renamed by TNR")).toBeVisible();
@@ -380,4 +486,162 @@ test("import a session from a file", async ({ page }) => {
     buffer: Buffer.from(payload),
   });
   await expect(page.getByText("TNR Imported")).toBeVisible();
+});
+
+test("a failed import surfaces an error and doesn't get stuck", async ({
+  page,
+}) => {
+  await page.goto(HISTORY);
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "broken.json",
+    mimeType: "application/json",
+    buffer: Buffer.from("this is definitely not json"),
+  });
+  // The error is surfaced to the user (not swallowed to the console).
+  await expect(page.getByText(/import failed/i)).toBeVisible();
+  // The uploader recovered — the upload icon is back, not a stuck loading spinner.
+  await expect(page.locator(".anticon-upload")).toBeVisible();
+});
+
+test("a non-latest session is read-only and offers to switch to the latest", async ({
+  page,
+}) => {
+  await page.goto(MOCKS);
+  const rows = page.locator(".session-name");
+  const initial = await rows.count();
+  // Create a newer session so at least one session is not the latest.
+  await page.getByRole("button", { name: "New Session" }).click();
+  await expect(rows).toHaveCount(initial + 1);
+  // Sessions sort newest-first by default, so the last row is the oldest (not the latest).
+  await rows.last().click();
+  const notice = page.getByText(/only the latest session can be edited/i);
+  await expect(notice).toBeVisible();
+  const switchBtn = page.getByRole("button", {
+    name: "Switch to the latest session",
+  });
+  await expect(switchBtn).toBeVisible();
+  await switchBtn.click();
+  // Back on the latest session: the notice is gone and adding mocks is available again.
+  await expect(notice).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add Mocks" })).toBeVisible();
+});
+
+// Very last: creates a disposable session and deletes it via the edit popover.
+test("delete a session from the edit popover", async ({ page }) => {
+  await page.goto(HISTORY);
+  const rows = page.locator(".session-name");
+  await expect(rows.first()).toBeVisible(); // wait for the session list to load
+  const initial = await rows.count();
+  // Create a disposable session and wait for its row to render.
+  await page.getByRole("button", { name: "New Session" }).click();
+  await expect(rows).toHaveCount(initial + 1);
+  // Open the newest session's edit popover and delete it (Popconfirm).
+  await page.locator(".anticon-edit").last().click();
+  await page.getByRole("button", { name: "Delete session" }).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(rows).toHaveCount(initial);
+});
+
+// --- Feature coverage: pagination, sidebar sort, read-only dimming, editor toggle/validation ---
+
+test("mock list pagination is driven by the URL query", async ({
+  page,
+  request,
+  baseURL,
+}) => {
+  const id = await seedMockSession(request, baseURL as string, 25);
+  // page-size=10: 25 mocks span 3 pages (10 / 10 / 5).
+  await page.goto(`/pages/mocks?session=${id}&page-size=10&page=1`);
+  await expect(page.locator(".mock")).toHaveCount(10);
+  await page.goto(`/pages/mocks?session=${id}&page-size=10&page=3`);
+  await expect(page.locator(".mock")).toHaveCount(5);
+  // Driving pagination from the control updates the URL, so a given page is shareable.
+  await page.goto(`/pages/mocks?session=${id}&page-size=10&page=1`);
+  // A long list renders a pagination bar both above and below, so scope to the first.
+  await page.locator(".ant-pagination-item-2").first().click();
+  await expect(page).toHaveURL(/page=2/);
+  await expect(page.locator(".mock")).toHaveCount(10);
+});
+
+test("the sidebar sort toggle reverses the session order", async ({
+  page,
+  request,
+  baseURL,
+}) => {
+  // Import a controlled set with distinct dates so the ordering is deterministic (UI-created
+  // sessions share near-identical timestamps and wouldn't reverse cleanly).
+  const imported = await request.post(`${baseURL}/sessions/import`, {
+    data: [
+      { id: "sort-a", name: "Alpha", date: "2021-01-01T00:00:00Z" },
+      { id: "sort-b", name: "Beta", date: "2022-01-01T00:00:00Z" },
+      { id: "sort-c", name: "Gamma", date: "2023-01-01T00:00:00Z" },
+    ],
+  });
+  expect(imported.ok()).toBeTruthy();
+  await page.goto(HISTORY);
+  const names = page.locator(".session-name");
+  // Default sort is by date descending (newest first).
+  await expect(names).toHaveText(["Gamma", "Beta", "Alpha"]);
+  await page.locator(".sort-toggle").click();
+  await expect(names).toHaveText(["Alpha", "Beta", "Gamma"]);
+});
+
+test("older sessions are dimmed as read-only in the sidebar", async ({
+  page,
+}) => {
+  await page.goto(HISTORY);
+  await expect(page.locator(".session-name").first()).toBeVisible();
+  // A newer session makes every previous one non-latest (dimmed).
+  await page.getByRole("button", { name: "New Session" }).click();
+  await expect(page.locator(".session-name.not-latest").first()).toBeVisible();
+  // Exactly one session (the latest) is not dimmed.
+  const total = await page.locator(".session-name").count();
+  const dimmed = await page.locator(".session-name.not-latest").count();
+  expect(dimmed).toBe(total - 1);
+});
+
+test("the mock editor keeps values when switching Visual/Raw", async ({
+  page,
+}) => {
+  test.skip(
+    LEGACY,
+    "CodeMirror driving is version-specific; covered on the new UI",
+  );
+  await page.goto(MOCKS);
+  // A fresh session is the latest, so it's editable and "Add Mocks" is available.
+  await page.getByRole("button", { name: "New Session" }).click();
+  await page.getByRole("button", { name: "Add Mocks" }).click();
+  await page.locator("#request_path").fill("/toggle-me");
+  await page.getByRole("tab", { name: /Raw YAML/i }).click();
+  // Scope to the visible editor: the inactive Visual panel keeps its own (hidden) CodeMirror.
+  await expect(
+    page.locator('.ant-drawer .cm-content[contenteditable="true"]:visible'),
+  ).toContainText("/toggle-me");
+  await page.getByRole("tab", { name: /Visual Editor/i }).click();
+  await expect(page.locator("#request_path")).toHaveValue("/toggle-me");
+});
+
+test("saving an invalid mock keeps the drawer open with an error", async ({
+  page,
+}) => {
+  test.skip(
+    LEGACY,
+    "CodeMirror driving is version-specific; covered on the new UI",
+  );
+  await page.goto(MOCKS);
+  await page.getByRole("button", { name: "New Session" }).click();
+  await page.getByRole("button", { name: "Add Mocks" }).click();
+  await page.getByRole("tab", { name: /Raw YAML/i }).click();
+  const editor = page
+    .locator('.ant-drawer .cm-content[contenteditable="true"]:visible')
+    .first();
+  await editor.click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.press("Delete");
+  // A bare scalar is valid YAML but not a list of mocks → schema validation must reject it.
+  await editor.pressSequentially("this-is-not-a-mock");
+  await page.getByRole("button", { name: "Save" }).click();
+  // The error is shown and the drawer stays open (the mock isn't lost).
+  await expect(page.getByText(/can't save/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
 });

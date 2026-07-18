@@ -69,6 +69,29 @@ func TestUpdateAndDeleteMock(t *testing.T) {
 	}
 }
 
+// TestDeleteSession covers removing a single session and the not-found path.
+func TestDeleteSession(t *testing.T) {
+	svc := NewMocks(nil, 0, NewPersistence(""))
+	keep := svc.NewSession("keep")
+	drop := svc.NewSession("drop")
+
+	if err := svc.DeleteSession(drop.ID); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+	sessions := svc.GetSessions()
+	if len(sessions) != 1 || sessions[0].ID != keep.ID {
+		t.Fatalf("expected only %q to remain, got %+v", keep.ID, sessions)
+	}
+
+	// Deleting an unknown (or empty) session reports SessionNotFound.
+	if err := svc.DeleteSession(drop.ID); err != types.SessionNotFound {
+		t.Errorf("delete already-removed: got %v want SessionNotFound", err)
+	}
+	if err := svc.DeleteSession(""); err != types.SessionNotFound {
+		t.Errorf("delete empty id: got %v want SessionNotFound", err)
+	}
+}
+
 // TestEditForbiddenOnceCalled locks the maintainers' position: once the session has received calls,
 // mocks are append-only (history entries are tied to the mock that answered them).
 func TestEditForbiddenOnceCalled(t *testing.T) {
@@ -98,5 +121,30 @@ func TestEditForbiddenOnceCalled(t *testing.T) {
 	}
 	if err := svc.DeleteMock(session.ID, added.State.ID); err != types.MockEditForbidden {
 		t.Errorf("DeleteMock after a call: got %v want MockEditForbidden", err)
+	}
+
+	// Simulate the mock having answered a call.
+	added.State.TimesCount = 3
+
+	// Clearing the history keeps the mocks but makes them editable again, and resets their
+	// call counters so the state stays consistent with the now-empty history.
+	if err := svc.ClearHistory(session.ID); err != nil {
+		t.Fatalf("ClearHistory: %v", err)
+	}
+	if h, _ := svc.GetHistory(session.ID); len(h) != 0 {
+		t.Fatalf("history not cleared: %+v", h)
+	}
+	mocksAfter, _ := svc.GetMocks(session.ID)
+	if len(mocksAfter) != 1 {
+		t.Fatalf("ClearHistory dropped the mocks: %+v", mocksAfter)
+	}
+	if mocksAfter[0].State.TimesCount != 0 {
+		t.Errorf("ClearHistory did not reset times_count: %d", mocksAfter[0].State.TimesCount)
+	}
+	if _, err := svc.UpdateMock(
+		session.ID, added.State.ID,
+		mockFromYAML(t, "request: {path: /c}\nresponse: {status: 200}"),
+	); err != nil {
+		t.Errorf("UpdateMock after ClearHistory should succeed, got %v", err)
 	}
 }

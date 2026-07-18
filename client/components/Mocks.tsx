@@ -1,21 +1,27 @@
 import {
+  CodeOutlined,
   DeleteOutlined,
   EditOutlined,
   LockFilled,
   PauseCircleFilled,
   PlayCircleFilled,
   PlusOutlined,
+  ProfileOutlined,
+  SearchOutlined,
   UnlockFilled,
 } from "@ant-design/icons";
 import {
   Alert,
+  App,
   Button,
   Empty,
+  Input,
   Pagination,
   Popconfirm,
   Row,
   Spin,
   Tag,
+  Tooltip,
   Typography,
 } from "antd";
 import dayjs from "dayjs";
@@ -23,6 +29,7 @@ import { dump } from "js-yaml";
 import * as React from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
+  useDeleteHistory,
   useDeleteMock,
   useHistory,
   useLockMocks,
@@ -70,6 +77,20 @@ const renderTimes = (count: number, expected?: number) => {
 };
 
 const emptyResponse: unknown = {};
+
+// Lowercased, whitespace-joined view of a mock's searchable fields, used by the filter box.
+const mockHaystack = (mock: Mock): string =>
+  [
+    mock.state.id,
+    mock.request?.method?.value,
+    mock.request?.path?.value,
+    typeof mock.response?.body === "string" ? mock.response.body : "",
+    mock.dynamic_response?.engine,
+    mock.proxy?.host,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
 const MockResponseComponent = ({ mock }: { mock: Mock }) => {
   const { response: resp, context, state } = mock;
@@ -211,6 +232,7 @@ const MockComponent = ({
   lockMock,
   unlockMock,
   editable,
+  readOnlyHint,
   deleting,
   onEdit,
   onDelete,
@@ -222,12 +244,15 @@ const MockComponent = ({
   unlockMock: (mockID: string) => unknown;
   // A mock can be edited or deleted only while the session has received no calls yet.
   editable: boolean;
+  // Why editing is disabled, shown as the tooltip on the read-only controls.
+  readOnlyHint: string;
   deleting: boolean;
   onEdit: (mock: Mock) => unknown;
   onDelete: (mockID: string) => unknown;
 }) => {
   const onLockMock = () => lockMock(mock.state.id);
   const onUnlockMock = () => unlockMock(mock.state.id);
+  const [showYaml, setShowYaml] = React.useState(false);
   // Keep the current query string (notably ?session) so navigating to a single mock stays in
   // the same session and the browser back button returns to the full list.
   const { search } = useLocation();
@@ -236,66 +261,118 @@ const MockComponent = ({
       <div className="meta">
         <div>
           {mock.state.locked ? (
-            <Button
-              danger
-              type="link"
-              icon={<LockFilled />}
-              loading={loading}
-              title="Locked, click to unlock"
-              disabled={!canPoll}
-              onClick={onUnlockMock}
-            />
+            <Tooltip title={canPoll ? "Unlock this mock" : readOnlyHint}>
+              {/* span wrapper so the tooltip still shows when the button is disabled */}
+              <span className="lock-wrap">
+                <Button
+                  danger
+                  type="link"
+                  icon={<LockFilled />}
+                  loading={loading}
+                  aria-label="Unlock this mock"
+                  disabled={!canPoll}
+                  onClick={onUnlockMock}
+                />
+              </span>
+            </Tooltip>
           ) : (
-            <Button
-              type="link"
-              icon={<UnlockFilled />}
-              loading={loading}
-              title="Unlocked, click to lock"
-              disabled={!canPoll}
-              onClick={onLockMock}
-            />
+            <Tooltip title={canPoll ? "Lock this mock" : readOnlyHint}>
+              <span className="lock-wrap">
+                <Button
+                  type="link"
+                  icon={<UnlockFilled />}
+                  loading={loading}
+                  aria-label="Lock this mock"
+                  disabled={!canPoll}
+                  onClick={onLockMock}
+                />
+              </span>
+            </Tooltip>
           )}
           <span className="label">ID:</span>
           <Link to={{ pathname: `/pages/mocks/${mock.state.id}`, search }}>
             {mock.state.id}
           </Link>
         </div>
-        <div>
-          {editable && (
-            <>
+        <div className="actions">
+          {/* Viewing the raw YAML is always available (not gated by editability). */}
+          <span className="mock-buttons">
+            <Tooltip title={showYaml ? "View formatted" : "View as YAML"}>
               <Button
                 type="link"
-                icon={<EditOutlined />}
-                title="Edit this mock"
-                onClick={() => onEdit(mock)}
+                icon={showYaml ? <ProfileOutlined /> : <CodeOutlined />}
+                aria-label={showYaml ? "View formatted" : "View as YAML"}
+                onClick={() => setShowYaml((v) => !v)}
               />
-              <Popconfirm
-                title="Delete this mock?"
-                okText="Delete"
-                okButtonProps={{ danger: true }}
-                onConfirm={() => onDelete(mock.state.id)}
-              >
+            </Tooltip>
+          </span>
+          {editable ? (
+            <span className="mock-buttons">
+              <Tooltip title="Edit this mock">
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  aria-label="Edit this mock"
+                  onClick={() => onEdit(mock)}
+                />
+              </Tooltip>
+              <Tooltip title="Delete this mock">
+                <Popconfirm
+                  title="Delete this mock?"
+                  okText="Delete"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => onDelete(mock.state.id)}
+                >
+                  <Button
+                    type="link"
+                    danger
+                    icon={<DeleteOutlined />}
+                    loading={deleting}
+                    aria-label="Delete this mock"
+                  />
+                </Popconfirm>
+              </Tooltip>
+            </span>
+          ) : (
+            // Not editable: keep the controls visible but disabled, with a tooltip stating why
+            // (either this isn't the latest session, or the session has calls in its history).
+            <Tooltip title={readOnlyHint}>
+              <span className="mock-buttons">
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  aria-label="Edit this mock"
+                  disabled
+                />
                 <Button
                   type="link"
                   danger
                   icon={<DeleteOutlined />}
-                  loading={deleting}
-                  title="Delete this mock"
+                  aria-label="Delete this mock"
+                  disabled
                 />
-              </Popconfirm>
-            </>
+              </span>
+            </Tooltip>
           )}
           <span className="date">
             {dayjs(mock.state.creation_date).format(dateFormat)}
           </span>
         </div>
       </div>
-      <div className="content">
-        <MockRequestComponent request={mock.request} />
-        {mock.response && <MockResponseComponent mock={mock} />}
-        {mock.dynamic_response && <MockDynamicResponseComponent mock={mock} />}
-        {mock.proxy && <MockProxyComponent mock={mock} />}
-      </div>
+      {showYaml ? (
+        <div className="content yaml">
+          <Code value={dump([mock])} language="yaml" collapsible={false} />
+        </div>
+      ) : (
+        <div className="content">
+          <MockRequestComponent request={mock.request} />
+          {mock.response && <MockResponseComponent mock={mock} />}
+          {mock.dynamic_response && (
+            <MockDynamicResponseComponent mock={mock} />
+          )}
+          {mock.proxy && <MockProxyComponent mock={mock} />}
+        </div>
+      )}
     </div>
   );
 };
@@ -313,19 +390,27 @@ const MocksComponent = (): React.JSX.Element => {
   });
   const { mock_id } = useParams<RouteProps>();
   const location = useLocation();
-  const { selected: sessionID } = useSession();
+  const { selected: sessionID, setSelected } = useSession();
   const { data: sessions = [] } = useSessionsSummary();
-  const canPoll =
-    !sessionID ||
-    (sessions.length > 0 && sessionID === sessions[sessions.length - 1].id);
+  const latestSession =
+    sessions.length > 0 ? sessions[sessions.length - 1] : undefined;
+  // Only the latest session is editable: it is the one the mock server actually serves, and
+  // locking/adding/editing operate on it. Editing an older session's mocks would have no effect.
+  const canPoll = !sessionID || sessionID === latestSession?.id;
 
-  // Pagination — kept in the URL query (?page, ?page-size) so a given page is shareable.
+  // Pagination and search — kept in the URL query (?page, ?page-size, ?search) so a given view
+  // is shareable.
   const [queryParams, setQueryParams] = useQueryParams();
   const page = Math.max(1, Number(queryParams.get("page")) || 1);
   const pageSize = Number(queryParams.get("page-size")) || minPageSize;
+  const search = queryParams.get("search") ?? "";
   const setPage = (p: number) => setQueryParams({ page: String(p) });
   const setPageAndSize = (p: number, ps: number) =>
     setQueryParams({ page: String(p), "page-size": String(ps) });
+  // Store the query in the URL and reset to the first page. Replace (not push) so typing doesn't
+  // flood the browser history with a stack of one-character-apart entries.
+  const onSearch = (value: string) =>
+    setQueryParams({ search: value, page: "1" }, true);
   const [polling, setPolling] = React.useState(false);
 
   const mocksQuery = useMocks(sessionID, {
@@ -339,12 +424,21 @@ const MocksComponent = (): React.JSX.Element => {
   // matching the append-only guarantee the history relies on. Require the history query to have
   // resolved first, so the controls don't flash on sessions that actually have calls.
   const historyQuery = useHistory(sessionID);
-  const editable =
-    canPoll && historyQuery.isSuccess && historyQuery.data.length === 0;
+  const hasCalls = historyQuery.isSuccess && historyQuery.data.length > 0;
+  const editable = canPoll && historyQuery.isSuccess && !hasCalls;
+  // The two reasons a mock can be read-only, in priority order. Reused for the notice banner and
+  // the disabled controls' tooltips so the UI always states *why* editing is blocked.
+  const notLatestReason =
+    "Only the latest session can be edited — it's the one the mock server serves.";
+  const hasCallsReason =
+    "This session has calls in its history, so its mocks are read-only.";
+  const readOnlyHint = !canPoll ? notLatestReason : hasCallsReason;
 
+  const { message } = App.useApp();
   const lockMocksMut = useLockMocks();
   const unlockMocksMut = useUnlockMocks();
   const deleteMockMut = useDeleteMock();
+  const clearHistoryMut = useDeleteHistory();
 
   const initialNewMock = (location.state as { newMock?: string } | null)
     ?.newMock;
@@ -373,7 +467,29 @@ const MocksComponent = (): React.JSX.Element => {
     setNewMockValue(dump([definition]));
   };
   const handleDeleteMock = (mockID: string) =>
-    deleteMockMut.mutate({ sessionID, id: mockID });
+    deleteMockMut.mutate(
+      { sessionID, id: mockID },
+      {
+        onSuccess: () => message.success("Mock deleted"),
+        onError: (e) => message.error(`Can't delete — ${(e as Error).message}`),
+      },
+    );
+  const goToLatestSession = () => {
+    if (latestSession) {
+      setSelected(latestSession.id);
+      setQueryParams({ session: latestSession.id });
+    }
+  };
+  const handleClearHistory = () =>
+    clearHistoryMut.mutate(
+      { sessionID },
+      {
+        onSuccess: () =>
+          message.success("Session history cleared — mocks are editable"),
+        onError: (e) =>
+          message.error(`Can't clear history — ${(e as Error).message}`),
+      },
+    );
 
   const isEmpty = mocks.length === 0;
   let filteredMocks = mocks;
@@ -383,39 +499,60 @@ const MocksComponent = (): React.JSX.Element => {
   } else if (isEmpty) {
     body = <Empty description="No mocks found." />;
   } else {
+    const needle = search.trim().toLowerCase();
     filteredMocks = mocks.filter((mock) => {
-      return !mock_id || mock.state.id === mock_id;
+      if (mock_id && mock.state.id !== mock_id) {
+        return false;
+      }
+      return !needle || mockHaystack(mock).includes(needle);
     });
     const paginatedMocks = filteredMocks.slice(
       Math.max((page - 1) * pageSize, 0),
-      Math.min(page * pageSize, mocks.length),
+      Math.min(page * pageSize, filteredMocks.length),
     );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => setPageAndSize(p, ps);
-    const pagination = (
-      <Row justify="space-between" align="middle" className="container">
-        <div>
-          <Pagination
-            hideOnSinglePage={filteredMocks.length <= minPageSize}
-            showSizeChanger
-            pageSize={pageSize}
-            current={page}
-            onChange={onChangePage}
-            onShowSizeChange={onChangePagSize}
-            total={filteredMocks.length}
-          />
-        </div>
-        <Spin
-          spinning={loading}
-          className={filteredMocks.length <= minPageSize ? "absolute" : ""}
+    const paginationEl = (
+      <Pagination
+        hideOnSinglePage={filteredMocks.length <= minPageSize}
+        showSizeChanger
+        pageSize={pageSize}
+        current={page}
+        onChange={onChangePage}
+        onShowSizeChange={onChangePagSize}
+        total={filteredMocks.length}
+      />
+    );
+    // Top toolbar: search on the left, pagination (and the loading spinner) on the right.
+    const topBar = (
+      <Row justify="space-between" align="middle" className="container toolbar">
+        <Input
+          allowClear
+          className="list-search"
+          placeholder="Filter mocks by method, path, id…"
+          prefix={<SearchOutlined />}
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
         />
+        <div className="pagination">
+          {paginationEl}
+          <Spin spinning={loading} />
+        </div>
+      </Row>
+    );
+    const bottomBar = (
+      <Row justify="end" align="middle" className="container">
+        {paginationEl}
       </Row>
     );
     const lockMock = (mockID: string) => lockMocksMut.mutate([mockID]);
     const unlockMock = (mockID: string) => unlockMocksMut.mutate([mockID]);
     body = (
       <>
-        {pagination}
+        {!mock_id && topBar}
+        {filteredMocks.length === 0 && (
+          <Empty description="No mocks match the filter." />
+        )}
         {paginatedMocks.map((mock) => (
           <MockComponent
             key={`mock-${mock.state.id}`}
@@ -425,12 +562,13 @@ const MocksComponent = (): React.JSX.Element => {
             lockMock={lockMock}
             unlockMock={unlockMock}
             editable={editable}
+            readOnlyHint={readOnlyHint}
             deleting={deleteMockMut.isPending}
             onEdit={handleEditMock}
             onDelete={handleDeleteMock}
           />
         ))}
-        {filteredMocks.length > minPageSize && pagination}
+        {filteredMocks.length > minPageSize && bottomBar}
       </>
     );
   }
@@ -479,6 +617,44 @@ const MocksComponent = (): React.JSX.Element => {
           </p>
         ) : (
           <p>This is the list of declared mocks ordered by priority.</p>
+        )}
+        {!mock_id &&
+          !canPoll &&
+          latestSession &&
+          latestSession.id !== sessionID && (
+            <Alert
+              type="warning"
+              showIcon
+              className="edit-locked-notice"
+              style={{ marginBottom: "1em" }}
+              message={notLatestReason}
+              action={
+                <Button size="small" onClick={goToLatestSession}>
+                  Switch to the latest session
+                </Button>
+              }
+            />
+          )}
+        {!mock_id && canPoll && hasCalls && !isEmpty && (
+          <Alert
+            type="info"
+            showIcon
+            className="edit-locked-notice"
+            style={{ marginBottom: "1em" }}
+            message={hasCallsReason}
+            action={
+              <Popconfirm
+                title="Clear the session history?"
+                description="Mock call counters reset; the mocks themselves are kept."
+                okText="Yes, clear"
+                onConfirm={handleClearHistory}
+              >
+                <Button size="small" loading={clearHistoryMut.isPending}>
+                  Clear history
+                </Button>
+              </Popconfirm>
+            }
+          />
         )}
         <Spin delay={300} spinning={loading && filteredMocks.length === 0}>
           {body}

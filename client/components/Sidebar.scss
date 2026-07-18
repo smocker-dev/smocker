@@ -28,6 +28,16 @@
       }
     }
 
+    .sessions-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sort-toggle {
+      cursor: pointer;
+    }
+
     .group {
       height: calc(100% - 3.5em);
       .ant-menu-item-group-title {
@@ -45,6 +55,9 @@
         padding-right: 1px;
         .session-name {
           max-width: 80%;
+          &.not-latest {
+            color: rgba(0, 0, 0, 0.4);
+          }
         }
         .session-button {
           width: 100%;
@@ -86,5 +99,12 @@
     .reset-button:hover {
       background-color: rgba(255, 77, 79, 0.1);
     }
+  }
+}
+
+// Rendered in a portal, so it lives outside .sidebar.
+.session-edit {
+  .ant-form {
+    margin-bottom: 0.5em;
   }
 }

@@ -17,6 +17,20 @@
     }
   }
 
+  .toolbar {
+    gap: 1em;
+
+    .list-search {
+      max-width: 320px;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+  }
+
   .action.buttons {
     button {
       margin-left: 0.5em;

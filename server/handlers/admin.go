@@ -237,6 +237,14 @@ func (a *Admin) GetHistory(c echo.Context) error {
 	return respondAccordingAccept(c, history)
 }
 
+func (a *Admin) DeleteHistory(c echo.Context) error {
+	sessionID := a.sessionIDFromQuery(c)
+	if err := a.mocksServices.ClearHistory(sessionID); err != nil {
+		return mockMutationError(err)
+	}
+	return respondAccordingAccept(c, types.History{})
+}
+
 func (a *Admin) GetSessions(c echo.Context) error {
 	sessions := a.mocksServices.GetSessions()
 	return respondAccordingAccept(c, sessions)
@@ -278,6 +286,14 @@ func (a *Admin) UpdateSession(c echo.Context) error {
 		Name: session.Name,
 		Date: session.Date,
 	})
+}
+
+func (a *Admin) DeleteSession(c echo.Context) error {
+	id := c.Param("id")
+	if err := a.mocksServices.DeleteSession(id); err != nil {
+		return mockMutationError(err)
+	}
+	return respondAccordingAccept(c, a.mocksServices.GetSessions().Summarize())
 }
 
 func (a *Admin) ImportSession(c echo.Context) error {

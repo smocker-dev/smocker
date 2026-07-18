@@ -61,11 +61,13 @@ func Serve(config config.Config) {
 	historyGroup := adminServerEngine.Group("/history")
 	historyGroup.GET("", handler.GetHistory)
 	historyGroup.GET("/summary", handler.SummarizeHistory)
+	historyGroup.DELETE("", handler.DeleteHistory)
 
 	sessionsGroup := adminServerEngine.Group("/sessions")
 	sessionsGroup.GET("", handler.GetSessions)
 	sessionsGroup.POST("", handler.NewSession)
 	sessionsGroup.PUT("", handler.UpdateSession)
+	sessionsGroup.DELETE("/:id", handler.DeleteSession)
 	sessionsGroup.POST("/verify", handler.VerifySession)
 	sessionsGroup.GET("/summary", handler.SummarizeSessions)
 	sessionsGroup.POST("/import", handler.ImportSession)

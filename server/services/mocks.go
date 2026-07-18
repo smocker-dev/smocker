@@ -26,8 +26,10 @@ type Mocks interface {
 	AddHistoryEntry(sessionID string, entry *types.Entry) (*types.Entry, error)
 	GetHistory(sessionID string) (types.History, error)
 	GetHistoryByPath(sessionID, filterPath string) (types.History, error)
+	ClearHistory(sessionID string) error
 	NewSession(name string) *types.Session
 	UpdateSession(id, name string) (*types.Session, error)
+	DeleteSession(id string) error
 	GetLastSession() *types.Session
 	GetSessionByID(id string) (*types.Session, error)
 	GetSessions() types.Sessions
@@ -205,6 +207,28 @@ func (s *mocks) AddHistoryEntry(sessionID string, entry *types.Entry) (*types.En
 	return entry, nil
 }
 
+// ClearHistory empties a session's history while keeping its mocks. It lets the user make mocks
+// editable again (edition/deletion require an empty history) without dropping the mocks themselves.
+// The per-mock call counters are reset too, so the state stays consistent with the now-empty
+// history (a mock with times_count > 0 but no history entry would be contradictory).
+func (s *mocks) ClearHistory(sessionID string) error {
+	session, err := s.GetSessionByID(sessionID)
+	if err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	session.History = types.History{}
+	for _, mock := range session.Mocks {
+		mock.State.TimesCount = 0
+	}
+	go s.persistence.StoreHistory(session.ID, session.History.Clone())
+	go s.persistence.StoreMocks(session.ID, session.Mocks.Clone())
+	return nil
+}
+
 func (s *mocks) GetHistory(sessionID string) (types.History, error) {
 	session, err := s.GetSessionByID(sessionID)
 	if err != nil {
@@ -291,6 +315,33 @@ func (s *mocks) UpdateSession(sessionID, name string) (*types.Session, error) {
 	session.Name = name
 	go s.persistence.StoreSession(s.sessions.Summarize(), session)
 	return session, nil
+}
+
+func (s *mocks) DeleteSession(id string) error {
+	if id == "" {
+		return types.SessionNotFound
+	}
+
+	s.mu.Lock()
+	index := -1
+	for i, session := range s.sessions {
+		if session.ID == id {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		s.mu.Unlock()
+		return types.SessionNotFound
+	}
+	s.sessions = append(s.sessions[:index], s.sessions[index+1:]...)
+	sessions := s.sessions.Clone()
+	s.mu.Unlock()
+
+	// StoreSessions wipes the persistence directory and rewrites the remaining sessions, so the
+	// deleted session's on-disk directory is removed too.
+	go s.persistence.StoreSessions(sessions)
+	return nil
 }
 
 func (s *mocks) GetLastSession() *types.Session {

@@ -3,23 +3,30 @@ import {
   EditOutlined,
   LoadingOutlined,
   PlusOutlined,
+  SortAscendingOutlined,
+  SortDescendingOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import {
+  App,
   Button,
   Form,
   Input,
   Layout,
   Menu,
+  Popconfirm,
   Popover,
   Row,
   Tooltip,
   Typography,
 } from "antd";
 import type { MenuProps } from "antd";
+import { orderBy } from "es-toolkit";
 import * as React from "react";
 import { useLocation } from "react-router-dom";
+import { useLocalStorage } from "usehooks-ts";
 import {
+  useDeleteSession,
   useNewSession,
   useReset,
   useSessionsSummary,
@@ -34,13 +41,15 @@ import "./Sidebar.scss";
 const EditableItem = ({
   value,
   onValidate,
+  onDelete,
 }: {
   value?: string;
   onValidate: (name: string) => unknown;
+  onDelete: () => unknown;
 }) => {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState(value || "");
-  const onSubmit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const onSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
     onValidate(name.trim());
     setOpen(false);
@@ -48,28 +57,52 @@ const EditableItem = ({
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };
+  const handleDelete = () => {
+    setOpen(false);
+    onDelete();
+  };
   return (
-    <Popover
-      placement="right"
-      open={open}
-      onOpenChange={setOpen}
-      content={
-        <Form layout="inline">
-          <Form.Item>
-            <Input value={name} onChange={onChange} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" onClick={onSubmit}>
-              Save
-            </Button>
-          </Form.Item>
-        </Form>
-      }
-      title="Rename session"
-      trigger="click"
-    >
-      <EditOutlined />
-    </Popover>
+    <Tooltip title="Edit this session">
+      <Popover
+        placement="right"
+        open={open}
+        onOpenChange={setOpen}
+        content={
+          <div className="session-edit">
+            <Form layout="inline">
+              <Form.Item>
+                <Input
+                  value={name}
+                  onChange={onChange}
+                  onPressEnter={onSubmit}
+                />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" onClick={onSubmit}>
+                  Save
+                </Button>
+              </Form.Item>
+            </Form>
+            <Popconfirm
+              title="Delete this session?"
+              description="Its mocks and history will be removed."
+              okText="Delete"
+              okButtonProps={{ danger: true }}
+              placement="bottom"
+              onConfirm={handleDelete}
+            >
+              <Button danger block icon={<DeleteOutlined />}>
+                Delete session
+              </Button>
+            </Popconfirm>
+          </div>
+        }
+        title="Edit session"
+        trigger="click"
+      >
+        <EditOutlined aria-label="Edit this session" />
+      </Popover>
+    </Tooltip>
   );
 };
 
@@ -85,8 +118,22 @@ const SideBar = (): React.JSX.Element => {
   const sessions: Sessions = sessionsQuery.data ?? [];
   const loading = sessionsQuery.isFetching;
 
+  // The API returns sessions in creation order; the last one is the latest (the session the mock
+  // server serves and the only editable one). Keep that identity here so display sorting below
+  // never changes which session counts as "latest".
+  const latestSessionID =
+    sessions.length > 0 ? sessions[sessions.length - 1].id : undefined;
+  const [sortDesc, setSortDesc] = useLocalStorage("sessions.sort.desc", true);
+  const sortedSessions = orderBy(
+    sessions,
+    [(session) => new Date(session.date).getTime()],
+    [sortDesc ? "desc" : "asc"],
+  );
+
+  const { message } = App.useApp();
   const newSessionMut = useNewSession();
   const updateSessionMut = useUpdateSession();
+  const deleteSessionMut = useDeleteSession();
   const uploadSessionsMut = useUploadSessions();
   const resetMut = useReset();
   const uploading = uploadSessionsMut.isPending;
@@ -142,12 +189,24 @@ const SideBar = (): React.JSX.Element => {
       setQueryParams({ session: "" });
     }
   };
-  const onChangeSessionName = (index: number) => (name: string) => {
-    const session = sessions[index];
+  const onChangeSessionName = (session: Session) => (name: string) => {
     updateSessionMut.mutate(
       { ...session, name },
       { onSuccess: (updated) => setSelected(updated.id) },
     );
+  };
+  const onDeleteSession = (session: Session) => () => {
+    deleteSessionMut.mutate(session.id, {
+      onSuccess: () => {
+        // Drop the selection; the effect above re-selects the latest remaining session.
+        if (selected === session.id) {
+          setSelected("");
+        }
+        message.success("Session deleted");
+      },
+      onError: (e) =>
+        message.error(`Can't delete the session — ${(e as Error).message}`),
+    });
   };
   const handleNewSession = () =>
     newSessionMut.mutate(undefined, {
@@ -157,74 +216,128 @@ const SideBar = (): React.JSX.Element => {
     resetMut.mutate(undefined, { onSuccess: () => setSelected("") });
 
   const onFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFileUploading(true);
-    const files = event.target.files;
-    if (!files) {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) {
       return;
     }
-    const file = files[0];
+    setFileUploading(true);
+    // Reset the input so selecting the same file again re-triggers onChange, and clear the
+    // reading/loading state in every outcome so a failure never leaves the spinner stuck.
+    const done = () => {
+      setFileUploading(false);
+      input.value = "";
+    };
     const reader = new FileReader();
+    reader.onerror = () => {
+      done();
+      message.error("Could not read the file.");
+    };
     reader.onload = (ev: ProgressEvent<FileReader>) => {
+      let sessionsToUpload: Session[];
       try {
-        const sessionToUpload: Session[] = JSON.parse(
-          ev.target?.result as string,
-        );
-        uploadSessionsMut.mutate(sessionToUpload);
-        setFileUploading(false);
-      } catch (e) {
-        console.error(e);
+        sessionsToUpload = JSON.parse(ev.target?.result as string);
+      } catch {
+        done();
+        message.error("Import failed: the file is not valid JSON.");
+        return;
       }
+      uploadSessionsMut.mutate(sessionsToUpload, {
+        onSuccess: () => {
+          done();
+          message.success("Sessions imported");
+        },
+        onError: (e) => {
+          done();
+          message.error(`Import failed — ${(e as Error).message}`);
+        },
+      });
     };
     reader.readAsText(file);
   };
 
-  const title: React.JSX.Element =
+  const sortToggle = (
+    <Tooltip
+      title={`Sort by date (${sortDesc ? "newest" : "oldest"} first)`}
+      placement="right"
+      mouseEnterDelay={0.5}
+    >
+      <a
+        className="sort-toggle"
+        aria-label="Sort sessions by date"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSortDesc((v) => !v);
+        }}
+      >
+        {sortDesc ? <SortDescendingOutlined /> : <SortAscendingOutlined />}
+      </a>
+    </Tooltip>
+  );
+
+  const uploadControl =
     fileUploading || uploading ? (
-      <>
+      <label>
+        <a>
+          <LoadingOutlined />
+        </a>
+      </label>
+    ) : (
+      <Tooltip
+        title="Load a session from a file"
+        placement="right"
+        mouseEnterDelay={0.5}
+      >
         <label>
+          <input type="file" onChange={onFileUpload} />
           <a>
-            <LoadingOutlined />
+            <UploadOutlined />
           </a>
         </label>
-        <span>Sessions</span>
-      </>
-    ) : (
-      <>
-        <Tooltip
-          title="Load a session from a file"
-          placement="right"
-          mouseEnterDelay={0.5}
-        >
-          <label>
-            <input type="file" onChange={onFileUpload} />
-            <a>
-              <UploadOutlined />
-            </a>
-          </label>
-        </Tooltip>
-        <span>Sessions</span>
-      </>
+      </Tooltip>
     );
+  const title: React.JSX.Element = (
+    <div className="sessions-title">
+      <span className="left">
+        {uploadControl}
+        <span>Sessions</span>
+      </span>
+      {sortToggle}
+    </div>
+  );
 
-  const sessionItems: NonNullable<MenuProps["items"]> = sessions.map(
-    (session: Session, index: number) => ({
-      key: session.id,
-      label: (
-        <Row
-          justify="space-between"
-          align="middle"
-          title={session.name || session.id}
-        >
-          <Typography.Text ellipsis className="session-name">
-            {session.name || session.id}
-          </Typography.Text>
-          <EditableItem
-            value={session.name}
-            onValidate={onChangeSessionName(index)}
-          />
-        </Row>
-      ),
-    }),
+  const sessionItems: NonNullable<MenuProps["items"]> = sortedSessions.map(
+    (session: Session) => {
+      // Only the latest session is editable; the others are shown dimmed to signal their
+      // read-only state (they can still be selected to inspect their mocks/history).
+      const isLatest = session.id === latestSessionID;
+      return {
+        key: session.id,
+        label: (
+          <Row
+            justify="space-between"
+            align="middle"
+            title={
+              isLatest
+                ? session.name || session.id
+                : `${session.name || session.id} — read-only (not the latest session)`
+            }
+          >
+            <Typography.Text
+              ellipsis
+              className={isLatest ? "session-name" : "session-name not-latest"}
+            >
+              {session.name || session.id}
+            </Typography.Text>
+            <EditableItem
+              value={session.name}
+              onValidate={onChangeSessionName(session)}
+              onDelete={onDeleteSession(session)}
+            />
+          </Row>
+        ),
+      };
+    },
   );
 
   const items: MenuProps["items"] = [
@@ -275,6 +388,8 @@ const SideBar = (): React.JSX.Element => {
       defaultCollapsed
       breakpoint="xl"
       collapsedWidth="0"
+      // Grow with the viewport (wider screens get a roomier sidebar) within sensible bounds.
+      width="clamp(200px, 20vw, 360px)"
       theme="light"
       onCollapse={onCollapse}
     >

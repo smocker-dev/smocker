@@ -1,4 +1,4 @@
-import { Alert, Button, Drawer, Form, Tabs } from "antd";
+import { Alert, App, Button, Drawer, Form, Tabs } from "antd";
 import * as React from "react";
 import { useAddMocks, useUpdateMock } from "../modules/api";
 import {
@@ -26,6 +26,7 @@ export const NewMock = ({
   sessionId?: string;
   onClose: () => void;
 }): React.JSX.Element => {
+  const { message } = App.useApp();
   const addMocksMut = useAddMocks();
   const updateMockMut = useUpdateMock();
   const isEdit = editId !== undefined;
@@ -51,7 +52,10 @@ export const NewMock = ({
     }
     // Keep the drawer open on failure (e.g. a server-side error) so the mock isn't lost.
     const opts = {
-      onSuccess: () => onClose(),
+      onSuccess: () => {
+        message.success(isEdit ? "Mock updated" : "Mock saved");
+        onClose();
+      },
       onError: (e: unknown) => {
         setError(`Can't save — ${(e as Error).message}`);
         setView("raw");
@@ -92,7 +96,7 @@ export const NewMock = ({
 
   return (
     <Drawer
-      title={isEdit ? "Edit mock" : "Add new mocks"}
+      title={isEdit ? "Edit mock" : "Add mocks"}
       placement="right"
       className="drawer"
       closable={false}
