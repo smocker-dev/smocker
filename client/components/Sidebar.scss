@@ -54,12 +54,34 @@
     }
     .menu-button {
       padding: 0 24px;
+      cursor: default;
+      // These rows hold an action button, not a navigable entry; suppress the menu-item
+      // hover/active background so it doesn't look like a stray shadow around the button.
+      &,
+      &:hover,
+      &.ant-menu-item-active,
+      &.ant-menu-item-selected {
+        background-color: transparent;
+      }
       .ant-btn > .anticon + span {
         margin-left: 0;
       }
     }
+    // Keep these buttons flat (drop the default button shadow).
+    .session-button,
+    .reset-button {
+      box-shadow: none;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+    // Confine the hover feedback to the button itself (the menu-row highlight is suppressed above).
+    .session-button:hover {
+      background-color: rgba(31, 111, 235, 0.09);
+    }
     .reset-button {
       width: 100%;
+    }
+    .reset-button:hover {
+      background-color: rgba(255, 77, 79, 0.1);
     }
   }
 }

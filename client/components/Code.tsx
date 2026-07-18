@@ -87,8 +87,8 @@ const Code = ({
     [language]
   );
 
-  // Keep parity with the legacy editor: readonly previews (no onChange) had no
-  // line numbers, editable instances did.
+  // Show line numbers in every instance, including read-only previews; the active-line
+  // highlight is limited to editable ones.
   const body = (
     <CodeMirror
       className="code-editor"
@@ -98,7 +98,7 @@ const Code = ({
       readOnly={readOnly}
       extensions={extensions}
       basicSetup={{
-        lineNumbers: !readOnly,
+        lineNumbers: true,
         foldGutter: true,
         highlightActiveLine: !readOnly,
         highlightActiveLineGutter: !readOnly,

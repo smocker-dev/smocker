@@ -8,8 +8,7 @@ interface PageHeaderProps {
   children?: React.ReactNode;
 }
 
-// Lightweight replacement for antd's removed PageHeader, preserving the visible
-// title + right-aligned actions + content layout the pages relied on.
+// Page header: a title, right-aligned actions, and content below.
 export const PageHeader = ({
   title,
   extra,

@@ -160,18 +160,26 @@ const Visualize = (): React.JSX.Element => {
               label: "Customize diagram generation",
               className: "collapse-panel",
               children: (
-                <Form layout="horizontal" initialValues={{ src, dest }}>
-                  <Row>
-                    <Form.Item label="Source Header" name="src">
-                      <Input value={src} onChange={handleChangeSrc} />
-                    </Form.Item>
-                    <Form.Item label="Destination Header" name="dest">
-                      <Input value={dest} onChange={handleChangeDest} />
-                    </Form.Item>
-                    <Button type="primary" onClick={handleGenerate}>
+                <Form
+                  layout="inline"
+                  initialValues={{ src, dest }}
+                  className="customize-form"
+                >
+                  <Form.Item label="Source Header" name="src">
+                    <Input size="small" value={src} onChange={handleChangeSrc} />
+                  </Form.Item>
+                  <Form.Item label="Destination Header" name="dest">
+                    <Input
+                      size="small"
+                      value={dest}
+                      onChange={handleChangeDest}
+                    />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button size="small" type="primary" onClick={handleGenerate}>
                       Regenerate
                     </Button>
-                  </Row>
+                  </Form.Item>
                 </Form>
               ),
             },

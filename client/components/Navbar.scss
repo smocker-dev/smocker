@@ -2,8 +2,8 @@
   box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.5);
   line-height: 46px;
   height: 46px;
-  // antd v6's horizontal Menu uses rc-overflow: without a growable width it measures a tiny
-  // width and collapses every item into the "..." overflow menu. Let it fill the header row.
+  // Let the horizontal Menu fill the header row; without a growable width it measures tiny and
+  // collapses every item into the "..." overflow menu.
   .menu {
     flex: 1 1 auto;
     min-width: 0;

@@ -3,7 +3,34 @@ import mermaid from "mermaid";
 import * as React from "react";
 import "./Mermaid.scss";
 
-mermaid.initialize({ startOnLoad: false });
+mermaid.initialize({
+  startOnLoad: false,
+  theme: "base",
+  themeVariables: {
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    primaryColor: "#e6f0ff",
+    primaryBorderColor: "#1677ff",
+    primaryTextColor: "#1f2328",
+    lineColor: "#8c8c8c",
+    textColor: "#1f2328",
+    actorBkg: "#e6f0ff",
+    actorBorder: "#1677ff",
+    actorTextColor: "#1f2328",
+    actorLineColor: "#bfbfbf",
+    signalColor: "#434343",
+    signalTextColor: "#434343",
+    activationBkgColor: "#f0f5ff",
+    activationBorderColor: "#adc6ff",
+    sequenceNumberColor: "#ffffff",
+    noteBkgColor: "#fffbe6",
+    noteBorderColor: "#ffe58f",
+    noteTextColor: "#614700",
+    labelBoxBkgColor: "#e6f0ff",
+    labelBoxBorderColor: "#1677ff",
+    labelTextColor: "#1f2328",
+  },
+});
 
 export const Mermaid = ({
   name,
