@@ -155,6 +155,21 @@ build-docker:
 start-docker: check-default-ports
 	docker run -d -p 8080:8080 -p 8081:8081 --name $(APPNAME) $(DOCKER_IMAGE):$(DOCKER_TAG)
 
+# Smoke-test the running container (started by start-docker): the config API answers, the UI is
+# served (proves the embedded client works — the image ships no client directory), and a mock
+# registered on the config port is served on the mock port.
+.PHONY: smoke-docker
+smoke-docker:
+	@for i in $$(seq 1 30); do curl -sf http://localhost:8081/version >/dev/null 2>&1 && break; sleep 1; done
+	@curl -sf http://localhost:8081/version >/dev/null || { echo "FAIL: /version"; exit 1; }
+	@curl -sf http://localhost:8081/ | grep -q Smocker || { echo "FAIL: embedded UI not served"; exit 1; }
+	@curl -sf -XPOST http://localhost:8081/mocks -H "Content-Type: application/json" \
+		--data '[{"request":{"method":"GET","path":"/smoke"},"response":{"status":200,"body":"ok"}}]' >/dev/null \
+		|| { echo "FAIL: register mock"; exit 1; }
+	@test "$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/smoke)" = "200" \
+		|| { echo "FAIL: mock round-trip"; exit 1; }
+	@echo "docker smoke tests passed"
+
 .PHONY: check-default-ports
 check-default-ports:
 	@lsof -i:8080 > /dev/null && (echo "Port 8080 already in use"; exit 1) || true
@@ -168,11 +183,15 @@ optimize:
 # The following targets are only available for CI usage
 
 build/smocker.tar.gz:
-	$(MAKE) build
+	# Build the client first, copy it into the embed source, then build the Go binary so the UI
+	# is baked in (go:embed). The result is a self-contained binary — no client dir to ship.
 	npm ci --ignore-scripts
 	npm run build
-	# Package only the release artifacts, not test/runtime output that may also live in build/.
-	cd build/; tar -czvf smocker.tar.gz smocker client
+	rm -rf server/frontend/dist && mkdir -p server/frontend/dist
+	cp -r build/client/. server/frontend/dist/
+	touch server/frontend/dist/.gitkeep
+	$(MAKE) build
+	cd build/; tar -czvf smocker.tar.gz smocker
 
 .PHONY: release
 release: build/smocker.tar.gz

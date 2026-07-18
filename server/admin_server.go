@@ -18,6 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/smocker-dev/smocker/server/config"
+	"github.com/smocker-dev/smocker/server/frontend"
 	"github.com/smocker-dev/smocker/server/handlers"
 	"github.com/smocker-dev/smocker/server/services"
 	"golang.org/x/sync/errgroup"
@@ -79,8 +80,14 @@ func Serve(config config.Config) {
 		return c.JSON(http.StatusOK, config.Build)
 	})
 
-	// UI Routes
-	adminServerEngine.Static("/assets", config.StaticFiles)
+	// UI Routes: serve from --static-files on disk when it holds a built index.html (development
+	// or an explicit override); otherwise fall back to the client embedded in the binary, so a
+	// released binary is self-contained.
+	if fileExists(config.StaticFiles + "/index.html") {
+		adminServerEngine.Static("/assets", config.StaticFiles)
+	} else if embedded, ok := frontend.FS(); ok {
+		adminServerEngine.StaticFS("/assets", embedded)
+	}
 	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
 	slog.Info("Starting admin server", "port", config.ConfigListenPort)
@@ -153,15 +160,32 @@ func serve(tlsEnable bool, servers ...*http.Server) error {
 	return g.Wait()
 }
 
+// fileExists reports whether path exists (used to prefer an on-disk UI over the embedded one).
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// In development mode, index.html might not be available yet
+		// Parse index.html once: from --static-files on disk if present (dev/override), otherwise
+		// from the client embedded in the binary. In development the client may not be built yet.
 		if templateRenderer == nil {
-			template, err := template.ParseFiles(cfg.StaticFiles + "/index.html")
+			var (
+				tmpl *template.Template
+				err  error
+			)
+			if diskIndex := cfg.StaticFiles + "/index.html"; fileExists(diskIndex) {
+				tmpl, err = template.ParseFiles(diskIndex)
+			} else if embedded, ok := frontend.FS(); ok {
+				tmpl, err = template.ParseFS(embedded, "index.html")
+			} else {
+				return c.String(http.StatusNotFound, "index is building...")
+			}
 			if err != nil {
 				return c.String(http.StatusNotFound, "index is building...")
 			}
-			templateRenderer := &TemplateRenderer{template}
+			templateRenderer = &TemplateRenderer{tmpl}
 			e.Renderer = templateRenderer
 		}
 

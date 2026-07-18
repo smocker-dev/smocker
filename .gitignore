@@ -3,3 +3,6 @@
 node_modules/
 # All build, test and runtime output goes here (see Makefile / vite.config.ts / playwright.config.ts).
 build/
+# The embedded client is copied here by the release build; keep only the placeholder in git.
+server/frontend/dist/*
+!server/frontend/dist/.gitkeep
