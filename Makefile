@@ -37,7 +37,7 @@ $(REFLEX):
 GOLANGCILINTVERSION:=2.12.2
 GOLANGCILINT=$(GOPATH)/bin/golangci-lint
 $(GOLANGCILINT):
-	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
+	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/v$(GOLANGCILINTVERSION)/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
 
 VENOMVERSION:=v1.0.0-rc.6
 VENOM=$(GOPATH)/bin/venom
