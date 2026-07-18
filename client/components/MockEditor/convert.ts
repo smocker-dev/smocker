@@ -221,7 +221,9 @@ const asString = (v: unknown): string | undefined =>
   v === undefined || v === null ? undefined : String(v);
 
 // Parses a string matcher (a plain value or a { matcher, value } object) into an editor pair.
-const parseStringMatcher = (v: unknown): { matcher: string; value?: string } => {
+const parseStringMatcher = (
+  v: unknown,
+): { matcher: string; value?: string } => {
   if (v && typeof v === "object" && !Array.isArray(v) && "matcher" in v) {
     const o = v as { matcher?: unknown; value?: unknown };
     return {
@@ -358,4 +360,3 @@ export const mockToEditorForm = (mock: unknown): MockEditorForm => {
     },
   };
 };
-

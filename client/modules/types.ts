@@ -36,7 +36,10 @@ export type StringMatcherMap = z.infer<typeof StringMatcherMapSchema>;
 const MultimapMatcherSchema = z.record(z.string(), StringMatcherSliceSchema);
 export type MultimapMatcher = z.infer<typeof MultimapMatcherSchema>;
 
-const BodyMatcherSchema = z.union([StringMatcherSchema, StringMatcherMapSchema]);
+const BodyMatcherSchema = z.union([
+  StringMatcherSchema,
+  StringMatcherMapSchema,
+]);
 export type BodyMatcher = z.infer<typeof BodyMatcherSchema>;
 
 const EntryContextSchema = z.object({

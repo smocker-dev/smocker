@@ -7,7 +7,7 @@ import {
 describe("parseYamlForVisualEditor", () => {
   it("accepts a single valid mock (array form) and returns the editor form", () => {
     const res = parseYamlForVisualEditor(
-      "[{request: {method: PUT, path: /x}, response: {status: 201}}]"
+      "[{request: {method: PUT, path: /x}, response: {status: 201}}]",
     );
     expect(res.ok).toBe(true);
     if (res.ok) {
@@ -20,7 +20,7 @@ describe("parseYamlForVisualEditor", () => {
 
   it("accepts a single valid mock (bare object, not wrapped in a list)", () => {
     const res = parseYamlForVisualEditor(
-      "request:\n  path: /x\nresponse:\n  status: 200\n"
+      "request:\n  path: /x\nresponse:\n  status: 200\n",
     );
     expect(res.ok).toBe(true);
   });
@@ -47,14 +47,14 @@ describe("parseYamlForVisualEditor", () => {
 
   it("rejects an unknown matcher", () => {
     const res = parseYamlForVisualEditor(
-      "[{request: {path: {matcher: Nope, value: /x}}, response: {status: 200}}]"
+      "[{request: {path: {matcher: Nope, value: /x}}, response: {status: 200}}]",
     );
     expect(res.ok).toBe(false);
   });
 
   it("points at response.body when it is a map instead of a string", () => {
     const res = parseYamlForVisualEditor(
-      "[{request: {path: /x}, response: {status: 200, body: {message: test}}}]"
+      "[{request: {path: /x}, response: {status: 200, body: {message: test}}}]",
     );
     expect(res.ok).toBe(false);
     if (!res.ok) {
@@ -65,7 +65,7 @@ describe("parseYamlForVisualEditor", () => {
 
   it("refuses to switch when there are several mocks", () => {
     const res = parseYamlForVisualEditor(
-      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, response: {status: 200}}]"
+      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, response: {status: 200}}]",
     );
     expect(res.ok).toBe(false);
     if (!res.ok) {
@@ -78,13 +78,13 @@ describe("validateMocksForSave", () => {
   it("accepts a single valid mock", () => {
     expect(
       validateMocksForSave("[{request: {path: /x}, response: {status: 200}}]")
-        .ok
+        .ok,
     ).toBe(true);
   });
 
   it("accepts several valid mocks (the raw editor may hold a list)", () => {
     const res = validateMocksForSave(
-      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, proxy: {host: http://x}}]"
+      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, proxy: {host: http://x}}]",
     );
     expect(res.ok).toBe(true);
   });
@@ -99,7 +99,7 @@ describe("validateMocksForSave", () => {
 
   it("reports which mock is invalid and why", () => {
     const res = validateMocksForSave(
-      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, response: {status: 200, body: {x: 1}}}]"
+      "[{request: {path: /a}, response: {status: 200}}, {request: {path: /b}, response: {status: 200, body: {x: 1}}}]",
     );
     expect(res.ok).toBe(false);
     if (!res.ok) {

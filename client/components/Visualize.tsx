@@ -19,7 +19,11 @@ import { Link } from "react-router-dom";
 import { useHistorySummary } from "../modules/api";
 import { useSession } from "../modules/session";
 import { GraphHistory } from "../modules/types";
-import { cleanQueryParams, useDebounce, useQueryParams } from "../modules/utils";
+import {
+  cleanQueryParams,
+  useDebounce,
+  useQueryParams,
+} from "../modules/utils";
 import Code from "./Code";
 import { Mermaid } from "./Mermaid";
 import PageHeader from "./PageHeader";
@@ -69,7 +73,7 @@ const Visualize = (): React.JSX.Element => {
   const [diagram, setDiagram] = React.useState("");
   const [src, setSrc] = React.useState(queryParams.get("source-header") || "");
   const [dest, setDest] = React.useState(
-    queryParams.get("destination-header") || ""
+    queryParams.get("destination-header") || "",
   );
   // Committed src/dest that actually drive the fetch (mount + Regenerate),
   // reproducing the old behavior where typing didn't refetch on its own.
@@ -81,7 +85,7 @@ const Visualize = (): React.JSX.Element => {
   const historyQuery = useHistorySummary(
     sessionID,
     submitted.src,
-    submitted.dest
+    submitted.dest,
   );
   const graph: GraphHistory = historyQuery.data ?? [];
   const loading = historyQuery.isFetching;
@@ -166,7 +170,11 @@ const Visualize = (): React.JSX.Element => {
                   className="customize-form"
                 >
                   <Form.Item label="Source Header" name="src">
-                    <Input size="small" value={src} onChange={handleChangeSrc} />
+                    <Input
+                      size="small"
+                      value={src}
+                      onChange={handleChangeSrc}
+                    />
                   </Form.Item>
                   <Form.Item label="Destination Header" name="dest">
                     <Input
@@ -176,7 +184,11 @@ const Visualize = (): React.JSX.Element => {
                     />
                   </Form.Item>
                   <Form.Item>
-                    <Button size="small" type="primary" onClick={handleGenerate}>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={handleGenerate}
+                    >
                       Regenerate
                     </Button>
                   </Form.Item>

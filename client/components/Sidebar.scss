@@ -71,7 +71,10 @@
     .session-button,
     .reset-button {
       box-shadow: none;
-      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+      transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        color 0.2s;
     }
     // Confine the hover feedback to the button itself (the menu-row highlight is suppressed above).
     .session-button:hover {

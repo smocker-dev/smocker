@@ -184,7 +184,7 @@ const MockRequestComponent = ({ request }: { request: MockRequest }) => {
           <strong className="body-matcher">{"In Body"}</strong>
           <ul>
             {Object.entries<StringMatcher>(
-              request.body as StringMatcherMap
+              request.body as StringMatcherMap,
             ).map(([key, value]) => (
               <li key={key}>
                 <strong>{`${key}`}</strong>
@@ -301,7 +301,7 @@ const MocksComponent = (): React.JSX.Element => {
     ?.newMock;
   // Value of the mock creation drawer, or null when it is closed.
   const [newMockValue, setNewMockValue] = React.useState<string | null>(
-    initialNewMock ?? null
+    initialNewMock ?? null,
   );
 
   const togglePolling = () => setPolling((p) => !p);
@@ -328,7 +328,7 @@ const MocksComponent = (): React.JSX.Element => {
     });
     const paginatedMocks = filteredMocks.slice(
       Math.max((page - 1) * pageSize, 0),
-      Math.min(page * pageSize, mocks.length)
+      Math.min(page * pageSize, mocks.length),
     );
     const onChangePage = (p: number) => setPage(p);
     const onChangePagSize = (p: number, ps: number) => setPageAndSize(p, ps);

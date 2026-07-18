@@ -84,7 +84,7 @@ const Code = ({
   const readOnly = !onChange;
   const extensions = React.useMemo(
     () => [...baseExtensions, ...languageExtensions(language)],
-    [language]
+    [language],
   );
 
   // Show line numbers in every instance, including read-only previews; the active-line

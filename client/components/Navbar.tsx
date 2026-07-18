@@ -12,9 +12,7 @@ const Navbar = (): React.JSX.Element => {
   const items = [
     {
       key: "/pages/history",
-      label: (
-        <Link to={{ pathname: "/pages/history", search }}>History</Link>
-      ),
+      label: <Link to={{ pathname: "/pages/history", search }}>History</Link>,
     },
     {
       key: "/pages/mocks",

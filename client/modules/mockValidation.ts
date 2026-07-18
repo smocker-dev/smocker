@@ -16,8 +16,7 @@ ajv.addSchema(mockSchema);
 const validateMock = ajv.getSchema(`${schema.$id}#/$defs/mock`);
 
 export type VisualParse =
-  | { ok: true; form: MockEditorForm }
-  | { ok: false; error: string };
+  { ok: true; form: MockEditorForm } | { ok: false; error: string };
 
 // Turns ajv errors into the most actionable message: the deepest field-level error (e.g.
 // "/response/body must be string"), skipping the noisy top-level oneOf/anyOf combinators.
@@ -26,11 +25,11 @@ const describeErrors = (errors: ErrorObject[] | null | undefined): string => {
     return "does not match the mock schema";
   }
   const specific = errors.filter(
-    (e) => e.instancePath && e.keyword !== "oneOf" && e.keyword !== "anyOf"
+    (e) => e.instancePath && e.keyword !== "oneOf" && e.keyword !== "anyOf",
   );
   const pool = specific.length > 0 ? specific : errors;
   const best = pool.reduce((a, b) =>
-    b.instancePath.length > a.instancePath.length ? b : a
+    b.instancePath.length > a.instancePath.length ? b : a,
   );
   const where = best.instancePath
     ? best.instancePath.replace(/^\//, "").replace(/\//g, ".")
@@ -87,7 +86,10 @@ export const validateMocksForSave = (yaml: string): SaveCheck => {
   for (let i = 0; i < mocks.length; i++) {
     if (!validateMock || !validateMock(mocks[i])) {
       const prefix = mocks.length > 1 ? `mock #${i + 1}: ` : "";
-      return { ok: false, error: prefix + describeErrors(validateMock?.errors) };
+      return {
+        ok: false,
+        error: prefix + describeErrors(validateMock?.errors),
+      };
     }
   }
   return { ok: true };

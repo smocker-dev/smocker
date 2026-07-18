@@ -37,9 +37,9 @@ export const entryToCurl = (historyEntry: Entry): string => {
         }
 
         return values.map(
-          (value) => `--header '${escapeQuote(key)}: ${escapeQuote(value)}'`
+          (value) => `--header '${escapeQuote(key)}: ${escapeQuote(value)}'`,
         );
-      })
+      }),
     );
   }
 
@@ -55,8 +55,8 @@ export const entryToCurl = (historyEntry: Entry): string => {
   }
   command.push(
     `'${escapeQuote(host)}${escapeQuote(request.path)}${escapeQuote(
-      queryString
-    )}'`
+      queryString,
+    )}'`,
   );
 
   if (request.body) {
@@ -79,7 +79,7 @@ function simplifyMultimap(multimap: { [x: string]: string[] }) {
       newMultimap[key] = [...values];
       return newMultimap;
     },
-    {}
+    {},
   );
 }
 
@@ -103,13 +103,15 @@ const headersToClean = [
 export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
   let request: EntryRequest = { ...historyEntry.request };
   if (historyEntry.request.headers) {
-    request.headers = simplifyMultimap(historyEntry.request.headers) as Multimap;
+    request.headers = simplifyMultimap(
+      historyEntry.request.headers,
+    ) as Multimap;
     // remove useless headers
     request.headers = omit(request.headers, headersToClean);
   }
   if (historyEntry.request.query_params) {
     request.query_params = simplifyMultimap(
-      historyEntry.request.query_params
+      historyEntry.request.query_params,
     ) as Multimap;
   }
   request = omit(request as Record<string, unknown>, [
@@ -132,7 +134,7 @@ export const cleanupRequest = (historyEntry: Entry): EntryRequest => {
 export const bodyMatcherToPaths = (
   bodyMatcher: unknown | Record<string, unknown>,
   currentPath = "",
-  result: Record<string, unknown> = {}
+  result: Record<string, unknown> = {},
 ): Record<string, unknown> => {
   if (Array.isArray(bodyMatcher)) {
     bodyMatcher.forEach((item, index) => {
@@ -144,14 +146,15 @@ export const bodyMatcherToPaths = (
       bodyMatcherToPaths(
         value,
         currentPath ? `${currentPath}.${key}` : `${key}`,
-        result
+        result,
       );
     });
     return result;
   } else {
     // Matcher values are strings in the mock format, so stringify leaf values (numbers, booleans)
     // coming from a parsed JSON body.
-    result[currentPath] = bodyMatcher == null ? bodyMatcher : String(bodyMatcher);
+    result[currentPath] =
+      bodyMatcher == null ? bodyMatcher : String(bodyMatcher);
     return result;
   }
 };
@@ -160,7 +163,7 @@ export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
   let response: EntryResponse = { ...historyEntry.response };
   if (historyEntry.response.headers) {
     response.headers = simplifyMultimap(
-      historyEntry.response.headers
+      historyEntry.response.headers,
     ) as Multimap;
     // remove useless headers
     response.headers = omit(response.headers, headersToClean);
@@ -198,7 +201,7 @@ export const bodyToString = (body?: BodyMatcher): string => {
 };
 
 export const formatQueryParams = (
-  params?: MultimapMatcher | Multimap
+  params?: MultimapMatcher | Multimap,
 ): string => {
   if (!params) {
     return "";
@@ -263,7 +266,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 // stopping early if the user scrolls. `el` is the list container; returns an effect cleanup.
 export const scrollToPage = (
   el: HTMLElement | null,
-  goingBack: boolean
+  goingBack: boolean,
 ): (() => void) | void => {
   if (!el) {
     return;
@@ -275,7 +278,8 @@ export const scrollToPage = (
   }
   const alignBottom = () => {
     scroller.scrollTop +=
-      el.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom;
+      el.getBoundingClientRect().bottom -
+      scroller.getBoundingClientRect().bottom;
   };
   alignBottom();
   const observer = new ResizeObserver(alignBottom);
@@ -295,7 +299,7 @@ export const scrollToPage = (
 
 export const useQueryParams = (): [
   URLSearchParams,
-  (params: Record<string, string>, replace?: boolean) => void
+  (params: Record<string, string>, replace?: boolean) => void,
 ] => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -310,17 +314,17 @@ export const useQueryParams = (): [
       // editor via "Create a new mock from entry"): a query-only navigation must not discard it.
       navigate(
         { search: newQueryParams.toString() },
-        { replace, state: window.history.state?.usr ?? null }
+        { replace, state: window.history.state?.usr ?? null },
       );
     },
-    [navigate]
+    [navigate],
   );
 
   return [queryParams, setQueryParams];
 };
 
 export const cleanQueryParams = <T extends { search: string }>(
-  location: T
+  location: T,
 ): T => {
   const queryParams = new URLSearchParams(location.search);
   const newQueryParams = new URLSearchParams();

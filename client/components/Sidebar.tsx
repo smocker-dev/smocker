@@ -146,7 +146,7 @@ const SideBar = (): React.JSX.Element => {
     const session = sessions[index];
     updateSessionMut.mutate(
       { ...session, name },
-      { onSuccess: (updated) => setSelected(updated.id) }
+      { onSuccess: (updated) => setSelected(updated.id) },
     );
   };
   const handleNewSession = () =>
@@ -167,7 +167,7 @@ const SideBar = (): React.JSX.Element => {
     reader.onload = (ev: ProgressEvent<FileReader>) => {
       try {
         const sessionToUpload: Session[] = JSON.parse(
-          ev.target?.result as string
+          ev.target?.result as string,
         );
         uploadSessionsMut.mutate(sessionToUpload);
         setFileUploading(false);
@@ -224,7 +224,7 @@ const SideBar = (): React.JSX.Element => {
           />
         </Row>
       ),
-    })
+    }),
   );
 
   const items: MenuProps["items"] = [

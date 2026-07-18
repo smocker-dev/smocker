@@ -376,7 +376,7 @@ describe("mockToEditorForm (YAML -> form round-trip)", () => {
   it.each(cases)("round-trips %#", (mock) => {
     expectValid(mock);
     const back = JSON.parse(
-      JSON.stringify(MockEditorFormToMock(mockToEditorForm(mock)))
+      JSON.stringify(MockEditorFormToMock(mockToEditorForm(mock))),
     );
     expect(back).toEqual(mock);
     expectValid(back);

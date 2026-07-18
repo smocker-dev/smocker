@@ -67,130 +67,131 @@ const EntryComponent = React.memo(
     value: Entry;
     onCreateMock: (mock: string) => void;
   }) => {
-  const path =
-    value.request.path + formatQueryParams(value.request.query_params);
+    const path =
+      value.request.path + formatQueryParams(value.request.query_params);
 
-  let responseStatusColor = "blue";
-  if (value.response.status >= 600) {
-    responseStatusColor = "magenta";
-  } else if (value.context.mock_type === "proxy") {
-    if (value.response.status >= 500) {
-      responseStatusColor = "red";
-    } else if (value.response.status >= 400) {
-      responseStatusColor = "orange";
-    }
-  }
-
-  let responseStatusTitle = "Unknown HTTP status code";
-  try {
-    responseStatusTitle = getReasonPhrase(value.response.status);
-  } catch {
+    let responseStatusColor = "blue";
     if (value.response.status >= 600) {
-      responseStatusTitle = "Smocker error";
+      responseStatusColor = "magenta";
+    } else if (value.context.mock_type === "proxy") {
+      if (value.response.status >= 500) {
+        responseStatusColor = "red";
+      } else if (value.response.status >= 400) {
+        responseStatusColor = "orange";
+      }
     }
-  }
 
-  return (
-    <div className="entry">
-      <div className="request">
-        <div className="details">
-          <Tag color="blue">{value.request.method}</Tag>
-          <Typography.Text ellipsis className="path" title={path}>
-            {path}
-          </Typography.Text>
-          <span className="date">
-            {dayjs(value.request.date).format(dateFormat)}
-          </span>
-        </div>
-        {value.request.headers && (
-          <table>
-            <tbody>
-              {Object.entries(value.request.headers).map((entry) =>
-                TableRow(entry)
-              )}
-            </tbody>
-          </table>
-        )}
-        {value.request.body ? (
-          <Code
-            value={
-              JSON.stringify(value.request.body, null, "  ") ||
-              `${value.request.body}`
-            }
-            language="json"
-          />
-        ) : null}
-        <div className="actions">
-          <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
-            Copy as curl
-          </Typography.Paragraph>
-        </div>
-      </div>
-      <div className="response">
-        <div className="details">
-          {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
-          <Tag color={responseStatusColor} title={responseStatusTitle}>
-            {value.response.status}
-          </Tag>
-          {value.response.status >= 600 && (
-            <Typography.Text
-              className="error"
-              ellipsis
-              title={(value.response.body as SmockerError).message}
-            >
-              {(value.response.body as SmockerError).message}
+    let responseStatusTitle = "Unknown HTTP status code";
+    try {
+      responseStatusTitle = getReasonPhrase(value.response.status);
+    } catch {
+      if (value.response.status >= 600) {
+        responseStatusTitle = "Smocker error";
+      }
+    }
+
+    return (
+      <div className="entry">
+        <div className="request">
+          <div className="details">
+            <Tag color="blue">{value.request.method}</Tag>
+            <Typography.Text ellipsis className="path" title={path}>
+              {path}
             </Typography.Text>
-          )}
-          {value.context.mock_id && (
-            <span>
-              <Link to={`/pages/mocks/${value.context.mock_id}`}>
-                Matched Mock
-              </Link>
+            <span className="date">
+              {dayjs(value.request.date).format(dateFormat)}
             </span>
+          </div>
+          {value.request.headers && (
+            <table>
+              <tbody>
+                {Object.entries(value.request.headers).map((entry) =>
+                  TableRow(entry),
+                )}
+              </tbody>
+            </table>
           )}
-          <span className="date">
-            {dayjs(value.response.date).format(dateFormat)}
-          </span>
+          {value.request.body ? (
+            <Code
+              value={
+                JSON.stringify(value.request.body, null, "  ") ||
+                `${value.request.body}`
+              }
+              language="json"
+            />
+          ) : null}
+          <div className="actions">
+            <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
+              Copy as curl
+            </Typography.Paragraph>
+          </div>
         </div>
-        <Typography.Paragraph>
-          <Button
-            block
-            type="dashed"
-            onClick={() => onCreateMock(newMockFromEntry(value))}
-          >
-            <PlusCircleOutlined />
-            {value.response.status >= 600
-              ? "Create a new mock from request"
-              : "Create a new mock from entry"}
-          </Button>
-        </Typography.Paragraph>
-        {value.response.headers && (
-          <table>
-            <tbody>
-              {Object.entries(value.response.headers).map((entry) =>
-                TableRow(entry)
-              )}
-            </tbody>
-          </table>
-        )}
-        {value.response.body ? (
-          <Code
-            value={
-              JSON.stringify(value.response.body, null, "  ") ||
-              `${value.response.body}`
-            }
-            language="json"
-          />
-        ) : null}
-        {value.context.delay && (
-          <Typography.Paragraph className="delay">
-            This response was delayed by <span>{value.context.delay}</span>
+        <div className="response">
+          <div className="details">
+            {value.context.mock_type === "proxy" && <Tag>Proxified</Tag>}
+            <Tag color={responseStatusColor} title={responseStatusTitle}>
+              {value.response.status}
+            </Tag>
+            {value.response.status >= 600 && (
+              <Typography.Text
+                className="error"
+                ellipsis
+                title={(value.response.body as SmockerError).message}
+              >
+                {(value.response.body as SmockerError).message}
+              </Typography.Text>
+            )}
+            {value.context.mock_id && (
+              <span>
+                <Link to={`/pages/mocks/${value.context.mock_id}`}>
+                  Matched Mock
+                </Link>
+              </span>
+            )}
+            <span className="date">
+              {dayjs(value.response.date).format(dateFormat)}
+            </span>
+          </div>
+          <Typography.Paragraph>
+            <Button
+              block
+              type="dashed"
+              onClick={() => onCreateMock(newMockFromEntry(value))}
+            >
+              <PlusCircleOutlined />
+              {value.response.status >= 600
+                ? "Create a new mock from request"
+                : "Create a new mock from entry"}
+            </Button>
           </Typography.Paragraph>
-        )}
+          {value.response.headers && (
+            <table>
+              <tbody>
+                {Object.entries(value.response.headers).map((entry) =>
+                  TableRow(entry),
+                )}
+              </tbody>
+            </table>
+          )}
+          {value.response.body ? (
+            <Code
+              value={
+                JSON.stringify(value.response.body, null, "  ") ||
+                `${value.response.body}`
+              }
+              language="json"
+            />
+          ) : null}
+          {value.context.delay && (
+            <Typography.Paragraph className="delay">
+              This response was delayed by <span>{value.context.delay}</span>
+            </Typography.Paragraph>
+          )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 EntryComponent.displayName = "Entry";
 
 const HistoryComponent = (): React.JSX.Element => {
@@ -210,7 +211,7 @@ const HistoryComponent = (): React.JSX.Element => {
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
     "history.order.by.entry.field",
-    "response"
+    "response",
   );
   const [filter, setFilter] = useLocalStorage("history.filter", "all");
 
@@ -228,7 +229,7 @@ const HistoryComponent = (): React.JSX.Element => {
   const [newMockValue, setNewMockValue] = React.useState<string | null>(null);
   const handleCreateMock = React.useCallback(
     (mock: string) => setNewMockValue(mock),
-    []
+    [],
   );
 
   const historyQuery = useHistory(sessionID, {
@@ -257,8 +258,11 @@ const HistoryComponent = (): React.JSX.Element => {
   } else {
     const filteredEntries = orderBy(
       historyEntries,
-      [(entry) => (entryField === "request" ? entry.request.date : entry.response.date)],
-      [order as "asc" | "desc"]
+      [
+        (entry) =>
+          entryField === "request" ? entry.request.date : entry.response.date,
+      ],
+      [order as "asc" | "desc"],
     ).filter((entry) => {
       if (filter === "http-errors") {
         return entry.response.status >= 400 && entry.response.status <= 599;
@@ -305,7 +309,7 @@ const HistoryComponent = (): React.JSX.Element => {
           {filteredEntries
             .slice(
               Math.max((page - 1) * pageSize, 0),
-              Math.min(page * pageSize, filteredEntries.length)
+              Math.min(page * pageSize, filteredEntries.length),
             )
             .map((entry, index) => (
               <EntryComponent

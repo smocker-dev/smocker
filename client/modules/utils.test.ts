@@ -65,7 +65,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      "curl -XGET --header 'X-Foo-Header: foo' --header 'X-Bar-Header: bar' --header 'X-Bar-Header: baz' '/test'"
+      "curl -XGET --header 'X-Foo-Header: foo' --header 'X-Bar-Header: bar' --header 'X-Bar-Header: baz' '/test'",
     );
   });
 
@@ -83,7 +83,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      "curl -XGET '/test?foo=foo&bar=bar&bar=baz'"
+      "curl -XGET '/test?foo=foo&bar=bar&bar=baz'",
     );
   });
 
@@ -100,7 +100,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      `curl -XPOST '/test' --data '{"key":"value containing \\'single quotes\\'"}'`
+      `curl -XPOST '/test' --data '{"key":"value containing \\'single quotes\\'"}'`,
     );
   });
 
@@ -116,7 +116,7 @@ describe("Generate curl command from:", () => {
     };
     expect(entryToCurl(entry)).toBe(
       // FIXME: we shouldn't have the " if the client sent raw text
-      `curl -XPOST '/test' --data '"value containing \\'single quotes\\'"'`
+      `curl -XPOST '/test' --data '"value containing \\'single quotes\\'"'`,
     );
   });
 });

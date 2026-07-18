@@ -24,7 +24,7 @@ export const NewMock = ({
   const addMocksMut = useAddMocks();
   const [mock, setMock] = React.useState(defaultValue);
   const [view, setView] = React.useState<"visual" | "raw">(
-    defaultValue.trim() === "" ? "visual" : "raw"
+    defaultValue.trim() === "" ? "visual" : "raw",
   );
   // Bumped to remount MockEditor with a fresh initial form when switching in from YAML.
   const [formSeed, setFormSeed] = React.useState(0);

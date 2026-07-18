@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { trimedPath } from "./utils";
 import {
   GraphHistory,
@@ -31,7 +27,7 @@ interface RequestOptions {
 
 const request = async (
   path: string,
-  { method, body, contentType }: RequestOptions
+  { method, body, contentType }: RequestOptions,
 ): Promise<unknown> => {
   let response: Response;
   try {
@@ -93,7 +89,7 @@ export const putUpdateSession = async (session: Session): Promise<Session> => {
 };
 
 export const postUploadSessions = async (
-  sessions: Sessions
+  sessions: Sessions,
 ): Promise<Sessions> => {
   const data = await request("/sessions/import", {
     method: "POST",
@@ -113,11 +109,11 @@ export const getHistory = async (sessionID?: string): Promise<History> => {
 export const getHistorySummary = async (
   sessionID: string,
   src: string,
-  dest: string
+  dest: string,
 ): Promise<GraphHistory> => {
   const data = await request(
     `/history/summary?session=${sessionID}&src=${src}&dest=${dest}`,
-    { method: "GET" }
+    { method: "GET" },
   );
   return GraphHistorySchema.parse(data);
 };
@@ -186,7 +182,7 @@ export const useSessionsSummary = (options?: {
 
 export const useHistory = (
   sessionID: string,
-  options?: { refetchInterval?: number | false }
+  options?: { refetchInterval?: number | false },
 ) =>
   useQuery({
     queryKey: queryKeys.history(sessionID),
@@ -197,7 +193,7 @@ export const useHistory = (
 export const useHistorySummary = (
   sessionID: string,
   src: string,
-  dest: string
+  dest: string,
 ) =>
   useQuery({
     queryKey: queryKeys.historySummary(sessionID, src, dest),
@@ -206,7 +202,7 @@ export const useHistorySummary = (
 
 export const useMocks = (
   sessionID: string,
-  options?: { refetchInterval?: number | false }
+  options?: { refetchInterval?: number | false },
 ) =>
   useQuery({
     queryKey: queryKeys.mocks(sessionID),
@@ -219,7 +215,7 @@ export const useMocks = (
 // -----------------------------------------------------------------------------
 
 const invalidateAll = (
-  queryClient: ReturnType<typeof useQueryClient>
+  queryClient: ReturnType<typeof useQueryClient>,
 ): Promise<unknown> =>
   Promise.all([
     queryClient.invalidateQueries({ queryKey: ["sessions"] }),
@@ -255,8 +251,7 @@ export const useAddMocks = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: postAddMocks,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
   });
 };
 
@@ -264,8 +259,7 @@ export const useLockMocks = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: postLockMocks,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
   });
 };
 
@@ -273,8 +267,7 @@ export const useUnlockMocks = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: postUnlockMocks,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["mocks"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mocks"] }),
   });
 };
 

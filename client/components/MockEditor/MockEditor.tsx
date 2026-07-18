@@ -53,7 +53,9 @@ const MockEditor = ({
   // Emit the initial mock on mount so the parent's YAML stays in sync even before the first edit
   // (and reflects the pre-filled form after hydrating from the raw editor).
   React.useEffect(() => {
-    onChange?.(dump([MockEditorFormToMock(initialValues)], { skipInvalid: true }));
+    onChange?.(
+      dump([MockEditorFormToMock(initialValues)], { skipInvalid: true }),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
