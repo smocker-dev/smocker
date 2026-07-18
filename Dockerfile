@@ -20,4 +20,7 @@ EXPOSE 8080 8081
 COPY --from=build-backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 # The UI is embedded in the binary, so nothing else is needed — just the static binary.
 COPY --from=build-backend /go/src/smocker/build/smocker /smocker
+# Run unprivileged (nobody). The listen ports are >1024 so no privilege is needed; a mounted
+# persistence directory must be writable by this uid.
+USER 65534:65534
 ENTRYPOINT ["/smocker"]
