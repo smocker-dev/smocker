@@ -21,6 +21,7 @@ The documentation is available on [smocker.dev](https://smocker.dev).
   - [User Interface](#user-interface)
 - [Usage](#usage)
   - [Hello, World!](#hello-world)
+- [Mock format schema](#mock-format-schema)
 - [Development](#development)
   - [Backend](#backend)
   - [Frontend](#frontend)
@@ -132,6 +133,24 @@ curl -XPOST localhost:8081/reset
 ```
 
 For more advanced usage, please read the [project's documentation](https://smocker.dev).
+
+## Mock format schema
+
+A JSON Schema describing the mock format lives at
+[`docs/mock.schema.json`](./docs/mock.schema.json). It is generated from and kept in sync with the
+Go types (`server/types`): the example mocks under `tests/data` are validated against it in CI, so
+it stays accurate. The documentation references this file as the canonical schema.
+
+Editors can use it for autocompletion and validation. With the YAML language server (VS Code,
+Neovim, …), add this line at the top of a mocks file:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/smocker-dev/smocker/main/docs/mock.schema.json
+- request:
+    path: /hello
+  response:
+    body: '{"message": "Hello, World!"}'
+```
 
 ## Development
 

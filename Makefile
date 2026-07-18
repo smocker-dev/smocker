@@ -34,10 +34,10 @@ REFLEX=$(GOPATH)/bin/reflex
 $(REFLEX):
 	go install github.com/cespare/reflex@latest
 
-GOLANGCILINTVERSION:=1.64.8
+GOLANGCILINTVERSION:=2.12.2
 GOLANGCILINT=$(GOPATH)/bin/golangci-lint
 $(GOLANGCILINT):
-	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
+	curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/v$(GOLANGCILINTVERSION)/install.sh | sh -s -- -b $(GOPATH)/bin v$(GOLANGCILINTVERSION)
 
 VENOMVERSION:=v1.0.0-rc.6
 VENOM=$(GOPATH)/bin/venom
@@ -48,14 +48,21 @@ GOCOVMERGE=$(GOPATH)/bin/gocovmerge
 $(GOCOVMERGE):
 	go install github.com/wadey/gocovmerge@latest
 
+CADDYVERSION:=v2.8.4
 CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
-	cd /tmp; go get github.com/caddyserver/caddy/v2/...
+	go install github.com/caddyserver/caddy/v2/cmd/caddy@$(CADDYVERSION)
+
+# All generated/runtime artifacts live under build/ so the repository root stays clean.
+BUILD_DIR=build
+SESSIONS_DIR=$(BUILD_DIR)/sessions
+COVERAGE_DIR=$(BUILD_DIR)/coverage
 
 .PHONY: persistence
 persistence:
-	rm -rf ./sessions || true
-	cp -r tests/sessions sessions
+	rm -rf ./$(SESSIONS_DIR) || true
+	mkdir -p $(BUILD_DIR)
+	cp -r tests/sessions $(SESSIONS_DIR)
 
 .PHONY: start
 start: $(REFLEX) persistence
@@ -63,7 +70,7 @@ start: $(REFLEX) persistence
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./sessions
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./$(SESSIONS_DIR)
 
 .PHONY: build
 build:
@@ -79,15 +86,15 @@ format:
 
 .PHONY: test
 test:
-	mkdir -p coverage
-	go test -v -race -coverprofile=coverage/test-cover.out ./server/...
+	mkdir -p $(COVERAGE_DIR)
+	go test -v -race -coverprofile=$(COVERAGE_DIR)/test-cover.out ./server/...
 
 PID_FILE=/tmp/$(APPNAME).test.pid
 .PHONY: test-integration
 test-integration: $(VENOM) check-default-ports persistence
-	mkdir -p coverage
-	go test -race -coverpkg="./..." -c . -o $(APPNAME).test
-	SMOCKER_PERSISTENCE_DIRECTORY=./sessions ./$(APPNAME).test -test.coverprofile=coverage/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
+	mkdir -p $(COVERAGE_DIR)
+	go test -race -coverpkg="./..." -c . -o $(BUILD_DIR)/$(APPNAME).test
+	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) $(BUILD_DIR)/$(APPNAME).test -test.coverprofile=$(COVERAGE_DIR)/test-integration-cover.out >/dev/null 2>&1 & echo $$! > $(PID_FILE)
 	sleep 5
 	$(VENOM) run tests/features/$(SUITE)
 	kill `cat $(PID_FILE)` 2> /dev/null || true
@@ -96,19 +103,36 @@ test-integration: $(VENOM) check-default-ports persistence
 start-integration: $(VENOM)
 	$(VENOM) run tests/features/$(SUITE)
 
-coverage/test-cover.out:
+# End-to-end UI non-regression tests (Playwright). Builds the client and backend, serves the
+# built client through smocker (seeded with tests/sessions), runs the suite, then stops the
+# server. Requires the Playwright browser to be installed (npx playwright install chromium).
+E2E_MOCK_PORT ?= 8080
+E2E_ADMIN_PORT ?= 8081
+.PHONY: test-e2e
+test-e2e: build persistence
+	npm run build
+	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) ./$(BUILD_DIR)/$(APPNAME) \
+		--static-files ./$(BUILD_DIR)/client \
+		--mock-server-listen-port=$(E2E_MOCK_PORT) --config-listen-port=$(E2E_ADMIN_PORT) \
+		> $(BUILD_DIR)/e2e-smocker.log 2>&1 & \
+	SMK_PID=$$!; \
+	for i in $$(seq 1 30); do curl -sf localhost:$(E2E_ADMIN_PORT)/version >/dev/null 2>&1 && break; sleep 0.3; done; \
+	SMOCKER_E2E_URL=http://localhost:$(E2E_ADMIN_PORT) npx playwright test --config tests/e2e/playwright.config.ts; \
+	RC=$$?; kill $$SMK_PID 2>/dev/null || true; exit $$RC
+
+$(COVERAGE_DIR)/test-cover.out:
 	$(MAKE) test
 
-coverage/test-integration-cover.out:
+$(COVERAGE_DIR)/test-integration-cover.out:
 	$(MAKE) test-integration
 
 .PHONY: coverage
-coverage: $(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out
-	$(GOCOVMERGE) coverage/test-cover.out coverage/test-integration-cover.out > coverage/cover.out
+coverage: $(GOCOVMERGE) $(COVERAGE_DIR)/test-cover.out $(COVERAGE_DIR)/test-integration-cover.out
+	$(GOCOVMERGE) $(COVERAGE_DIR)/test-cover.out $(COVERAGE_DIR)/test-integration-cover.out > $(COVERAGE_DIR)/cover.out
 
 .PHONY: clean
 clean:
-	rm -rf ./build ./coverage
+	rm -rf ./$(BUILD_DIR)
 
 .PHONY: build-docker
 build-docker:
@@ -133,9 +157,10 @@ optimize:
 
 build/smocker.tar.gz:
 	$(MAKE) build
-	yarn install --frozen-lockfile --ignore-scripts
-	yarn build
-	cd build/; tar -czvf smocker.tar.gz *
+	npm ci --ignore-scripts
+	npm run build
+	# Package only the release artifacts, not test/runtime output that may also live in build/.
+	cd build/; tar -czvf smocker.tar.gz smocker client
 
 .PHONY: release
 release: build/smocker.tar.gz

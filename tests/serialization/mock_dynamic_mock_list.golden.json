@@ -1,0 +1,98 @@
+[
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "lua",
+      "script": "return {\n  body = '{\"message\":\"request path '..request.path..'\"}',\n  headers = {\n    [\"Content-Type\"] = \"application/json\"\n  },\n  delay = {\n    min = \"0\",\n    max = \"10ms\"\n  }\n}\n"
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test2"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "lua",
+      "script": "local name; if request.query_params ~= nil then\n  name = request.query_params.name[1]\nend return {\n  body = {\n    message = \"request path \"..request.path,\n    name = name,\n  },\n  headers = {\n    [\"Content-Type\"] = \"application/json\"\n  },\n  delay = \"10ms\"\n}\n"
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test3"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "go_template",
+      "script": "headers:\n  Content-Type: application/json\nbody: \u003e\n  {\n    \"message\": \"request path {{.Request.Path}}\"\n  }\n"
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test4"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "go_template_yaml",
+      "script": "headers:\n  Content-Type: [application/json]\nbody: \u003e\n  {\n    \"message\": \"request path {{.Request.Path}}\"\n  }\n"
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test5"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "go_template_json",
+      "script": "{\n  \"body\": \"{\\\"message\\\": \\\"request path {{.Request.Path}}\\\"}\",\n  \"headers\": {\n    \"Content-Type\": [\"application/json\"]\n  },\n  \"delay\": \"1ms\"\n}\n"
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test6"
+      },
+      "method": {
+        "matcher": "ShouldMatch",
+        "value": ".*"
+      }
+    },
+    "dynamic_response": {
+      "engine": "go_template_json",
+      "script": "{\n  \"body\": {\n    \"message\": \"request path {{.Request.Path}}\"\n  },\n  \"headers\": {\n    \"Content-Type\": [\"application/json\"]\n  },\n  \"delay\": {\n    \"min\": \"0\",\n    \"max\": \"10ms\"\n  }\n}\n"
+    }
+  }
+]

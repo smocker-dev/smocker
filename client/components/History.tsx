@@ -8,7 +8,6 @@ import {
   Alert,
   Button,
   Empty,
-  PageHeader,
   Pagination,
   Row,
   Select,
@@ -17,26 +16,27 @@ import {
   Typography,
 } from "antd";
 import dayjs from "dayjs";
+import { orderBy } from "es-toolkit";
 import { getReasonPhrase } from "http-status-codes";
-import yaml from "js-yaml";
-import orderBy from "lodash/orderBy";
+import { dump } from "js-yaml";
 import * as React from "react";
-import { connect } from "react-redux";
-import { Link } from "react-router-dom";
-import useLocalStorage from "react-use-localstorage";
-import { Dispatch } from "redux";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
-import { dateFormat, Entry, History, SmockerError } from "../modules/types";
+import { Link, useLocation } from "react-router-dom";
+import { useLocalStorage } from "usehooks-ts";
+import { useHistory, useSessionsSummary } from "../modules/api";
+import { useSession } from "../modules/session";
+import { dateFormat, Entry, SmockerError } from "../modules/types";
 import {
   cleanupRequest,
   cleanupResponse,
   entryToCurl,
   formatQueryParams,
-  usePoll,
+  scrollToPage,
+  useQueryParams,
 } from "../modules/utils";
 import Code from "./Code";
 import "./History.scss";
+import NewMock from "./NewMock";
+import PageHeader from "./PageHeader";
 
 const TableRow = ([key, values]: [string, string[]]) => (
   <tr key={key}>
@@ -45,13 +45,27 @@ const TableRow = ([key, values]: [string, string[]]) => (
   </tr>
 );
 
+const newMockFromEntry = (entry: Entry): string => {
+  const request = cleanupRequest(entry);
+  const response =
+    entry.response.status < 600
+      ? cleanupResponse(entry)
+      : {
+          // Sane default response
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+          body: "",
+        };
+  return dump([{ request, response }]);
+};
+
 const EntryComponent = React.memo(
   ({
     value,
-    handleDisplayNewMock,
+    onCreateMock,
   }: {
     value: Entry;
-    handleDisplayNewMock: () => unknown;
+    onCreateMock: (mock: string) => void;
   }) => {
     const path =
       value.request.path + formatQueryParams(value.request.query_params);
@@ -92,12 +106,12 @@ const EntryComponent = React.memo(
             <table>
               <tbody>
                 {Object.entries(value.request.headers).map((entry) =>
-                  TableRow(entry)
+                  TableRow(entry),
                 )}
               </tbody>
             </table>
           )}
-          {value.request.body && (
+          {value.request.body ? (
             <Code
               value={
                 JSON.stringify(value.request.body, null, "  ") ||
@@ -105,7 +119,7 @@ const EntryComponent = React.memo(
               }
               language="json"
             />
-          )}
+          ) : null}
           <div className="actions">
             <Typography.Paragraph copyable={{ text: entryToCurl(value) }}>
               Copy as curl
@@ -139,25 +153,27 @@ const EntryComponent = React.memo(
             </span>
           </div>
           <Typography.Paragraph>
-            <Link to="/pages/mocks" onClick={handleDisplayNewMock}>
-              <Button block type="dashed">
-                <PlusCircleOutlined />
-                {value.response.status >= 600
-                  ? "Create a new mock from request"
-                  : "Create a new mock from entry"}
-              </Button>
-            </Link>
+            <Button
+              block
+              type="dashed"
+              onClick={() => onCreateMock(newMockFromEntry(value))}
+            >
+              <PlusCircleOutlined />
+              {value.response.status >= 600
+                ? "Create a new mock from request"
+                : "Create a new mock from entry"}
+            </Button>
           </Typography.Paragraph>
           {value.response.headers && (
             <table>
               <tbody>
                 {Object.entries(value.response.headers).map((entry) =>
-                  TableRow(entry)
+                  TableRow(entry),
                 )}
               </tbody>
             </table>
           )}
-          {value.response.body && (
+          {value.response.body ? (
             <Code
               value={
                 JSON.stringify(value.response.body, null, "  ") ||
@@ -165,7 +181,7 @@ const EntryComponent = React.memo(
               }
               language="json"
             />
-          )}
+          ) : null}
           {value.context.delay && (
             <Typography.Paragraph className="delay">
               This response was delayed by <span>{value.context.delay}</span>
@@ -174,55 +190,66 @@ const EntryComponent = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 EntryComponent.displayName = "Entry";
 
-interface Props {
-  sessionID: string;
-  loading: boolean;
-  canPoll: boolean;
-  historyEntries: History;
-  error: SmockerError | null;
-  fetch: (sessionID: string) => unknown;
-  setDisplayNewMock: (display: boolean, defaultValue: string) => unknown;
-}
-
-const HistoryComponent = ({
-  sessionID,
-  historyEntries,
-  loading,
-  canPoll,
-  error,
-  fetch,
-  setDisplayNewMock,
-}: Props) => {
+const HistoryComponent = (): React.JSX.Element => {
   React.useEffect(() => {
     document.title = "History | Smocker";
   });
+
+  const { selected: sessionID } = useSession();
+  const { data: sessions = [] } = useSessionsSummary();
+  const canPoll =
+    !sessionID ||
+    (sessions.length > 0 && sessionID === sessions[sessions.length - 1].id);
+
+  const location = useLocation();
 
   // Filters and order
   const [order, setOrder] = useLocalStorage("history.order.by.date", "desc");
   const [entryField, setEntryField] = useLocalStorage(
     "history.order.by.entry.field",
-    "response"
+    "response",
   );
   const [filter, setFilter] = useLocalStorage("history.filter", "all");
 
-  // Pagination
+  // Pagination — kept in the URL query (?page, ?page-size) so a given page is shareable.
   const minPageSize = 10;
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(minPageSize);
-  const [polling, togglePolling] = usePoll(10000, fetch, sessionID);
+  const [queryParams, setQueryParams] = useQueryParams();
+  const page = Math.max(1, Number(queryParams.get("page")) || 1);
+  const pageSize = Number(queryParams.get("page-size")) || minPageSize;
+  const setPage = (p: number) => setQueryParams({ page: String(p) });
+  const setPageAndSize = (p: number, ps: number) =>
+    setQueryParams({ page: String(p), "page-size": String(ps) });
+  const [polling, setPolling] = React.useState(false);
 
-  const ref = React.createRef<HTMLDivElement>();
+  // Mock creation drawer opened in place from an entry (no navigation to the Mocks page).
+  const [newMockValue, setNewMockValue] = React.useState<string | null>(null);
+  const handleCreateMock = React.useCallback(
+    (mock: string) => setNewMockValue(mock),
+    [],
+  );
+
+  const historyQuery = useHistory(sessionID, {
+    refetchInterval: polling ? 10000 : false,
+  });
+  const historyEntries = historyQuery.data ?? [];
+  const loading = historyQuery.isFetching;
+  const error = historyQuery.error;
+
+  const togglePolling = () => setPolling((p) => !p);
+
+  const ref = React.useRef<HTMLDivElement>(null);
+  const prevPageRef = React.useRef(page);
+  const prevPageSizeRef = React.useRef(pageSize);
   React.useLayoutEffect(() => {
-    if (ref.current) {
-      ref.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    const sizeChanged = pageSize !== prevPageSizeRef.current;
+    const goingBack = !sizeChanged && page < prevPageRef.current;
+    prevPageRef.current = page;
+    prevPageSizeRef.current = pageSize;
+    return scrollToPage(ref.current, goingBack);
   }, [page, pageSize]);
 
   let body = null;
@@ -231,8 +258,11 @@ const HistoryComponent = ({
   } else {
     const filteredEntries = orderBy(
       historyEntries,
-      `${entryField}.date`,
-      order as "asc" | "desc"
+      [
+        (entry) =>
+          entryField === "request" ? entry.request.date : entry.response.date,
+      ],
+      [order as "asc" | "desc"],
     ).filter((entry) => {
       if (filter === "http-errors") {
         return entry.response.status >= 400 && entry.response.status <= 599;
@@ -252,24 +282,8 @@ const HistoryComponent = ({
         body = <Empty description="The history is empty." />;
       }
     } else {
-      const handleDisplayNewMock = (entry: Entry) => () => {
-        const request = cleanupRequest(entry);
-        const response =
-          entry.response.status < 600
-            ? cleanupResponse(entry)
-            : {
-                // Sane default response
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-                body: "",
-              };
-        return setDisplayNewMock(true, yaml.safeDump([{ request, response }]));
-      };
       const onChangePage = (p: number) => setPage(p);
-      const onChangePageSize = (p: number, ps: number) => {
-        setPage(p);
-        setPageSize(ps);
-      };
+      const onChangePageSize = (p: number, ps: number) => setPageAndSize(p, ps);
       const pagination = (
         <Row justify="space-between" align="middle" className="container">
           <div>
@@ -295,13 +309,13 @@ const HistoryComponent = ({
           {filteredEntries
             .slice(
               Math.max((page - 1) * pageSize, 0),
-              Math.min(page * pageSize, filteredEntries.length)
+              Math.min(page * pageSize, filteredEntries.length),
             )
             .map((entry, index) => (
               <EntryComponent
                 key={`entry-${index}`}
                 value={entry}
-                handleDisplayNewMock={handleDisplayNewMock(entry)}
+                onCreateMock={handleCreateMock}
               />
             ))}
           {filteredEntries.length > minPageSize && pagination}
@@ -317,6 +331,11 @@ const HistoryComponent = ({
     setPage(1);
     setFilter(value);
   };
+  const filterOptions = [
+    { value: "all", label: "everything" },
+    { value: "http-errors", label: "HTTP errors only" },
+    { value: "smocker-errors", label: "Smocker errors only" },
+  ];
   return (
     <div className="history" ref={ref}>
       <PageHeader
@@ -324,10 +343,7 @@ const HistoryComponent = ({
         extra={
           <div className="action buttons">
             <Link
-              to={(location) => ({
-                ...location,
-                pathname: "/pages/visualize",
-              })}
+              to={{ pathname: "/pages/visualize", search: location.search }}
             >
               <Button
                 type="primary"
@@ -365,49 +381,28 @@ const HistoryComponent = ({
           are displayed first. Show
           <Select
             defaultValue={filter}
-            bordered={false}
-            showArrow={false}
+            variant="borderless"
             className="ant-btn-link"
-            dropdownStyle={{
-              minWidth: 180, // required to allow all the text to fit in the dropdown
-            }}
+            // Drop the dropdown caret so this renders as an inline link within the sentence.
+            suffixIcon={null}
+            popupMatchSelectWidth={180}
             onChange={onFilter}
-          >
-            <Select.Option value="all">everything</Select.Option>
-            <Select.Option value="http-errors">HTTP errors only</Select.Option>
-            <Select.Option value="smocker-errors">
-              Smocker errors only
-            </Select.Option>
-          </Select>
+            options={filterOptions}
+          />
           .
         </div>
         <Spin delay={300} spinning={loading && historyEntries.length === 0}>
           {body}
         </Spin>
       </PageHeader>
+      {newMockValue !== null && (
+        <NewMock
+          defaultValue={newMockValue}
+          onClose={() => setNewMockValue(null)}
+        />
+      )}
     </div>
   );
 };
 
-export default connect(
-  (state: AppState) => {
-    const { sessions, history } = state;
-    const canPoll =
-      !sessions.selected ||
-      (sessions.list &&
-        sessions.selected === sessions.list[sessions.list.length - 1].id);
-    return {
-      sessionID: sessions.selected,
-      loading: history.loading,
-      historyEntries: history.list,
-      error: history.error,
-      canPoll,
-    };
-  },
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: (sessionID: string) =>
-      dispatch(actions.fetchHistory.request(sessionID)),
-    setDisplayNewMock: (display: boolean, defaultValue: string) =>
-      dispatch(actions.openMockEditor([display, defaultValue])),
-  })
-)(HistoryComponent);
+export default HistoryComponent;

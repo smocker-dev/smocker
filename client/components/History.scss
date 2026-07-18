@@ -26,8 +26,16 @@
   // These rules are used for the inline filters (sort by, filter, etc.)
   .ant-btn-link {
     padding: 6px;
+    // Match the neighboring link buttons (colorLink); the color inherits to the selected value.
+    color: #1677ff;
+    outline: none;
+    // Zero the inner value wrapper's padding so the value sits inline like plain text, and keep
+    // the inline-link look while focused/open: no border, ring or box around it.
+    .ant-select-content,
     .ant-select-selector {
       padding: 0;
+      border-color: transparent !important;
+      box-shadow: none !important;
     }
   }
 

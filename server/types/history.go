@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const ContextKey = "Context"
@@ -57,7 +56,7 @@ func HTTPRequestToRequest(req *http.Request) Request {
 		var err error
 		bodyBytes, err = io.ReadAll(req.Body)
 		if err != nil {
-			log.WithError(err).Error("Failed to read request body")
+			slog.Error("Failed to read request body", "error", err)
 		}
 	}
 	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))

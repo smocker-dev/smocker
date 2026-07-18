@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,7 +14,7 @@ const MIMEApplicationXYaml = "application/x-yaml"
 func bindAccordingAccept(c echo.Context, res interface{}) error {
 	if err := c.Bind(res); err != nil {
 		if err != echo.ErrUnsupportedMediaType {
-			log.WithError(err).Error("Failed to parse payload")
+			slog.Error("Failed to parse payload", "error", err)
 			return err
 		}
 

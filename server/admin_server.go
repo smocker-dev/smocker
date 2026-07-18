@@ -1,20 +1,30 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
+	"errors"
+	"fmt"
 	"html/template"
 	"io"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 
-	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/config"
 	"github.com/smocker-dev/smocker/server/handlers"
 	"github.com/smocker-dev/smocker/server/services"
+	"golang.org/x/sync/errgroup"
 )
+
+// shutdownTimeout is how long in-flight requests are given to drain on shutdown.
+const shutdownTimeout = 10 * time.Second
 
 // TemplateRenderer is a custom html/template renderer for Echo framework
 type TemplateRenderer struct {
@@ -69,17 +79,15 @@ func Serve(config config.Config) {
 	adminServerEngine.Static("/assets", config.StaticFiles)
 	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
-	log.WithField("port", config.ConfigListenPort).Info("Starting admin server")
-	log.WithField("port", config.MockServerListenPort).Info("Starting mock server")
+	slog.Info("Starting admin server", "port", config.ConfigListenPort)
+	slog.Info("Starting mock server", "port", config.MockServerListenPort)
 	adminServerEngine.Server.Addr = ":" + strconv.Itoa(config.ConfigListenPort)
 
 	if config.TLSEnable {
 		certificate, err := tls.LoadX509KeyPair(config.TLSCertFile, config.TLSKeyFile)
 		if err != nil {
-			log.WithFields(log.Fields{
-				"tls-cert-file": config.TLSCertFile,
-				"tls-key-file":  config.TLSKeyFile,
-			}).Fatalf("Invalid certificate: %v", err)
+			slog.Error(fmt.Sprintf("Invalid certificate: %v", err), "tls-cert-file", config.TLSCertFile, "tls-key-file", config.TLSKeyFile)
+			os.Exit(1)
 		}
 
 		adminServerEngine.Server.TLSConfig = &tls.Config{
@@ -92,10 +100,53 @@ func Serve(config config.Config) {
 		}
 	}
 
-	if err := gracehttp.Serve(adminServerEngine.Server, mockServerEngine); err != nil {
-		log.Fatal(err)
+	if err := serve(config.TLSEnable, adminServerEngine.Server, mockServerEngine); err != nil {
+		slog.Error("fatal error", "error", err)
+		os.Exit(1)
 	}
-	log.Info("Shutting down gracefully")
+	slog.Info("Shutting down gracefully")
+}
+
+// serve starts every provided HTTP server and blocks until an interrupt/terminate signal is
+// received or one of the servers fails to start. On signal it drains in-flight requests via
+// Server.Shutdown. This replaces the abandoned facebookgo/grace dependency; it keeps graceful
+// shutdown (SIGINT/SIGTERM) but drops grace's SIGHUP fork-exec restart, which Smocker did not
+// use (configuration is read once at startup).
+func serve(tlsEnable bool, servers ...*http.Server) error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	g, gctx := errgroup.WithContext(ctx)
+	for _, srv := range servers {
+		srv := srv
+		g.Go(func() error {
+			var err error
+			if tlsEnable {
+				// Certificates are provided via srv.TLSConfig, so the file paths are empty.
+				err = srv.ListenAndServeTLS("", "")
+			} else {
+				err = srv.ListenAndServe()
+			}
+			if errors.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+			return err
+		})
+	}
+
+	// Once the context is cancelled (signal received, or a server returned an error via the
+	// errgroup context), gracefully shut every server down.
+	g.Go(func() error {
+		<-gctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+		for _, srv := range servers {
+			_ = srv.Shutdown(shutdownCtx)
+		}
+		return nil
+	})
+
+	return g.Wait()
 }
 
 func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {

@@ -1,11 +1,11 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/config"
 	"github.com/smocker-dev/smocker/server/handlers"
 	"github.com/smocker-dev/smocker/server/services"
@@ -16,7 +16,7 @@ func NewMockServer(cfg config.Config) (*http.Server, services.Mocks) {
 	persistence := services.NewPersistence(cfg.PersistenceDirectory)
 	sessions, err := persistence.LoadSessions()
 	if err != nil {
-		log.Error("Unable to load sessions: ", err)
+		slog.Error("Unable to load sessions", "error", err)
 	}
 	mockServices := services.NewMocks(sessions, cfg.HistoryMaxRetention, persistence)
 

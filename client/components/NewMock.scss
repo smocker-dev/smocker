@@ -1,0 +1,34 @@
+.drawer {
+  // Scroll only the active tab's content, keeping the tab headers pinned at the top of the drawer.
+  .ant-drawer-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    .form {
+      background-color: #263238;
+      border-radius: 3px;
+      height: 100%;
+    }
+  }
+  .ant-tabs {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .ant-tabs-body-holder {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    // Clip the horizontal overflow from antd Row gutters (negative margins); only vertical scroll.
+    overflow-x: hidden;
+  }
+  .action.buttons {
+    text-align: right;
+    button {
+      margin-left: 0.5em;
+    }
+  }
+  // Validation notice shown inside the raw editor tab.
+  .new-mock-error {
+    margin-bottom: 0.75em;
+  }
+}

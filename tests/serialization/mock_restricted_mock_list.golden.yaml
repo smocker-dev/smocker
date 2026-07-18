@@ -1,0 +1,62 @@
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: GET
+  response:
+    body: |
+        {"message": "test"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+  context:
+    times: 1
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: GET
+  response:
+    body: |
+        {"message": "test2"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+  context:
+    times: 1
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: POST
+  response:
+    body: |
+        {"message": "test3"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json
+  context:
+    times: 2
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldEqual
+        value: PUT
+  response:
+    body: |
+        {"message": "test4"}
+    status: 0
+    headers:
+        Content-Type:
+            - application/json

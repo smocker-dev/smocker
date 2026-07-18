@@ -1,0 +1,99 @@
+[
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "GET"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    },
+    "context": {
+      "times": 1
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "GET"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test2\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    },
+    "context": {
+      "times": 1
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "POST"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test3\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    },
+    "context": {
+      "times": 2
+    }
+  },
+  {
+    "request": {
+      "path": {
+        "matcher": "ShouldEqual",
+        "value": "/test"
+      },
+      "method": {
+        "matcher": "ShouldEqual",
+        "value": "PUT"
+      }
+    },
+    "response": {
+      "body": "{\"message\": \"test4\"}\n",
+      "status": 0,
+      "delay": {},
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }
+    }
+  }
+]

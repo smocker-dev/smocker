@@ -1,9 +1,36 @@
-linters-settings:
-  lll:
-    line-length: 150
+version: "2"
 
-issues:
-  exclude-rules:
-    - text: "exported type .* should have comment or be unexported"
-      linters:
-        - go-lint
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - lll
+    - misspell
+  settings:
+    lll:
+      line-length: 150
+    staticcheck:
+      checks:
+        - all
+        # ST1005: error strings should not be capitalized. Several validation errors are
+        # returned verbatim over the API (e.g. mock validation messages), so their exact,
+        # historically-capitalized wording is part of the observable contract and must not change.
+        - -ST1005
+        # ST1003 / ST1012: identifier naming conventions (e.g. Json vs JSON, ErrFoo error vars).
+        # These are long-standing internal identifiers; renaming them is pure churn with no
+        # effect on the mock format or HTTP API, so the existing names are kept for stability.
+        - -ST1003
+        - -ST1012
+  exclusions:
+    generated: lax
+    paths:
+      # node_modules ships a stray flatted/*.go; build is generated output. Neither is our code.
+      - node_modules
+      - build
+    presets:
+      - comments
+      - std-error-handling
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

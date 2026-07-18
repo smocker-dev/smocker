@@ -16,13 +16,19 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import type { MenuProps } from "antd";
 import * as React from "react";
-import { connect } from "react-redux";
-import { Dispatch } from "redux";
-import { Actions, actions } from "../modules/actions";
-import { AppState } from "../modules/reducers";
+import { useLocation } from "react-router-dom";
+import {
+  useNewSession,
+  useReset,
+  useSessionsSummary,
+  useUpdateSession,
+  useUploadSessions,
+} from "../modules/api";
+import { useSession } from "../modules/session";
 import { Session, Sessions } from "../modules/types";
-import { usePoll, useQueryParams } from "../modules/utils";
+import { useQueryParams } from "../modules/utils";
 import "./Sidebar.scss";
 
 const EditableItem = ({
@@ -32,12 +38,12 @@ const EditableItem = ({
   value?: string;
   onValidate: (name: string) => unknown;
 }) => {
-  const [visible, setVisible] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState(value || "");
   const onSubmit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     event.preventDefault();
     onValidate(name.trim());
-    setVisible(false);
+    setOpen(false);
   };
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -45,8 +51,8 @@ const EditableItem = ({
   return (
     <Popover
       placement="right"
-      visible={visible}
-      onVisibleChange={setVisible}
+      open={open}
+      onOpenChange={setOpen}
       content={
         <Form layout="inline">
           <Form.Item>
@@ -67,61 +73,69 @@ const EditableItem = ({
   );
 };
 
-interface Props {
-  sessions: Sessions;
-  loading: boolean;
-  uploading: boolean;
-  selected: string;
-  fetch: () => unknown;
-  selectSession: (sessionID: string) => unknown;
-  newSession: () => unknown;
-  updateSession: (session: Session) => unknown;
-  uploadSessions: (sessions: Session[]) => unknown;
-  resetSessions: () => unknown;
-}
-
-const SideBar = ({
-  fetch,
-  selected,
-  sessions,
-  loading,
-  uploading,
-  selectSession,
-  updateSession,
-  newSession,
-  uploadSessions,
-  resetSessions,
-}: Props) => {
+const SideBar = (): React.JSX.Element => {
+  const { selected, setSelected } = useSession();
   const [queryParams, setQueryParams] = useQueryParams();
-  const [, , setPolling] = usePoll(10000, fetch, undefined);
+  const [polling, setPolling] = React.useState(false);
   const [fileUploading, setFileUploading] = React.useState(false);
 
+  const sessionsQuery = useSessionsSummary({
+    refetchInterval: polling ? 10000 : false,
+  });
+  const sessions: Sessions = sessionsQuery.data ?? [];
+  const loading = sessionsQuery.isFetching;
+
+  const newSessionMut = useNewSession();
+  const updateSessionMut = useUpdateSession();
+  const uploadSessionsMut = useUploadSessions();
+  const resetMut = useReset();
+  const uploading = uploadSessionsMut.isPending;
+
   const querySessionID = queryParams.get("session");
+  // Only write the ?session param when we're on an actual page route. On the unmatched root the
+  // "*" → /pages/history redirect is still settling; navigating (even query-only) from there
+  // clobbers it and strands the app on a blank root. Once redirected, this effect re-runs on the
+  // /pages route and syncs the session there.
+  const { pathname } = useLocation();
+  const onPageRoute = pathname.startsWith("/pages/");
 
   const handleSelectSession = (sessionID: string) => {
-    setQueryParams({ session: sessionID });
-    selectSession(sessionID);
+    if (onPageRoute) {
+      setQueryParams({ session: sessionID });
+    }
+    setSelected(sessionID);
   };
 
   React.useEffect(() => {
-    if (!loading && !selected && sessions.length > 0) {
+    if (loading) {
+      return;
+    }
+    if (!selected && sessions.length > 0) {
       if (
         !querySessionID ||
         sessions.filter((session) => session.id === querySessionID).length === 0
       ) {
         handleSelectSession(sessions[sessions.length - 1].id);
       } else {
-        querySessionID && handleSelectSession(querySessionID);
+        handleSelectSession(querySessionID);
+      }
+    } else if (selected) {
+      if (
+        sessions.length > 0 &&
+        sessions.filter((session) => session.id === selected).length === 0
+      ) {
+        setSelected("");
+      } else if (!querySessionID && onPageRoute) {
+        // Re-annotate the current URL with the active session (URL normalization, not a
+        // navigation) — replace so it never adds a history entry that would trap the back button.
+        setQueryParams({ session: selected }, true);
       }
     }
-    if (!loading && selected && !querySessionID) {
-      setQueryParams({ session: selected });
-    }
-  }, [loading, selected, sessions, querySessionID]);
+  }, [loading, selected, sessions, querySessionID, onPageRoute]);
 
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
-  const onSelect = ({ key }: { key: string }) => {
+  const onSelect: MenuProps["onClick"] = ({ key }) => {
     if (key !== "new" && key !== "reset") {
       handleSelectSession(key);
     } else {
@@ -129,25 +143,18 @@ const SideBar = ({
     }
   };
   const onChangeSessionName = (index: number) => (name: string) => {
-    updateSession({ ...sessions[index], name });
+    const session = sessions[index];
+    updateSessionMut.mutate(
+      { ...session, name },
+      { onSuccess: (updated) => setSelected(updated.id) },
+    );
   };
-  const items = sessions.map((session: Session, index: number) => (
-    <Menu.Item key={session.id}>
-      <Row
-        justify="space-between"
-        align="middle"
-        title={session.name || session.id}
-      >
-        <Typography.Text ellipsis className="session-name">
-          {session.name || session.id}
-        </Typography.Text>
-        <EditableItem
-          value={session.name}
-          onValidate={onChangeSessionName(index)}
-        />
-      </Row>
-    </Menu.Item>
-  ));
+  const handleNewSession = () =>
+    newSessionMut.mutate(undefined, {
+      onSuccess: (session) => setSelected(session.id),
+    });
+  const handleReset = () =>
+    resetMut.mutate(undefined, { onSuccess: () => setSelected("") });
 
   const onFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFileUploading(true);
@@ -159,8 +166,10 @@ const SideBar = ({
     const reader = new FileReader();
     reader.onload = (ev: ProgressEvent<FileReader>) => {
       try {
-        const sessionToUpload = JSON.parse(ev.target?.result as string);
-        uploadSessions(sessionToUpload);
+        const sessionToUpload: Session[] = JSON.parse(
+          ev.target?.result as string,
+        );
+        uploadSessionsMut.mutate(sessionToUpload);
         setFileUploading(false);
       } catch (e) {
         console.error(e);
@@ -169,7 +178,7 @@ const SideBar = ({
     reader.readAsText(file);
   };
 
-  const title: JSX.Element =
+  const title: React.JSX.Element =
     fileUploading || uploading ? (
       <>
         <label>
@@ -196,6 +205,69 @@ const SideBar = ({
         <span>Sessions</span>
       </>
     );
+
+  const sessionItems: NonNullable<MenuProps["items"]> = sessions.map(
+    (session: Session, index: number) => ({
+      key: session.id,
+      label: (
+        <Row
+          justify="space-between"
+          align="middle"
+          title={session.name || session.id}
+        >
+          <Typography.Text ellipsis className="session-name">
+            {session.name || session.id}
+          </Typography.Text>
+          <EditableItem
+            value={session.name}
+            onValidate={onChangeSessionName(index)}
+          />
+        </Row>
+      ),
+    }),
+  );
+
+  const items: MenuProps["items"] = [
+    {
+      type: "group",
+      key: "sessions-group",
+      className: "group",
+      label: title,
+      children: [
+        ...sessionItems,
+        {
+          key: "new",
+          className: "menu-button",
+          label: (
+            <Button
+              ghost
+              type="primary"
+              icon={<PlusOutlined />}
+              className="session-button"
+              onClick={handleNewSession}
+            >
+              New Session
+            </Button>
+          ),
+        },
+      ],
+    },
+    {
+      key: "reset",
+      className: "menu-button",
+      label: (
+        <Button
+          danger
+          icon={<DeleteOutlined />}
+          className="reset-button"
+          onClick={handleReset}
+        >
+          Reset Sessions
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <Layout.Sider
       className="sidebar"
@@ -211,52 +283,10 @@ const SideBar = ({
         onClick={onSelect}
         mode="inline"
         selectedKeys={selectedItem}
-      >
-        <Menu.ItemGroup title={title} className="group">
-          {items}
-          <Menu.Item key="new" className="menu-button">
-            <Button
-              ghost
-              type="primary"
-              icon={<PlusOutlined />}
-              className="session-button"
-              onClick={newSession}
-            >
-              New Session
-            </Button>
-          </Menu.Item>
-        </Menu.ItemGroup>
-        <Menu.Item key="reset" className="menu-button">
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            className="reset-button"
-            onClick={resetSessions}
-          >
-            Reset Sessions
-          </Button>
-        </Menu.Item>
-      </Menu>
+        items={items}
+      />
     </Layout.Sider>
   );
 };
 
-export default connect(
-  (state: AppState) => ({
-    sessions: state.sessions.list,
-    loading: state.sessions.loading,
-    uploading: state.sessions.uploading,
-    selected: state.sessions.selected,
-  }),
-  (dispatch: Dispatch<Actions>) => ({
-    fetch: () => dispatch(actions.fetchSessions.request()),
-    selectSession: (sessionID: string) =>
-      dispatch(actions.selectSession(sessionID)),
-    newSession: () => dispatch(actions.newSession.request()),
-    updateSession: (session: Session) =>
-      dispatch(actions.updateSession.request(session)),
-    uploadSessions: (sessions: Sessions) =>
-      dispatch(actions.uploadSessions.request(sessions)),
-    resetSessions: () => dispatch(actions.reset.request()),
-  })
-)(SideBar);
+export default SideBar;
