@@ -273,21 +273,21 @@ testcases:
       #     - result.headers.location ShouldEqual https://smocker.dev/
       # - type: http
       #   method: GET
-      #   url: http://localhost:8080/redirect-to?url=https%3A%2F%2Fhttpbin.org%2Fget&status_code=302
+      #   url: http://localhost:8080/redirect-to?url=https%3A%2F%2Flocalhost:8090%2Fget&status_code=302
       #   headers:
       #     X-Follow-Redirect: "true"
       #     User-Agent: "foobar"
       #   no_follow_redirect: true
       #   assertions:
       #     - result.statuscode ShouldEqual 200
-      #     - result.bodyjson.url ShouldEqual https://httpbin.org/get
+      #     - result.bodyjson.url ShouldEqual https://localhost:8090/get
 
       - type: http
         method: GET
         url: http://localhost:8080/get
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.headers.host ShouldEqual httpbin.org
+          - result.bodyjson.headers.host.host0 ShouldEqual localhost:8090
 
       - type: http
         method: GET
@@ -296,7 +296,7 @@ testcases:
           X-Keep-Host: "true"
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.headers.host ShouldEqual localhost
+          - result.bodyjson.headers.host.host0 ShouldEqual localhost:8080
 
       - type: http
         method: GET
@@ -306,8 +306,9 @@ testcases:
           CuStOm: ShouldBeOverwritten
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.headers.custom ShouldEqual foobar
-          - result.bodyjson.headers.multi ShouldEqual foo,baz
+          - result.bodyjson.headers.custom.custom0 ShouldEqual foobar
+          - result.bodyjson.headers.multi.multi0 ShouldEqual foo
+          - result.bodyjson.headers.multi.multi1 ShouldEqual baz
 
       - type: http
         method: GET

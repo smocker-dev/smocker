@@ -51,7 +51,7 @@
       }
     },
     "proxy": {
-      "host": "https://httpbin.org",
+      "host": "http://localhost:8090",
       "delay": {}
     }
   },
@@ -75,7 +75,7 @@
       }
     },
     "proxy": {
-      "host": "https://httpbin.org",
+      "host": "http://localhost:8090",
       "delay": {},
       "follow_redirect": true
     }
@@ -92,7 +92,7 @@
       }
     },
     "proxy": {
-      "host": "https://httpbin.org",
+      "host": "http://localhost:8090",
       "delay": {}
     }
   },
@@ -116,7 +116,7 @@
       }
     },
     "proxy": {
-      "host": "https://httpbin.org",
+      "host": "http://localhost:8090",
       "delay": {},
       "keep_host": true
     }
@@ -133,7 +133,7 @@
       }
     },
     "proxy": {
-      "host": "https://httpbin.org",
+      "host": "http://localhost:8090",
       "delay": {},
       "headers": {
         "custom": [
