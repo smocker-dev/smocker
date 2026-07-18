@@ -39,7 +39,7 @@ export const BodyMatcherEditor = ({
                         ([key, value]) => {
                           // TODO: handle more matchers
                           actions.add({ key, matcher: "ShouldEqual", value });
-                        }
+                        },
                       );
                       setInitialized(true);
                     } catch (e) {

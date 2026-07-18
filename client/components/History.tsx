@@ -30,9 +30,12 @@ import {
   cleanupResponse,
   entryToCurl,
   formatQueryParams,
+  scrollToPage,
+  useQueryParams,
 } from "../modules/utils";
 import Code from "./Code";
 import "./History.scss";
+import NewMock from "./NewMock";
 import PageHeader from "./PageHeader";
 
 const TableRow = ([key, values]: [string, string[]]) => (
@@ -56,7 +59,14 @@ const newMockFromEntry = (entry: Entry): string => {
   return dump([{ request, response }]);
 };
 
-const EntryComponent = React.memo(({ value }: { value: Entry }) => {
+const EntryComponent = React.memo(
+  ({
+    value,
+    onCreateMock,
+  }: {
+    value: Entry;
+    onCreateMock: (mock: string) => void;
+  }) => {
   const path =
     value.request.path + formatQueryParams(value.request.query_params);
 
@@ -143,14 +153,16 @@ const EntryComponent = React.memo(({ value }: { value: Entry }) => {
           </span>
         </div>
         <Typography.Paragraph>
-          <Link to="/pages/mocks" state={{ newMock: newMockFromEntry(value) }}>
-            <Button block type="dashed">
-              <PlusCircleOutlined />
-              {value.response.status >= 600
-                ? "Create a new mock from request"
-                : "Create a new mock from entry"}
-            </Button>
-          </Link>
+          <Button
+            block
+            type="dashed"
+            onClick={() => onCreateMock(newMockFromEntry(value))}
+          >
+            <PlusCircleOutlined />
+            {value.response.status >= 600
+              ? "Create a new mock from request"
+              : "Create a new mock from entry"}
+          </Button>
         </Typography.Paragraph>
         {value.response.headers && (
           <table>
@@ -202,11 +214,22 @@ const HistoryComponent = (): React.JSX.Element => {
   );
   const [filter, setFilter] = useLocalStorage("history.filter", "all");
 
-  // Pagination
+  // Pagination — kept in the URL query (?page, ?page-size) so a given page is shareable.
   const minPageSize = 10;
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(minPageSize);
+  const [queryParams, setQueryParams] = useQueryParams();
+  const page = Math.max(1, Number(queryParams.get("page")) || 1);
+  const pageSize = Number(queryParams.get("page-size")) || minPageSize;
+  const setPage = (p: number) => setQueryParams({ page: String(p) });
+  const setPageAndSize = (p: number, ps: number) =>
+    setQueryParams({ page: String(p), "page-size": String(ps) });
   const [polling, setPolling] = React.useState(false);
+
+  // Mock creation drawer opened in place from an entry (no navigation to the Mocks page).
+  const [newMockValue, setNewMockValue] = React.useState<string | null>(null);
+  const handleCreateMock = React.useCallback(
+    (mock: string) => setNewMockValue(mock),
+    []
+  );
 
   const historyQuery = useHistory(sessionID, {
     refetchInterval: polling ? 10000 : false,
@@ -217,14 +240,15 @@ const HistoryComponent = (): React.JSX.Element => {
 
   const togglePolling = () => setPolling((p) => !p);
 
-  const ref = React.createRef<HTMLDivElement>();
+  const ref = React.useRef<HTMLDivElement>(null);
+  const prevPageRef = React.useRef(page);
+  const prevPageSizeRef = React.useRef(pageSize);
   React.useLayoutEffect(() => {
-    if (ref.current) {
-      ref.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    const sizeChanged = pageSize !== prevPageSizeRef.current;
+    const goingBack = !sizeChanged && page < prevPageRef.current;
+    prevPageRef.current = page;
+    prevPageSizeRef.current = pageSize;
+    return scrollToPage(ref.current, goingBack);
   }, [page, pageSize]);
 
   let body = null;
@@ -255,10 +279,7 @@ const HistoryComponent = (): React.JSX.Element => {
       }
     } else {
       const onChangePage = (p: number) => setPage(p);
-      const onChangePageSize = (p: number, ps: number) => {
-        setPage(p);
-        setPageSize(ps);
-      };
+      const onChangePageSize = (p: number, ps: number) => setPageAndSize(p, ps);
       const pagination = (
         <Row justify="space-between" align="middle" className="container">
           <div>
@@ -287,7 +308,11 @@ const HistoryComponent = (): React.JSX.Element => {
               Math.min(page * pageSize, filteredEntries.length)
             )
             .map((entry, index) => (
-              <EntryComponent key={`entry-${index}`} value={entry} />
+              <EntryComponent
+                key={`entry-${index}`}
+                value={entry}
+                onCreateMock={handleCreateMock}
+              />
             ))}
           {filteredEntries.length > minPageSize && pagination}
         </>
@@ -354,6 +379,8 @@ const HistoryComponent = (): React.JSX.Element => {
             defaultValue={filter}
             variant="borderless"
             className="ant-btn-link"
+            // Drop the dropdown caret so this renders as an inline link within the sentence.
+            suffixIcon={null}
             popupMatchSelectWidth={180}
             onChange={onFilter}
             options={filterOptions}
@@ -364,6 +391,12 @@ const HistoryComponent = (): React.JSX.Element => {
           {body}
         </Spin>
       </PageHeader>
+      {newMockValue !== null && (
+        <NewMock
+          defaultValue={newMockValue}
+          onClose={() => setNewMockValue(null)}
+        />
+      )}
     </div>
   );
 };

@@ -149,7 +149,9 @@ export const bodyMatcherToPaths = (
     });
     return result;
   } else {
-    result[currentPath] = bodyMatcher;
+    // Matcher values are strings in the mock format, so stringify leaf values (numbers, booleans)
+    // coming from a parsed JSON body.
+    result[currentPath] = bodyMatcher == null ? bodyMatcher : String(bodyMatcher);
     return result;
   }
 };
@@ -167,6 +169,11 @@ export const cleanupResponse = (historyEntry: Entry): EntryResponse => {
     "date",
   ]) as EntryResponse;
   response = pickBy(response, (value) => Boolean(value)) as EntryResponse; // remove nulls
+  // A response body is a verbatim string in the mock format; the history stores JSON bodies as
+  // parsed objects, so serialize them back to a string (a matcher only makes sense on requests).
+  if (response.body && typeof response.body === "object") {
+    response.body = JSON.stringify(response.body);
+  }
   return response;
 };
 
@@ -247,6 +254,44 @@ export function useDebounce<T>(value: T, delay: number): T {
 
   return debounced;
 }
+
+// Scroll behavior when a paginated list (History/Mocks) changes page.
+// Forward → top of the list, to read the new page from the start.
+// Backward → bottom of the list, so you resume where the previous page left off.
+// Card bodies (CodeMirror) size themselves asynchronously after paint and grow the list, so
+// when going back we keep re-aligning the bottom until the height settles (short time budget),
+// stopping early if the user scrolls. `el` is the list container; returns an effect cleanup.
+export const scrollToPage = (
+  el: HTMLElement | null,
+  goingBack: boolean
+): (() => void) | void => {
+  if (!el) {
+    return;
+  }
+  const scroller = el.closest<HTMLElement>(".scrollable") ?? el;
+  if (!goingBack) {
+    scroller.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  const alignBottom = () => {
+    scroller.scrollTop +=
+      el.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom;
+  };
+  alignBottom();
+  const observer = new ResizeObserver(alignBottom);
+  observer.observe(el);
+  let timer = 0;
+  const stop = () => {
+    observer.disconnect();
+    window.clearTimeout(timer);
+    scroller.removeEventListener("wheel", stop);
+    scroller.removeEventListener("touchmove", stop);
+  };
+  timer = window.setTimeout(stop, 600);
+  scroller.addEventListener("wheel", stop, { passive: true });
+  scroller.addEventListener("touchmove", stop, { passive: true });
+  return stop;
+};
 
 export const useQueryParams = (): [
   URLSearchParams,

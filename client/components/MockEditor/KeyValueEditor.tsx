@@ -10,7 +10,7 @@ import {
   Space,
 } from "antd";
 import { defaultMatcher } from "../../modules/types";
-import { positiveMatchers, negativeMatchers, unaryMatchers } from "./utils";
+import { matcherOptions, unaryMatchers } from "./utils";
 
 export interface KeyValueEditorProps {
   name: string[];
@@ -32,23 +32,6 @@ export const KeyValueEditor = ({
     )}
   </Form.List>
 );
-
-const matcherOptions = [
-  {
-    label: "Positive",
-    options: positiveMatchers.map((matcher) => ({
-      value: matcher,
-      label: matcher,
-    })),
-  },
-  {
-    label: "Negative",
-    options: negativeMatchers.map((matcher) => ({
-      value: matcher,
-      label: matcher,
-    })),
-  },
-];
 
 export interface KeyValueEditorEngineProps extends KeyValueEditorProps {
   fields: FormListFieldData[];
@@ -76,7 +59,7 @@ export const KeyValueEditorEngine = ({
 
         {withMatchers && (
           <Form.Item {...restField} name={[fieldName, "matcher"]}>
-            <Select options={matcherOptions} />
+            <Select style={{ width: 210 }} options={matcherOptions} />
           </Form.Item>
         )}
 
@@ -86,7 +69,7 @@ export const KeyValueEditorEngine = ({
               {...restField}
               name={[fieldName, "value"]}
               hidden={unaryMatchers.includes(
-                getFieldValue([...name, fieldName, "matcher"])
+                getFieldValue([...name, fieldName, "matcher"]),
               )}
             >
               <Input placeholder="Value" />

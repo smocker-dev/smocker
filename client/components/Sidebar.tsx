@@ -18,6 +18,7 @@ import {
 } from "antd";
 import type { MenuProps } from "antd";
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import {
   useNewSession,
   useReset,
@@ -91,9 +92,17 @@ const SideBar = (): React.JSX.Element => {
   const uploading = uploadSessionsMut.isPending;
 
   const querySessionID = queryParams.get("session");
+  // Only write the ?session param when we're on an actual page route. On the unmatched root the
+  // "*" → /pages/history redirect is still settling; navigating (even query-only) from there
+  // clobbers it and strands the app on a blank root. Once redirected, this effect re-runs on the
+  // /pages route and syncs the session there.
+  const { pathname } = useLocation();
+  const onPageRoute = pathname.startsWith("/pages/");
 
   const handleSelectSession = (sessionID: string) => {
-    setQueryParams({ session: sessionID });
+    if (onPageRoute) {
+      setQueryParams({ session: sessionID });
+    }
     setSelected(sessionID);
   };
 
@@ -116,11 +125,13 @@ const SideBar = (): React.JSX.Element => {
         sessions.filter((session) => session.id === selected).length === 0
       ) {
         setSelected("");
-      } else if (!querySessionID) {
-        setQueryParams({ session: selected });
+      } else if (!querySessionID && onPageRoute) {
+        // Re-annotate the current URL with the active session (URL normalization, not a
+        // navigation) — replace so it never adds a history entry that would trap the back button.
+        setQueryParams({ session: selected }, true);
       }
     }
-  }, [loading, selected, sessions, querySessionID]);
+  }, [loading, selected, sessions, querySessionID, onPageRoute]);
 
   const selectedItem = selected ? [selected] : undefined;
   const onCollapse = (col: boolean) => setPolling(!col);
@@ -220,6 +231,7 @@ const SideBar = (): React.JSX.Element => {
     {
       type: "group",
       key: "sessions-group",
+      className: "group",
       label: title,
       children: [
         ...sessionItems,

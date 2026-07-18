@@ -7,6 +7,7 @@ export const MockDynamicResponseEditor = (): React.JSX.Element => (
     <Form.Item label="Engine" name={["dynamic_response", "engine"]}>
       <Select
         options={[
+          { value: "go_template", label: "Go Template" },
           { value: "go_template_yaml", label: "Go Template (YAML)" },
           { value: "go_template_json", label: "Go Template (JSON)" },
           { value: "lua", label: "Lua" },
@@ -16,8 +17,10 @@ export const MockDynamicResponseEditor = (): React.JSX.Element => (
 
     <Form.Item
       noStyle
-      shouldUpdate={(prevValues, currentValues) => prevValues?.dynamic_response?.engine !==
-        currentValues?.dynamic_response?.engine}
+      shouldUpdate={(prevValues, currentValues) =>
+        prevValues?.dynamic_response?.engine !==
+        currentValues?.dynamic_response?.engine
+      }
     >
       {({ getFieldValue }) => (
         <Form.Item label="Script" name={["dynamic_response", "script"]}>

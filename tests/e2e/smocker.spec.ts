@@ -43,6 +43,9 @@ test("root redirects to history with a session selected", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/pages\/history/);
   await expect(page).toHaveURL(/session=/);
+  // The history page must actually render — guard against the redirect settling back to a blank
+  // root (the session-param sync used to clobber the redirect before it committed).
+  await expect(page.getByText(intro.history)).toBeVisible();
 });
 
 // --- Links -----------------------------------------------------------------------------------
@@ -62,12 +65,14 @@ test("navbar & footer links point to the right targets", async ({ page }) => {
   await expect(page.locator('a[href="https://smocker.dev"]').first()).toBeVisible();
 });
 
-test("history entry deep links: 'Matched Mock' and 'Create a new mock from entry'", async ({
+test("history entry: 'Matched Mock' link and 'Create a new mock from entry' button", async ({
   page,
 }) => {
   await page.goto(HISTORY);
   await expect(page.locator(`a[href="/pages/mocks/${MOCK_ID}"]`).first()).toBeVisible();
-  await expect(page.locator('a[href="/pages/mocks"]').first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Create a new mock from entry/ }).first(),
+  ).toBeVisible();
 });
 
 // --- Page content (features) -----------------------------------------------------------------
@@ -123,6 +128,23 @@ test("'Matched Mock' link opens the mock detail route", async ({ page }) => {
   await expect(page.getByText(new RegExp(MOCK_ID)).first()).toBeVisible();
 });
 
+test("mock detail: clicking a mock filters to it and browser back returns to the list", async ({
+  page,
+}) => {
+  await page.goto(MOCKS);
+  await expect(page.getByText(intro.mocks)).toBeVisible();
+  // Click the mock's ID link in the list (the href carries ?session, so match by prefix).
+  await page.locator(`a[href^="/pages/mocks/${MOCK_ID}"]`).first().click();
+  await expect(page).toHaveURL(new RegExp(`/pages/mocks/${MOCK_ID}`));
+  await expect(
+    page.getByText(/This is the definition of the mock with ID/),
+  ).toBeVisible();
+  // Browser back must return to the full list, not stay trapped on the single-mock route.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/pages\/mocks(\?|$)/);
+  await expect(page.getByText(intro.mocks)).toBeVisible();
+});
+
 test("'Add Mocks' opens the editor with Save/Cancel and closes on Cancel", async ({ page }) => {
   await page.goto(MOCKS);
   await page.getByRole("button", { name: "Add Mocks" }).click();
@@ -133,15 +155,16 @@ test("'Add Mocks' opens the editor with Save/Cancel and closes on Cancel", async
   await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0);
 });
 
-test("'Create a new mock from entry' opens the prefilled editor", async ({ page }) => {
+test("'Create a new mock from entry' opens the prefilled editor in place", async ({ page }) => {
   await page.goto(HISTORY);
-  // Wait for the automatic session selection to settle (?session in the URL) and the entry to
-  // render before clicking, so the create-from-entry navigation isn't clobbered by the
-  // session-selection redirect and reliably carries the prefilled editor state.
   await expect(page).toHaveURL(/session=/);
   await expect(page.getByText(intro.history)).toBeVisible();
-  await page.locator('a[href="/pages/mocks"]').first().click();
-  await expect(page).toHaveURL(/\/pages\/mocks/);
+  await page
+    .getByRole("button", { name: /Create a new mock from entry/ })
+    .first()
+    .click();
+  // The drawer opens on the History page itself — no navigation to the Mocks page.
+  await expect(page).toHaveURL(/\/pages\/history/);
   await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
 });
 

@@ -8,13 +8,10 @@ import {
 import {
   Alert,
   Button,
-  Drawer,
   Empty,
-  Form,
   Pagination,
   Row,
   Spin,
-  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -22,7 +19,6 @@ import dayjs from "dayjs";
 import * as React from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
-  useAddMocks,
   useLockMocks,
   useMocks,
   useSessionsSummary,
@@ -44,9 +40,11 @@ import {
   formatHeaderValue,
   formatQueryParams,
   isStringMatcher,
+  scrollToPage,
+  useQueryParams,
 } from "../modules/utils";
 import Code from "./Code";
-import MockEditor from "./MockEditor/MockEditor";
+import NewMock from "./NewMock";
 import "./Mocks.scss";
 import PageHeader from "./PageHeader";
 
@@ -215,6 +213,9 @@ const MockComponent = ({
 }) => {
   const onLockMock = () => lockMock(mock.state.id);
   const onUnlockMock = () => unlockMock(mock.state.id);
+  // Keep the current query string (notably ?session) so navigating to a single mock stays in
+  // the same session and the browser back button returns to the full list.
+  const { search } = useLocation();
   return (
     <div className="mock">
       <div className="meta">
@@ -240,7 +241,9 @@ const MockComponent = ({
             />
           )}
           <span className="label">ID:</span>
-          <Link to={`/pages/mocks/${mock.state.id}`}>{mock.state.id}</Link>
+          <Link to={{ pathname: `/pages/mocks/${mock.state.id}`, search }}>
+            {mock.state.id}
+          </Link>
         </div>
         <span className="date">
           {dayjs(mock.state.creation_date).format(dateFormat)}
@@ -253,68 +256,6 @@ const MockComponent = ({
         {mock.proxy && <MockProxyComponent mock={mock} />}
       </div>
     </div>
-  );
-};
-
-const NewMockComponent = ({
-  display,
-  defaultValue,
-  onSave,
-  onClose,
-}: {
-  display: boolean;
-  defaultValue: string;
-  onSave: (mocks: string) => unknown;
-  onClose: () => unknown;
-}) => {
-  const [mock, changeMock] = React.useState(defaultValue);
-  const handleSubmit = () => {
-    onSave(mock);
-  };
-  return (
-    <Drawer
-      title="Add new mocks"
-      placement="right"
-      className="drawer"
-      closable={false}
-      onClose={onClose}
-      open={display}
-      width="70vw"
-      getContainer={false}
-      footer={
-        <div className="action buttons">
-          <Button onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} type="primary">
-            Save
-          </Button>
-        </div>
-      }
-    >
-      <Tabs
-        defaultActiveKey={defaultValue.trim() === "" ? "1" : "2"}
-        items={[
-          {
-            key: "1",
-            label: "Visual Editor",
-            children: <MockEditor onChange={changeMock} />,
-          },
-          {
-            key: "2",
-            label: "Raw YAML Editor",
-            children: (
-              <Form className="form">
-                <Code
-                  value={mock}
-                  language="yaml"
-                  onChange={changeMock}
-                  collapsible={false}
-                />
-              </Form>
-            ),
-          },
-        ]}
-      />
-    </Drawer>
   );
 };
 
@@ -337,8 +278,13 @@ const MocksComponent = (): React.JSX.Element => {
     !sessionID ||
     (sessions.length > 0 && sessionID === sessions[sessions.length - 1].id);
 
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(minPageSize);
+  // Pagination — kept in the URL query (?page, ?page-size) so a given page is shareable.
+  const [queryParams, setQueryParams] = useQueryParams();
+  const page = Math.max(1, Number(queryParams.get("page")) || 1);
+  const pageSize = Number(queryParams.get("page-size")) || minPageSize;
+  const setPage = (p: number) => setQueryParams({ page: String(p) });
+  const setPageAndSize = (p: number, ps: number) =>
+    setQueryParams({ page: String(p), "page-size": String(ps) });
   const [polling, setPolling] = React.useState(false);
 
   const mocksQuery = useMocks(sessionID, {
@@ -348,26 +294,26 @@ const MocksComponent = (): React.JSX.Element => {
   const loading = mocksQuery.isFetching;
   const error = mocksQuery.error;
 
-  const addMocksMut = useAddMocks();
   const lockMocksMut = useLockMocks();
   const unlockMocksMut = useUnlockMocks();
 
   const initialNewMock = (location.state as { newMock?: string } | null)
     ?.newMock;
-  const [displayNewMock, setDisplayNewMock] = React.useState(
-    Boolean(initialNewMock)
+  // Value of the mock creation drawer, or null when it is closed.
+  const [newMockValue, setNewMockValue] = React.useState<string | null>(
+    initialNewMock ?? null
   );
-  const [editorValue, setEditorValue] = React.useState(initialNewMock ?? "");
 
   const togglePolling = () => setPolling((p) => !p);
-  const ref = React.createRef<HTMLDivElement>();
+  const ref = React.useRef<HTMLDivElement>(null);
+  const prevPageRef = React.useRef(page);
+  const prevPageSizeRef = React.useRef(pageSize);
   React.useLayoutEffect(() => {
-    if (ref.current) {
-      ref.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    const sizeChanged = pageSize !== prevPageSizeRef.current;
+    const goingBack = !sizeChanged && page < prevPageRef.current;
+    prevPageRef.current = page;
+    prevPageSizeRef.current = pageSize;
+    return scrollToPage(ref.current, goingBack);
   }, [page, pageSize]);
   const isEmpty = mocks.length === 0;
   let filteredMocks = mocks;
@@ -385,10 +331,7 @@ const MocksComponent = (): React.JSX.Element => {
       Math.min(page * pageSize, mocks.length)
     );
     const onChangePage = (p: number) => setPage(p);
-    const onChangePagSize = (p: number, ps: number) => {
-      setPage(p);
-      setPageSize(ps);
-    };
+    const onChangePagSize = (p: number, ps: number) => setPageAndSize(p, ps);
     const pagination = (
       <Row justify="space-between" align="middle" className="container">
         <div>
@@ -428,19 +371,8 @@ const MocksComponent = (): React.JSX.Element => {
     );
   }
 
-  const handleAddNewMock = () => {
-    setEditorValue("");
-    setDisplayNewMock(true);
-  };
-  const handleCancelNewMock = () => {
-    setDisplayNewMock(false);
-    setEditorValue("");
-  };
-  const handleSaveNewMock = (newMocks: string) => {
-    setDisplayNewMock(false);
-    setEditorValue("");
-    addMocksMut.mutate(newMocks);
-  };
+  const handleAddNewMock = () => setNewMockValue("");
+  const handleCloseNewMock = () => setNewMockValue(null);
   return (
     <div className="mocks" ref={ref}>
       <PageHeader
@@ -452,7 +384,7 @@ const MocksComponent = (): React.JSX.Element => {
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
-                disabled={displayNewMock}
+                disabled={newMockValue !== null}
                 onClick={handleAddNewMock}
                 className="add-mocks-button"
               >
@@ -482,13 +414,8 @@ const MocksComponent = (): React.JSX.Element => {
           {body}
         </Spin>
       </PageHeader>
-      {displayNewMock && (
-        <NewMockComponent
-          display={displayNewMock}
-          defaultValue={editorValue}
-          onSave={handleSaveNewMock}
-          onClose={handleCancelNewMock}
-        />
+      {newMockValue !== null && (
+        <NewMock defaultValue={newMockValue} onClose={handleCloseNewMock} />
       )}
     </div>
   );

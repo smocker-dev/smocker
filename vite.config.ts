@@ -34,6 +34,9 @@ export default defineConfig({
   root: "client",
   base: "./",
   plugins: [react(), assetsPrefix()],
+  // Allow importing the canonical mock schema (docs/mock.schema.json) from client code, which
+  // lives above the Vite root.
+  server: { fs: { allow: [import.meta.dirname] } },
   build: {
     outDir: "../build/client",
     emptyOutDir: true,

@@ -1,5 +1,5 @@
 import { Entry } from "./types";
-import { entryToCurl, bodyMatcherToPaths } from "./utils";
+import { bodyMatcherToPaths, cleanupResponse, entryToCurl } from "./utils";
 
 const baseEntry: Entry = {
   context: {
@@ -121,6 +121,28 @@ describe("Generate curl command from:", () => {
   });
 });
 
+describe("cleanupResponse (create a mock from a history entry):", () => {
+  test("serializes an object (JSON) response body to a verbatim string", () => {
+    const entry: Entry = {
+      ...baseEntry,
+      response: {
+        ...baseEntry.response,
+        status: 200,
+        body: { message: "test" },
+      },
+    };
+    expect(cleanupResponse(entry).body).toBe('{"message":"test"}');
+  });
+
+  test("leaves a string response body unchanged", () => {
+    const entry: Entry = {
+      ...baseEntry,
+      response: { ...baseEntry.response, status: 200, body: "hello world" },
+    };
+    expect(cleanupResponse(entry).body).toBe("hello world");
+  });
+});
+
 describe("Generate paths from body matcher:", () => {
   test("Nested array", () => {
     const body = [{ foo: 0 }, { foo: 1 }];
@@ -129,8 +151,8 @@ describe("Generate paths from body matcher:", () => {
     };
     expect(actual).toMatchObject({
       body: {
-        "[0].foo": 0,
-        "[1].foo": 1,
+        "[0].foo": "0",
+        "[1].foo": "1",
       },
     });
   });
@@ -153,10 +175,10 @@ describe("Generate paths from body matcher:", () => {
     };
     expect(actual).toMatchObject({
       body: {
-        foo: 3,
+        foo: "3",
         "bar[0]": "a",
         "bar[1]": "b",
-        "baz.level1.level2.foo": 3,
+        "baz.level1.level2.foo": "3",
         "baz.level1.level2.bar[0]": "a",
         "baz.level1.level2.bar[1]": "b",
       },
