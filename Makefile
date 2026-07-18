@@ -48,9 +48,10 @@ GOCOVMERGE=$(GOPATH)/bin/gocovmerge
 $(GOCOVMERGE):
 	go install github.com/wadey/gocovmerge@latest
 
+CADDYVERSION:=v2.8.4
 CADDY=$(GOPATH)/bin/caddy
 $(CADDY):
-	cd /tmp; go get github.com/caddyserver/caddy/v2/...
+	go install github.com/caddyserver/caddy/v2/cmd/caddy@$(CADDYVERSION)
 
 # All generated/runtime artifacts live under build/ so the repository root stays clean.
 BUILD_DIR=build
