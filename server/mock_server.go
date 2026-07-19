@@ -3,6 +3,7 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -18,7 +19,11 @@ func NewMockServer(cfg config.Config) (*http.Server, services.Mocks) {
 	if err != nil {
 		slog.Error("Unable to load sessions", "error", err)
 	}
-	mockServices := services.NewMocks(sessions, cfg.HistoryMaxRetention, persistence)
+	mockServices, err := services.NewMocks(sessions, cfg.HistoryMaxRetention, persistence, cfg.InitMocks)
+	if err != nil {
+		slog.Error("Unable to load initial mocks", "error", err, "init-mocks", cfg.InitMocks)
+		os.Exit(1)
+	}
 
 	mockServerEngine.HideBanner = true
 	mockServerEngine.HidePort = true

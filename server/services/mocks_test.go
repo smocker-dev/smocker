@@ -1,6 +1,8 @@
 package services
 
 import (
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -8,11 +10,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+func newTestMocks(t *testing.T) Mocks {
+	t.Helper()
+	svc, err := NewMocks(nil, 0, NewPersistence(""), "")
+	if err != nil {
+		t.Fatalf("NewMocks: %v", err)
+	}
+	return svc
+}
+
 // TestGetLastSessionConcurrent guards the TOCTOU race that let concurrent callers each create a
 // default session (two "Session #1") when the list was empty — the source of the flaky "rename a
 // session" e2e test. Run under -race.
 func TestGetLastSessionConcurrent(t *testing.T) {
-	svc := NewMocks(nil, 0, NewPersistence(""))
+	svc := newTestMocks(t)
 
 	const n = 50
 	start := make(chan struct{})
@@ -42,10 +53,69 @@ func mockFromYAML(t *testing.T, s string) *types.Mock {
 	return &m
 }
 
+// TestNewMocksInitFile covers the --init-mocks path: a YAML file of mocks (the POST /mocks format)
+// is loaded into a fresh "init-mocks" session when the service is constructed.
+func TestNewMocksInitFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mocks.yml")
+	content := `
+- request:
+    method: GET
+    path: /hello
+  response:
+    status: 200
+    body: hi
+- request:
+    method: GET
+    path: /health
+  response:
+    status: 204
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	svc, err := NewMocks(nil, 0, NewPersistence(""), path)
+	if err != nil {
+		t.Fatalf("NewMocks: %v", err)
+	}
+
+	session := svc.GetLastSession()
+	if session == nil {
+		t.Fatal("expected a seeded session")
+	}
+	if session.Name != "init-mocks" {
+		t.Fatalf("expected the seeded session to be named %q, got %q", "init-mocks", session.Name)
+	}
+	mocks, err := svc.GetMocks(session.ID)
+	if err != nil {
+		t.Fatalf("GetMocks: %v", err)
+	}
+	if len(mocks) != 2 {
+		t.Fatalf("expected 2 seeded mocks, got %d", len(mocks))
+	}
+}
+
+func TestNewMocksInitFileMissing(t *testing.T) {
+	if _, err := NewMocks(nil, 0, NewPersistence(""), filepath.Join(t.TempDir(), "nope.yml")); err == nil {
+		t.Fatal("expected an error for a missing file")
+	}
+}
+
+func TestNewMocksInitFileInvalid(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mocks.yml")
+	// A mock with neither response, proxy, nor dynamic_response fails Validate().
+	if err := os.WriteFile(path, []byte("- request: {path: /a}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewMocks(nil, 0, NewPersistence(""), path); err == nil {
+		t.Fatal("expected a validation error for an incomplete mock")
+	}
+}
+
 // TestUpdateAndDeleteMock covers the happy path for the edit/delete feature (issues #299/#266/#303)
 // while the session history is still empty.
 func TestUpdateAndDeleteMock(t *testing.T) {
-	svc := NewMocks(nil, 0, NewPersistence(""))
+	svc := newTestMocks(t)
 	session := svc.NewSession("edit")
 
 	added, err := svc.AddMock(
@@ -97,7 +167,7 @@ func TestUpdateAndDeleteMock(t *testing.T) {
 
 // TestDeleteSession covers removing a single session and the not-found path.
 func TestDeleteSession(t *testing.T) {
-	svc := NewMocks(nil, 0, NewPersistence(""))
+	svc := newTestMocks(t)
 	keep := svc.NewSession("keep")
 	drop := svc.NewSession("drop")
 
@@ -121,7 +191,7 @@ func TestDeleteSession(t *testing.T) {
 // TestEditForbiddenOnceCalled locks the maintainers' position: once the session has received calls,
 // mocks are append-only (history entries are tied to the mock that answered them).
 func TestEditForbiddenOnceCalled(t *testing.T) {
-	svc := NewMocks(nil, 0, NewPersistence(""))
+	svc := newTestMocks(t)
 	session := svc.NewSession("called")
 	added, err := svc.AddMock(
 		session.ID,

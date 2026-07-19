@@ -2,12 +2,15 @@ package services
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/smocker-dev/smocker/server/types"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -44,7 +47,7 @@ type mocks struct {
 	persistence      Persistence
 }
 
-func NewMocks(sessions types.Sessions, historyRetention int, persistence Persistence) Mocks {
+func NewMocks(sessions types.Sessions, historyRetention int, persistence Persistence, initMocksFile string) (Mocks, error) {
 	s := &mocks{
 		sessions:         types.Sessions{},
 		historyRetention: historyRetention,
@@ -53,7 +56,42 @@ func NewMocks(sessions types.Sessions, historyRetention int, persistence Persist
 	if sessions != nil {
 		s.sessions = sessions
 	}
-	return s
+	if initMocksFile != "" {
+		if err := s.seedFromFile(initMocksFile); err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
+}
+
+// seedFromFile loads mocks from a YAML file (the POST /mocks format) into a fresh "init-mocks"
+// session. Backs the --init-mocks startup flag; the mocks are never written back.
+func (s *mocks) seedFromFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var loaded types.Mocks
+	if err := yaml.NewDecoder(file).Decode(&loaded); err != nil {
+		return err
+	}
+	for _, mock := range loaded {
+		if err := mock.Validate(); err != nil {
+			return err
+		}
+	}
+
+	sessionID := s.NewSession("init-mocks").ID
+	for _, mock := range loaded {
+		if _, err := s.AddMock(sessionID, mock); err != nil {
+			return err
+		}
+	}
+
+	slog.Info("Loaded initial mocks", "count", len(loaded), "init-mocks", path)
+	return nil
 }
 
 func (s *mocks) AddMock(sessionID string, newMock *types.Mock) (*types.Mock, error) {
