@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -82,11 +83,14 @@ func Serve(config config.Config) {
 
 	// UI Routes: serve from --static-files on disk when it holds a built index.html (development
 	// or an explicit override); otherwise fall back to the client embedded in the binary, so a
-	// released binary is self-contained.
+	// released binary is self-contained. Vite emits hashed assets under <root>/assets (served at
+	// /assets/*); index.html sits at the root and is rendered as a Go template (see renderIndex).
 	if fileExists(config.StaticFiles + "/index.html") {
-		adminServerEngine.Static("/assets", config.StaticFiles)
-	} else if embedded, ok := frontend.FS(); ok {
-		adminServerEngine.StaticFS("/assets", embedded)
+		adminServerEngine.Static("/assets", config.StaticFiles+"/assets")
+	} else if dist, ok := frontend.FS(); ok {
+		if assets, err := fs.Sub(dist, "assets"); err == nil {
+			adminServerEngine.StaticFS("/assets", assets)
+		}
 	}
 	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
 
