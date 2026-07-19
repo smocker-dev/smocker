@@ -40,6 +40,7 @@ func parseConfig() (c config.Config) {
 	fs.StringVar(&c.StaticFiles, "static-files", "client", "Location of the static files to serve (index.html, etc.)")
 	fs.IntVar(&c.HistoryMaxRetention, "history-retention", 0, "Maximum number of calls to keep in the history per session (0 = no limit)")
 	fs.StringVar(&c.PersistenceDirectory, "persistence-directory", "", "If defined, the directory where the sessions will be synchronized")
+	fs.StringVar(&c.InitMocks, "init-mocks", "", "If defined, a YAML file of mocks (same format as POST /mocks) loaded into a session at startup; mutually exclusive with --persistence-directory")
 	fs.BoolVar(&c.TLSEnable, "tls-enable", false, "Enable TLS using the provided certificate")
 	fs.StringVar(&c.TLSCertFile, "tls-cert-file", "/etc/smocker/tls/certs/cert.pem", "Path to TLS certificate file ")
 	fs.StringVar(&c.TLSKeyFile, "tls-private-key-file", "/etc/smocker/tls/private/key.pem", "Path to TLS key file")
@@ -104,5 +105,14 @@ func setupLogger(logLevel string) {
 func main() {
 	c := parseConfig()
 	setupLogger(c.LogLevel)
+
+	// Loading mocks at startup and persisting sessions are opposite intents: a seed file is a
+	// fixed, read-only starting point, while persistence resumes (and rewrites) whatever state it
+	// last held. Both define the boot state, so allowing both would be ambiguous on restart.
+	if c.InitMocks != "" && c.PersistenceDirectory != "" {
+		slog.Error("--init-mocks and --persistence-directory are mutually exclusive: seed mocks from a file (ephemeral) or persist sessions to a directory, not both")
+		os.Exit(1)
+	}
+
 	server.Serve(c)
 }
