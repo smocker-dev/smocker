@@ -23,6 +23,11 @@ DOCKER_IMAGE=ghcr.io/smocker-dev/smocker
 DOCKER_TAG:=$(shell echo $(VERSION) | tr -cd '[:alnum:]_.-')
 IS_SEMVER:=$(shell echo $(DOCKER_TAG) | grep -E "^v?[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$$")
 
+# Published image platforms. The binary suffix must match the Dockerfile's
+# ${TARGETOS}-${TARGETARCH}${TARGETVARIANT}: linux/amd64 -> linux-amd64, linux/arm64 ->
+# linux-arm64, linux/arm/v7 -> linux-armv7.
+DOCKER_PLATFORMS:=linux/amd64,linux/arm64,linux/arm/v7
+
 LEVEL=debug
 
 SUITE=*.yml
@@ -77,11 +82,37 @@ start: $(REFLEX) persistence
 		--decoration='none' \
 		--regex='\.go$$' \
 		--inverse-regex='^vendor|node_modules|.cache/' \
-		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./build/client --persistence-directory ./$(SESSIONS_DIR)
+		-- go run $(GO_LDFLAGS) main.go --log-level=$(LEVEL) --static-files ./server/frontend/dist --persistence-directory ./$(SESSIONS_DIR)
 
 .PHONY: build
 build:
 	go build -trimpath $(GO_LDFLAGS) -o ./build/$(APPNAME)
+
+# Build the client into server/frontend/dist, the go:embed source (Vite outputs straight there).
+.PHONY: build-client
+build-client:
+	npm ci --ignore-scripts
+	npm run build
+
+# -tags embedclient bakes the built client into the binary via go:embed (default builds skip it
+# and serve from --static-files). CGO off keeps every target a static, cross-compilable binary.
+GO_BUILD_EMBED=CGO_ENABLED=0 go build -tags embedclient -trimpath $(GO_LDFLAGS)
+
+# Published platforms as GOOS/GOARCH[/variant]. The binary suffix mirrors the Dockerfile's
+# ${TARGETOS}-${TARGETARCH}${TARGETVARIANT} (e.g. linux/arm/v7 -> smocker-linux-armv7). The linux
+# artifacts are what the docker images are assembled from (the image build only packages them,
+# never compiles); darwin/windows are shipped as release downloads.
+RELEASE_PLATFORMS=linux/amd64 linux/arm64 linux/arm/v7 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
+
+.PHONY: build-binaries
+build-binaries: build-client
+	@set -e; for p in $(RELEASE_PLATFORMS); do \
+		os=$${p%%/*}; rest=$${p#*/}; arch=$${rest%%/*}; variant=$${rest#$$arch}; variant=$${variant#/}; \
+		ext=; [ "$$os" = windows ] && ext=.exe; \
+		out=$(BUILD_DIR)/smocker-$$os-$$arch$$variant$$ext; \
+		echo ">> building $$out"; \
+		GOOS=$$os GOARCH=$$arch GOARM=$${variant#v} $(GO_BUILD_EMBED) -o $$out .; \
+	done
 
 .PHONY: lint
 lint: $(GOLANGCILINT)
@@ -124,7 +155,7 @@ E2E_ADMIN_PORT ?= 8081
 test-e2e: build persistence
 	npm run build
 	SMOCKER_PERSISTENCE_DIRECTORY=./$(SESSIONS_DIR) ./$(BUILD_DIR)/$(APPNAME) \
-		--static-files ./$(BUILD_DIR)/client \
+		--static-files ./server/frontend/dist \
 		--mock-server-listen-port=$(E2E_MOCK_PORT) --config-listen-port=$(E2E_ADMIN_PORT) \
 		> $(BUILD_DIR)/e2e-smocker.log 2>&1 & \
 	SMK_PID=$$!; \
@@ -147,9 +178,11 @@ clean:
 	rm -rf ./$(BUILD_DIR)
 
 .PHONY: build-docker
-build-docker:
-	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --tag $(DOCKER_IMAGE):latest .
-	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE):$(DOCKER_TAG)
+build-docker: build-client
+	# Build the native linux/amd64 binary and package it into a single-arch image (used for the
+	# smoke test) — no cross-compilation of the other release platforms.
+	GOOS=linux GOARCH=amd64 $(GO_BUILD_EMBED) -o $(BUILD_DIR)/smocker-linux-amd64 .
+	docker build --tag $(DOCKER_IMAGE):latest --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 .PHONY: start-docker
 start-docker: check-default-ports
@@ -183,15 +216,9 @@ optimize:
 
 # The following targets are only available for CI usage
 
-build/smocker.tar.gz:
-	# Build the client first, copy it into the embed source, then build the Go binary so the UI
-	# is baked in (go:embed). The result is a self-contained binary — no client dir to ship.
-	npm ci --ignore-scripts
-	npm run build
-	rm -rf server/frontend/dist && mkdir -p server/frontend/dist
-	cp -r build/client/. server/frontend/dist/
-	touch server/frontend/dist/.gitkeep
-	$(MAKE) build
+build/smocker.tar.gz: build-binaries
+	# Primary release artifact: the self-contained linux/amd64 binary (UI embedded) as "smocker".
+	cp $(BUILD_DIR)/smocker-linux-amd64 $(BUILD_DIR)/$(APPNAME)
 	cd build/; tar -czvf smocker.tar.gz smocker
 
 .PHONY: release
@@ -207,9 +234,10 @@ start-caddy: $(CADDY)
 
 .PHONY: deploy-docker
 deploy-docker:
-	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	# Assemble and push the multi-arch image from the pre-built binaries. No compilation and no
+	# QEMU: every target stage is COPY-only (the cert stage runs on the build platform).
 	docker buildx create --use
 ifdef IS_SEMVER
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):latest .
+	docker buildx build --push --platform $(DOCKER_PLATFORMS) --tag $(DOCKER_IMAGE):latest .
 endif
-	docker buildx build --push --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	docker buildx build --push --platform $(DOCKER_PLATFORMS) --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .

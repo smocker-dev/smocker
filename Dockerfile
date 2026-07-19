@@ -1,26 +1,21 @@
-ARG GO_VERSION=1.26
-FROM golang:${GO_VERSION}-alpine AS build-backend
-RUN apk add --no-cache make ca-certificates
-ARG VERSION=snapshot
-ARG COMMIT
-WORKDIR /go/src/smocker
-COPY go.mod go.sum ./
-RUN go mod download
-COPY Makefile main.go ./
-COPY server/ ./server/
-# The client is built on the host (make release); bake it into the binary via go:embed.
-COPY build/client ./server/frontend/dist/
-# CGO_ENABLED=0 produces a fully static binary (pure-Go net/tls), required for a scratch image.
-RUN CGO_ENABLED=0 make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
+# The images are assembled from pre-built, static, client-embedded binaries (see
+# `make build-binaries`) — no compilation happens here, just packaging. buildx sets
+# TARGETOS/TARGETARCH/TARGETVARIANT per target platform, which selects the matching binary.
+
+# CA roots for the proxy mock type's HTTPS backends (scratch ships none). Pin to the build
+# platform: the cert bundle is arch-independent, so it's produced once natively and no target
+# platform ever runs a RUN step — the per-arch stage is COPY-only, so no QEMU emulation is needed.
+FROM --platform=$BUILDPLATFORM alpine:3 AS certs
+RUN apk add --no-cache ca-certificates
 
 FROM scratch
 LABEL org.opencontainers.image.source="https://github.com/smocker-dev/smocker"
 EXPOSE 8080 8081
-# CA roots so the proxy mock type can reach HTTPS backends (scratch ships none).
-COPY --from=build-backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-# The UI is embedded in the binary, so nothing else is needed — just the static binary.
-COPY --from=build-backend /go/src/smocker/build/smocker /smocker
-# Run unprivileged (nobody). The listen ports are >1024 so no privilege is needed; a mounted
-# persistence directory must be writable by this uid.
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY build/smocker-${TARGETOS}-${TARGETARCH}${TARGETVARIANT} /smocker
+# Run unprivileged (nobody); ports are >1024 and a mounted persistence dir must be writable by it.
 USER 65534:65534
 ENTRYPOINT ["/smocker"]
