@@ -165,24 +165,57 @@ type Delay struct {
 }
 
 func (d *Delay) UnmarshalJSON(data []byte) error {
-	var s time.Duration
-	if err := json.Unmarshal(data, &s); err == nil {
-		d.Min = s
-		d.Max = s
+	// Scalar form: a single duration applied to both bounds.
+	if v, ok, err := parseJSONDuration(data); err != nil {
+		return err
+	} else if ok {
+		d.Min, d.Max = v, v
 		return d.validate()
 	}
 
+	// Object form: {"min": ..., "max": ...}. Each bound is a duration string ("10ms") or a number
+	// of nanoseconds — the same shapes the Lua and go_template_yaml engines already accept.
 	var res struct {
-		Min time.Duration `json:"min"`
-		Max time.Duration `json:"max"`
+		Min json.RawMessage `json:"min"`
+		Max json.RawMessage `json:"max"`
 	}
-
 	if err := json.Unmarshal(data, &res); err != nil {
 		return err
 	}
-	d.Min = res.Min
-	d.Max = res.Max
+	if len(res.Min) > 0 {
+		v, _, err := parseJSONDuration(res.Min)
+		if err != nil {
+			return err
+		}
+		d.Min = v
+	}
+	if len(res.Max) > 0 {
+		v, _, err := parseJSONDuration(res.Max)
+		if err != nil {
+			return err
+		}
+		d.Max = v
+	}
 	return d.validate()
+}
+
+// parseJSONDuration reads a JSON scalar as a duration: a string like "10ms" (time.ParseDuration)
+// or a number of nanoseconds. ok is false when the value is not a scalar (e.g. an object), so the
+// caller can fall back to the {min, max} form.
+func parseJSONDuration(data []byte) (time.Duration, bool, error) {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return 0, false, err
+	}
+	switch x := v.(type) {
+	case string:
+		dur, err := time.ParseDuration(x)
+		return dur, true, err
+	case float64:
+		return time.Duration(int64(x)), true, nil
+	default:
+		return 0, false, nil
+	}
 }
 
 func (d *Delay) UnmarshalYAML(unmarshal func(interface{}) error) error {
