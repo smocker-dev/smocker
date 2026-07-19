@@ -249,6 +249,22 @@ func (mmm MultiMapMatcher) Match(values map[string][]string) bool {
 	return true
 }
 
+// MatchHeaders is like Match but resolves header names case-insensitively (RFC 7230 §3.2: header
+// field names are case-insensitive), so a mock declaring "content-type" matches a request's
+// "Content-Type". Header *values* are still matched exactly. The declared casing is never altered —
+// http.Header.Values only canonicalizes the key it looks up with, not the stored keys.
+func (mmm MultiMapMatcher) MatchHeaders(headers http.Header) bool {
+	if len(mmm) > len(headers) {
+		return false
+	}
+	for key, matcherValue := range mmm {
+		if value := headers.Values(key); len(value) == 0 || !matcherValue.Match(value) {
+			return false
+		}
+	}
+	return true
+}
+
 type BodyMatcher struct {
 	bodyString *StringMatcher
 	bodyJson   map[string]StringMatcher
