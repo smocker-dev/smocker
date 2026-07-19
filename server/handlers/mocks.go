@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"math/rand"
+	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/services"
 	"github.com/smocker-dev/smocker/server/templates"
 	"github.com/smocker-dev/smocker/server/types"
@@ -30,7 +30,7 @@ func NewMocks(ms services.Mocks) *Mocks {
 func (m *Mocks) GenericHandler(c echo.Context) error {
 	actualRequest := types.HTTPRequestToRequest(c.Request())
 	b, _ := yaml.Marshal(actualRequest)
-	log.Debugf("Received request:\n---\n%s\n", string(b))
+	slog.Debug(fmt.Sprintf("Received request:\n---\n%s\n", string(b)))
 
 	/* Request matching */
 
@@ -55,13 +55,13 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			matchingMock = mock
 			if matchingMock.Context.Times > 0 && matchingMock.State.TimesCount >= matchingMock.Context.Times {
 				b, _ = yaml.Marshal(mock)
-				log.Tracef("Times exceeded, skipping mock:\n---\n%s\n", string(b))
+				slog.Debug(fmt.Sprintf("Times exceeded, skipping mock:\n---\n%s\n", string(b)))
 				exceededMocks = append(exceededMocks, mock)
 				continue
 			}
 
 			b, _ = yaml.Marshal(matchingMock)
-			log.Debugf("Matching mock:\n---\n%s\n", string(b))
+			slog.Debug(fmt.Sprintf("Matching mock:\n---\n%s\n", string(b)))
 			context.MockID = mock.State.ID
 			if mock.DynamicResponse != nil {
 				response, err = templates.GenerateMockResponse(mock.DynamicResponse, actualRequest)
@@ -94,7 +94,7 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 			break
 		} else {
 			b, _ = yaml.Marshal(mock)
-			log.Tracef("Skipping mock:\n---\n%s\n", string(b))
+			slog.Debug(fmt.Sprintf("Skipping mock:\n---\n%s\n", string(b)))
 		}
 	}
 
@@ -115,25 +115,25 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 		}
 
 		b, _ = yaml.Marshal(resp)
-		log.Debugf("No mock found, returning:\n---\n%s\n", string(b))
+		slog.Debug(fmt.Sprintf("No mock found, returning:\n---\n%s\n", string(b)))
 		return c.JSON(types.StatusSmockerMockNotFound, resp)
 	}
 
 	/* Response writing */
 
-	// Headers
+	// Headers: assign to the header map directly instead of Add()/Set(), which canonicalize the
+	// key (e.g. "BrokerProperties" -> "Brokerproperties"). Smocker preserves the exact casing the
+	// mock declares, matching servers that treat header names case-sensitively.
+	header := c.Response().Header()
 	for key, values := range response.Headers {
-		for _, value := range values {
-			c.Response().Header().Add(key, value)
-		}
+		header[key] = []string(values)
 	}
 
 	// Delay
 	var delay time.Duration
 	if response.Delay.Min != response.Delay.Max {
-		rand.Seed(time.Now().Unix())
-		var n int64 = int64(response.Delay.Max - response.Delay.Min)
-		delay = time.Duration(rand.Int63n(n) + int64(response.Delay.Min))
+		n := int64(response.Delay.Max - response.Delay.Min)
+		delay = time.Duration(rand.Int64N(n) + int64(response.Delay.Min))
 	} else {
 		delay = response.Delay.Min
 	}
@@ -152,11 +152,11 @@ func (m *Mocks) GenericHandler(c echo.Context) error {
 
 	// Body
 	if _, err = c.Response().Write([]byte(response.Body)); err != nil {
-		log.WithError(err).Error("Failed to write response body")
+		slog.Error("Failed to write response body", "error", err)
 		return echo.NewHTTPError(types.StatusSmockerInternalError, fmt.Sprintf("%s: %v", types.SmockerInternalError, err))
 	}
 
 	b, _ = yaml.Marshal(response)
-	log.Debugf("Returned response:\n---\n%s\n", string(b))
+	slog.Debug(fmt.Sprintf("Returned response:\n---\n%s\n", string(b)))
 	return nil
 }

@@ -1,24 +1,24 @@
 {
   "compilerOptions": {
-    "baseUrl": "./client",
-    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "target": "ES5",
-    "lib": ["ES6", "DOM", "ES2019.Array"],
-    "sourceMap": true,
-    "allowJs": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "importHelpers": true,
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "removeComments": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true,
-    "esModuleInterop": true
+    "useDefineForClassFields": true,
+    "types": ["vite/client", "vitest/globals", "node"]
   },
-  "include": ["client/**/*"],
+  "include": ["client", "vite.config.ts"],
   "exclude": ["node_modules", "build", "client/coverage"]
 }

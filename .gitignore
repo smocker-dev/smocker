@@ -1,11 +1,7 @@
 .DS_Store
-.parcel-cache/
 .vscode/
-build/
-coverage/
 node_modules/
-sessions
-!tests/sessions
-smocker
-smocker.test
-yarn-error.log
+# All build, test and runtime output goes here (see Makefile / vite.config.ts / playwright.config.ts).
+build/
+# Vite builds the client straight here for embedding (release builds only, -tags embedclient).
+server/frontend/dist/

@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
-	"github.com/teris-io/shortid"
 )
 
 var MockNotFound = fmt.Errorf("mock not found")
+
+// MockEditForbidden is returned when editing or deleting a mock is refused because the session has
+// already received calls. Mocks are append-only once the history references them (a history entry
+// is tied to the mock that answered it), so edition/deletion is only allowed while the session's
+// history is still empty.
+var MockEditForbidden = fmt.Errorf("cannot edit or delete a mock once the session has received calls")
 
 type Mocks []*Mock
 
@@ -67,7 +71,7 @@ func (m *Mock) Validate() error {
 func (m *Mock) Init() {
 	m.State = &MockState{
 		CreationDate: time.Now(),
-		ID:           shortid.MustGenerate(),
+		ID:           NewID(),
 	}
 
 	if m.Context == nil {
@@ -108,27 +112,27 @@ type MockRequest struct {
 func (mr MockRequest) Match(req Request) bool {
 	matchMethod := mr.Method.Match(req.Method)
 	if !matchMethod {
-		log.Trace("Method did not match")
+		slog.Debug("Method did not match")
 		return false
 	}
 	matchPath := mr.Path.Match(req.Path)
 	if !matchPath {
-		log.Trace("Path did not match")
+		slog.Debug("Path did not match")
 		return false
 	}
 	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
 	if !matchHeaders {
-		log.Trace("Headers did not match")
+		slog.Debug("Headers did not match")
 		return false
 	}
 	matchQueryParams := mr.QueryParams == nil || mr.QueryParams.Match(req.QueryParams)
 	if !matchQueryParams {
-		log.Trace("Query params did not match")
+		slog.Debug("Query params did not match")
 		return false
 	}
 	matchBody := mr.Body == nil || mr.Body.Match(req.Headers, req.BodyString)
 	if !matchBody {
-		log.Trace("Body did not match")
+		slog.Debug("Body did not match")
 		return false
 	}
 	return true
@@ -234,7 +238,7 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		query[key] = values
 	}
 	proxyReq.URL.RawQuery = query.Encode()
-	log.Debugf("Redirecting to %s", proxyReq.URL.String())
+	slog.Debug(fmt.Sprintf("Redirecting to %s", proxyReq.URL.String()))
 	client := &http.Client{}
 	if !mp.FollowRedirect {
 		client.CheckRedirect = noFollow
@@ -250,7 +254,7 @@ func (mp MockProxy) Redirect(req Request) (*MockResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

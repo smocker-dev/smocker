@@ -13,13 +13,16 @@
 
   .collapse {
     margin-bottom: 1em;
-    font-size: 12px;
     &,
     .collapse-panel {
       border: none;
       background-color: transparent;
-      .ant-row.ant-form-item {
-        margin-right: 0.5em;
+    }
+    // Inline control bar: keep the fields on one row, vertically centered, evenly spaced.
+    .customize-form {
+      align-items: center;
+      row-gap: 0.5em;
+      .ant-form-item {
         margin-bottom: 0;
       }
     }

@@ -1,7 +1,36 @@
 import { Alert, Spin } from "antd";
-import mermaidAPI from "mermaid";
+import mermaid from "mermaid";
 import * as React from "react";
 import "./Mermaid.scss";
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: "base",
+  themeVariables: {
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    primaryColor: "#e6f0ff",
+    primaryBorderColor: "#1677ff",
+    primaryTextColor: "#1f2328",
+    lineColor: "#8c8c8c",
+    textColor: "#1f2328",
+    actorBkg: "#e6f0ff",
+    actorBorder: "#1677ff",
+    actorTextColor: "#1f2328",
+    actorLineColor: "#bfbfbf",
+    signalColor: "#434343",
+    signalTextColor: "#434343",
+    activationBkgColor: "#f0f5ff",
+    activationBorderColor: "#adc6ff",
+    sequenceNumberColor: "#ffffff",
+    noteBkgColor: "#fffbe6",
+    noteBorderColor: "#ffe58f",
+    noteTextColor: "#614700",
+    labelBoxBkgColor: "#e6f0ff",
+    labelBoxBorderColor: "#1677ff",
+    labelTextColor: "#1f2328",
+  },
+});
 
 export const Mermaid = ({
   name,
@@ -13,30 +42,40 @@ export const Mermaid = ({
   chart: string;
   loading?: boolean;
   onChange?: (svg: string) => unknown;
-}): JSX.Element => {
+}): React.JSX.Element => {
   const [diagram, setDiagram] = React.useState("");
   const [error, setError] = React.useState("");
   const [spinner, setSpinner] = React.useState(Boolean(loading));
 
   React.useEffect(() => {
+    let cancelled = false;
     setSpinner(true);
-    const cb = (svg = "") => {
-      setSpinner(false);
-      setDiagram(svg);
-      setError("");
-      onChange && onChange(svg);
-    };
-    setTimeout(() => {
+    (async () => {
       try {
-        mermaidAPI.parse(chart);
-        mermaidAPI.initialize({ startOnLoad: false });
-        mermaidAPI.render(name, chart, cb);
+        await mermaid.parse(chart);
+        const { svg } = await mermaid.render(name, chart);
+        if (cancelled) {
+          return;
+        }
+        setSpinner(false);
+        setDiagram(svg);
+        setError("");
+        if (onChange) {
+          onChange(svg);
+        }
       } catch (e) {
+        if (cancelled) {
+          return;
+        }
+        setSpinner(false);
         setDiagram("");
         console.error(e);
-        setError(e.str || `${e}`);
+        setError(`${e}`);
       }
-    }, 1);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [name, chart]);
 
   return (

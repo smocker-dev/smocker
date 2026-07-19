@@ -1,0 +1,113 @@
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: lua
+    script: |
+        return {
+          body = '{"message":"request path '..request.path..'"}',
+          headers = {
+            ["Content-Type"] = "application/json"
+          },
+          delay = {
+            min = "0",
+            max = "10ms"
+          }
+        }
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test2
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: lua
+    script: |
+        local name; if request.query_params ~= nil then
+          name = request.query_params.name[1]
+        end return {
+          body = {
+            message = "request path "..request.path,
+            name = name,
+          },
+          headers = {
+            ["Content-Type"] = "application/json"
+          },
+          delay = "10ms"
+        }
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test3
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: go_template
+    script: |
+        headers:
+          Content-Type: application/json
+        body: >
+          {
+            "message": "request path {{.Request.Path}}"
+          }
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test4
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: go_template_yaml
+    script: |
+        headers:
+          Content-Type: [application/json]
+        body: >
+          {
+            "message": "request path {{.Request.Path}}"
+          }
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test5
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: go_template_json
+    script: |
+        {
+          "body": "{\"message\": \"request path {{.Request.Path}}\"}",
+          "headers": {
+            "Content-Type": ["application/json"]
+          },
+          "delay": "1ms"
+        }
+- request:
+    path:
+        matcher: ShouldEqual
+        value: /test6
+    method:
+        matcher: ShouldMatch
+        value: .*
+  dynamic_response:
+    engine: go_template_json
+    script: |
+        {
+          "body": {
+            "message": "request path {{.Request.Path}}"
+          },
+          "headers": {
+            "Content-Type": ["application/json"]
+          },
+          "delay": {
+            "min": "0",
+            "max": "10ms"
+          }
+        }

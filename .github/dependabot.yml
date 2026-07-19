@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # Keep the SHA-pinned GitHub Actions current (Dependabot rewrites the pin and its
+  # version comment). Grouped so all bumps arrive in a single PR.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Go module dependencies.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      gomod:
+        patterns:
+          - "*"
+
+  # Frontend (npm) dependencies.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns:
+          - "*"

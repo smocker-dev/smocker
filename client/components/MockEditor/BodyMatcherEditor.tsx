@@ -10,7 +10,7 @@ interface BodyMatcherEditorProps {
 
 export const BodyMatcherEditor = ({
   name,
-}: BodyMatcherEditorProps): JSX.Element => {
+}: BodyMatcherEditorProps): React.JSX.Element => {
   const [initialized, setInitialized] = React.useState(false);
   const [rawJSON, setRawJSON] = React.useState("");
 
@@ -39,7 +39,7 @@ export const BodyMatcherEditor = ({
                         ([key, value]) => {
                           // TODO: handle more matchers
                           actions.add({ key, matcher: "ShouldEqual", value });
-                        }
+                        },
                       );
                       setInitialized(true);
                     } catch (e) {

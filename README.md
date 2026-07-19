@@ -21,6 +21,7 @@ The documentation is available on [smocker.dev](https://smocker.dev).
   - [User Interface](#user-interface)
 - [Usage](#usage)
   - [Hello, World!](#hello-world)
+- [Mock format schema](#mock-format-schema)
 - [Development](#development)
   - [Backend](#backend)
   - [Frontend](#frontend)
@@ -133,6 +134,24 @@ curl -XPOST localhost:8081/reset
 
 For more advanced usage, please read the [project's documentation](https://smocker.dev).
 
+## Mock format schema
+
+A JSON Schema describing the mock format lives at
+[`docs/mock.schema.json`](./docs/mock.schema.json). It is generated from and kept in sync with the
+Go types (`server/types`): the example mocks under `tests/data` are validated against it in CI, so
+it stays accurate. The documentation references this file as the canonical schema.
+
+Editors can use it for autocompletion and validation. With the YAML language server (VS Code,
+Neovim, …), add this line at the top of a mocks file:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/smocker-dev/smocker/main/docs/mock.schema.json
+- request:
+    path: /hello
+  response:
+    body: '{"message": "Hello, World!"}'
+```
+
 ## Development
 
 ### Backend
@@ -148,15 +167,15 @@ The backend is written in Go. You can use the following commands to manage the d
 
 ### Frontend
 
-The frontend is written with TypeScript and React. You can use the following commands to manage the development lifecycle:
+The frontend is written with TypeScript and React, bundled with Vite. You can use the following commands to manage the development lifecycle:
 
-- `yarn install`: install the dependencies
-- `yarn start`: start the frontend in development mode, with live reload
-- `yarn build`: generate the transpiled and minified files and assets
-- `yarn lint`: run static analysis on the code
-- `yarn format`: automatically format the frontend code
-- `yarn test`: execute unit tests
-- `yarn test:watch`: execute unit tests, with live reload
+- `npm install`: install the dependencies
+- `npm run dev`: start the Vite dev server with hot reload. It proxies the admin API to the backend, so run `make start` alongside it (override the target with `SMOCKER_DEV_PROXY` if the backend is elsewhere)
+- `npm run build`: generate the transpiled and minified files and assets
+- `npm run lint`: run static analysis on the code
+- `npm run format`: automatically format the frontend code
+- `npm test`: execute unit tests
+- `npm run test:watch`: execute unit tests, with live reload
 
 ### Docker
 

@@ -2,13 +2,13 @@ package templates
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
-	goJson "github.com/layeh/gopher-json"
-	log "github.com/sirupsen/logrus"
 	"github.com/smocker-dev/smocker/server/types"
 	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
+	goJson "layeh.com/gopher-json"
 	luar "layeh.com/gopher-luar"
 )
 
@@ -42,12 +42,12 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 			},
 			lua.LString(pair.n),
 		); err != nil {
-			log.WithError(err).Error("Failed to load Lua libraries")
+			slog.Error("Failed to load Lua libraries", "error", err)
 			return nil, fmt.Errorf("failed to load Lua libraries: %w", err)
 		}
 	}
 	if err := luaState.DoString("coroutine=nil;debug=nil;io=nil;open=nil;os=nil"); err != nil {
-		log.WithError(err).Error("Failed to sandbox Lua environment")
+		slog.Error("Failed to sandbox Lua environment", "error", err)
 		return nil, fmt.Errorf("failed to sandbox Lua environment: %w", err)
 	}
 
@@ -58,7 +58,7 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 
 	luaState.SetGlobal("request", luar.New(luaState, m))
 	if err := luaState.DoString(script); err != nil {
-		log.WithError(err).Error("Failed to execute Lua script")
+		slog.Error("Failed to execute Lua script", "error", err)
 		return nil, fmt.Errorf("failed to execute Lua script: %w", err)
 	}
 
@@ -72,14 +72,14 @@ func (*luaEngine) Execute(request types.Request, script string) (*types.MockResp
 
 	delay := &lua.LTable{}
 	if err := parseLuaDelay(luaResult, "delay", delay, "value"); err != nil {
-		log.WithError(err).Error("Invalid delay from lua script")
+		slog.Error("Invalid delay from lua script", "error", err)
 		return nil, fmt.Errorf("invalid delay from Lua script: %w", err)
 	}
 	luaResult.RawSetString("delay", delay)
 
 	var result types.MockResponse
 	if err := gluamapper.Map(luaResult, &result); err != nil {
-		log.WithError(err).Error("Invalid result from Lua script")
+		slog.Error("Invalid result from Lua script", "error", err)
 		return nil, fmt.Errorf("invalid result from Lua script: %w", err)
 	}
 

@@ -1,102 +1,60 @@
 {
   "private": true,
-  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "type": "module",
   "scripts": {
-    "start": "concurrently --kill-others 'yarn:start:tsc' 'yarn:start:parcel'",
-    "start:parcel": "parcel watch ./client/index.html",
-    "start:tsc": "tsc -p . --noEmit --watch",
-    "build": "NODE_ENV=production parcel build ./client/index.html",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write ./client/**/*.{ts,tsx,html,scss,json}",
-    "test": "jest",
-    "test:watch": "jest --watch"
-  },
-  "targets": {
-    "default": {
-      "distDir": "./build/client",
-      "publicUrl": "./assets"
-    }
-  },
-  "dependencies": {
-    "@ant-design/icons": "^4.x",
-    "antd": "^4.16.9",
-    "classnames": "^2.2.6",
-    "codemirror": "^5.55.0",
-    "dayjs": "^1.8.28",
-    "fp-ts": "^2.6.7",
-    "http-status-codes": "^2.1.4",
-    "io-ts": "^2.2.7",
-    "js-yaml": "^3.13.1",
-    "lodash": "^4.17.19",
-    "lodash.debounce": "^4.0.8",
-    "mermaid": "^8.5.2",
-    "react": "^16.10.2",
-    "react-codemirror2": "^7.2.1",
-    "react-dom": "^16.10.2",
-    "react-redux": "^7.1.1",
-    "react-router-dom": "^5.1.2",
-    "react-use-localstorage": "^3.4.3",
-    "redux": "^4.0.4",
-    "redux-observable": "^1.2.0",
-    "rxjs": "^6.5.3",
-    "typesafe-actions": "^5.1.0",
-    "use-lodash-debounce": "^1.3.0"
-  },
-  "devDependencies": {
-    "@hot-loader/react-dom": "^16.10.2",
-    "@parcel/transformer-sass": "^2.0.0",
-    "@types/classnames": "^2.2.9",
-    "@types/codemirror": "0.0.96",
-    "@types/jest": "^26.0.3",
-    "@types/js-yaml": "^3.12.5",
-    "@types/lodash": "^4.14.157",
-    "@types/mermaid": "^8.2.1",
-    "@types/node": "^14.0.14",
-    "@types/react": "^16.9.41",
-    "@types/react-dom": "^16.9.2",
-    "@types/react-redux": "^7.1.5",
-    "@types/react-router-dom": "^5.1.0",
-    "@types/redux": "^3.6.0",
-    "@types/webpack-env": "^1.15.2",
-    "@typescript-eslint/eslint-plugin": "^3.5.0",
-    "@typescript-eslint/parser": "^3.5.0",
-    "axios": "^0.24.0",
-    "concurrently": "^5.2.0",
-    "eslint": "^7.3.1",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-jest": "^23.17.1",
-    "eslint-plugin-react": "^7.20.2",
-    "husky": ">=1",
-    "jest": "^26.1.0",
-    "lint-staged": ">=10.2.11",
-    "parcel": "^2.0.0",
-    "prettier": "2.0.5",
-    "react-hot-loader": "^4.12.15",
-    "redux-devtools-extension": "^2.13.8",
-    "sass": "^1.26.9",
-    "ts-jest": "^26.1.1",
-    "tslib": "^2.3.0",
-    "typescript": "^3.8.3"
-  },
-  "resolutions": {
-    "@types/react": "16.9.41"
-  },
-  "alias": {
-    "react-dom": "@hot-loader/react-dom"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{ts,tsx,html,scss,json}": "prettier --write"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint client",
+    "format": "prettier --write \"./client/**/*.{ts,tsx,html,scss,json}\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prettier": {
     "semi": true,
     "singleQuote": false
   },
-  "jest": {
-    "preset": "ts-jest"
+  "dependencies": {
+    "@ant-design/icons": "6.3.2",
+    "@tanstack/react-query": "5.101.2",
+    "ajv": "8.20.0",
+    "antd": "6.5.1",
+    "classnames": "2.5.1",
+    "dayjs": "1.11.21",
+    "es-toolkit": "1.49.0",
+    "http-status-codes": "2.3.0",
+    "js-yaml": "5.2.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-router-dom": "7.18.1",
+    "usehooks-ts": "3.1.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@codemirror/lang-javascript": "6.2.5",
+    "@codemirror/lang-json": "6.0.2",
+    "@codemirror/lang-xml": "6.1.0",
+    "@codemirror/lang-yaml": "6.1.3",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/legacy-modes": "6.5.3",
+    "@codemirror/lint": "6.9.7",
+    "@playwright/test": "1.61.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@uiw/react-codemirror": "4.25.11",
+    "@vitejs/plugin-react": "6.0.3",
+    "jsdom": "29.1.1",
+    "mermaid": "11.16.0",
+    "oxlint": "1.74.0",
+    "prettier": "3.9.5",
+    "sass": "1.101.0",
+    "typescript": "7.0.2",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
   }
 }

@@ -1,5 +1,5 @@
 import { Entry } from "./types";
-import { entryToCurl, bodyMatcherToPaths } from "./utils";
+import { bodyMatcherToPaths, cleanupResponse, entryToCurl } from "./utils";
 
 const baseEntry: Entry = {
   context: {
@@ -65,7 +65,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      "curl -XGET --header 'X-Foo-Header: foo' --header 'X-Bar-Header: bar' --header 'X-Bar-Header: baz' '/test'"
+      "curl -XGET --header 'X-Foo-Header: foo' --header 'X-Bar-Header: bar' --header 'X-Bar-Header: baz' '/test'",
     );
   });
 
@@ -83,7 +83,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      "curl -XGET '/test?foo=foo&bar=bar&bar=baz'"
+      "curl -XGET '/test?foo=foo&bar=bar&bar=baz'",
     );
   });
 
@@ -100,7 +100,7 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      `curl -XPOST '/test' --data '{"key":"value containing \\'single quotes\\'"}'`
+      `curl -XPOST '/test' --data '{"key":"value containing \\'single quotes\\'"}'`,
     );
   });
 
@@ -115,9 +115,30 @@ describe("Generate curl command from:", () => {
       },
     };
     expect(entryToCurl(entry)).toBe(
-      // FIXME: we shouldn't have the " if the client sent raw text
-      `curl -XPOST '/test' --data '"value containing \\'single quotes\\'"'`
+      `curl -XPOST '/test' --data 'value containing \\'single quotes\\''`,
     );
+  });
+});
+
+describe("cleanupResponse (create a mock from a history entry):", () => {
+  test("serializes an object (JSON) response body to a verbatim string", () => {
+    const entry: Entry = {
+      ...baseEntry,
+      response: {
+        ...baseEntry.response,
+        status: 200,
+        body: { message: "test" },
+      },
+    };
+    expect(cleanupResponse(entry).body).toBe('{"message":"test"}');
+  });
+
+  test("leaves a string response body unchanged", () => {
+    const entry: Entry = {
+      ...baseEntry,
+      response: { ...baseEntry.response, status: 200, body: "hello world" },
+    };
+    expect(cleanupResponse(entry).body).toBe("hello world");
   });
 });
 
@@ -129,8 +150,8 @@ describe("Generate paths from body matcher:", () => {
     };
     expect(actual).toMatchObject({
       body: {
-        "[0].foo": 0,
-        "[1].foo": 1,
+        "[0].foo": "0",
+        "[1].foo": "1",
       },
     });
   });
@@ -153,10 +174,10 @@ describe("Generate paths from body matcher:", () => {
     };
     expect(actual).toMatchObject({
       body: {
-        foo: 3,
+        foo: "3",
         "bar[0]": "a",
         "bar[1]": "b",
-        "baz.level1.level2.foo": 3,
+        "baz.level1.level2.foo": "3",
         "baz.level1.level2.bar[0]": "a",
         "baz.level1.level2.bar[1]": "b",
       },

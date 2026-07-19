@@ -3,12 +3,12 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
 
-	log "github.com/sirupsen/logrus"
-	"github.com/smartystreets/assertions"
+	assertions "github.com/smarty/assertions"
 	"github.com/stretchr/objx"
 )
 
@@ -109,12 +109,12 @@ func (sm StringMatcher) Validate() error {
 func (sm StringMatcher) Match(value string) bool {
 	matcher := asserts[sm.Matcher]
 	if matcher == nil {
-		log.WithField("matcher", sm.Matcher).Error("Invalid matcher")
+		slog.Error("Invalid matcher", "matcher", sm.Matcher)
 		return false
 	}
 
 	if res := matcher(value, sm.Value); res != "" {
-		log.Tracef("Value doesn't match:\n%s", res)
+		slog.Debug(fmt.Sprintf("Value doesn't match:\n%s", res))
 		return false
 	}
 
@@ -262,9 +262,9 @@ func (bm BodyMatcher) Match(headers http.Header, value string) bool {
 	if headers.Get("Content-Type") == "application/x-www-form-urlencoded" {
 		m, err := url.ParseQuery(value)
 		if err != nil {
-			log.WithError(err).Error("Failed to read request body as encoded form")
+			slog.Error("Failed to read request body as encoded form", "error", err)
 		} else if b, err := json.Marshal(m); err != nil {
-			log.WithError(err).Error("Failed to serialize form body as JSON")
+			slog.Error("Failed to serialize form body as JSON", "error", err)
 		} else {
 			value = string(b)
 		}

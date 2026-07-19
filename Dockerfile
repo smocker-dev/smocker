@@ -1,19 +1,23 @@
-ARG GO_VERSION=1.22
-FROM golang:${GO_VERSION}-alpine AS build-backend
-RUN apk add --no-cache make
-ARG VERSION=snapshot
-ARG COMMIT
-WORKDIR /go/src/smocker
-COPY go.mod go.sum ./
-RUN go mod download
-COPY Makefile main.go ./
-COPY server/ ./server/
-RUN make VERSION=$VERSION COMMIT=$COMMIT RELEASE=1 build
+# The images are assembled from pre-built, static, client-embedded binaries (see
+# `make build-binaries`) — no compilation happens here, just packaging. buildx sets
+# TARGETOS/TARGETARCH/TARGETVARIANT per target platform, which selects the matching binary.
 
-FROM alpine
+# CA roots for the proxy mock type's HTTPS backends (scratch ships none). Pin to the build
+# platform: the cert bundle is arch-independent, so it's produced once natively and no target
+# platform ever runs a RUN step — the per-arch stage is COPY-only, so no QEMU emulation is needed.
+FROM --platform=$BUILDPLATFORM alpine:3 AS certs
+RUN apk add --no-cache ca-certificates
+
+FROM scratch
 LABEL org.opencontainers.image.source="https://github.com/smocker-dev/smocker"
-WORKDIR /opt
 EXPOSE 8080 8081
-COPY build/client client/
-COPY --from=build-backend /go/src/smocker/build/* /opt/
-CMD ["/opt/smocker"]
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# --chmod: GitHub artifacts don't preserve the executable bit, so the downloaded binary the
+# deploy job packages is 0644 — force 0755 here or scratch can't exec it.
+COPY --chmod=0755 build/smocker-${TARGETOS}-${TARGETARCH}${TARGETVARIANT} /smocker
+# Run unprivileged (nobody); ports are >1024 and a mounted persistence dir must be writable by it.
+USER 65534:65534
+ENTRYPOINT ["/smocker"]

@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/smocker-dev/smocker/main/docs/mock.schema.json",
+  "title": "Smocker mocks",
+  "description": "Schema for Smocker mock definitions (a single mock or a list of mocks), as accepted by POST /mocks and stored in mocks.yml. Source of truth: server/types.",
+  "oneOf": [
+    { "$ref": "#/$defs/mock" },
+    { "type": "array", "items": { "$ref": "#/$defs/mock" } }
+  ],
+  "$defs": {
+    "matcherName": {
+      "type": "string",
+      "enum": [
+        "ShouldResemble",
+        "ShouldAlmostEqual",
+        "ShouldContainSubstring",
+        "ShouldEndWith",
+        "ShouldEqual",
+        "ShouldEqualJSON",
+        "ShouldStartWith",
+        "ShouldBeEmpty",
+        "ShouldMatch",
+        "ShouldNotResemble",
+        "ShouldNotAlmostEqual",
+        "ShouldNotContainSubstring",
+        "ShouldNotEndWith",
+        "ShouldNotEqual",
+        "ShouldNotStartWith",
+        "ShouldNotBeEmpty",
+        "ShouldNotMatch"
+      ]
+    },
+    "stringMatcherObject": {
+      "type": "object",
+      "properties": {
+        "matcher": { "$ref": "#/$defs/matcherName" },
+        "value": { "type": "string" }
+      },
+      "required": ["matcher"],
+      "additionalProperties": false
+    },
+    "stringMatcher": {
+      "description": "A plain string is shorthand for { matcher: ShouldEqual, value: <string> }.",
+      "anyOf": [
+        { "type": "string" },
+        { "$ref": "#/$defs/stringMatcherObject" }
+      ]
+    },
+    "stringMatcherSlice": {
+      "description": "A single matcher or a list of matchers.",
+      "anyOf": [
+        { "$ref": "#/$defs/stringMatcher" },
+        { "type": "array", "items": { "$ref": "#/$defs/stringMatcher" } }
+      ]
+    },
+    "multimapMatcher": {
+      "description": "Map of key to matcher(s), e.g. query parameters or headers to match.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/stringMatcherSlice" }
+    },
+    "multimap": {
+      "description": "Map of key to string value(s), e.g. response headers.",
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "type": "string" } }
+        ]
+      }
+    },
+    "bodyMatcher": {
+      "description": "Matches the request body: a matcher on the whole body (string shorthand or { matcher, value }), or a map of JSON paths to matchers.",
+      "anyOf": [
+        { "type": "string" },
+        { "$ref": "#/$defs/stringMatcherObject" },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/stringMatcher" }
+        }
+      ]
+    },
+    "duration": {
+      "description": "A Go duration string (e.g. \"10ms\", \"1s\") or a number of nanoseconds.",
+      "type": ["string", "integer"]
+    },
+    "delay": {
+      "description": "A fixed delay, or a random delay between min and max.",
+      "anyOf": [
+        { "$ref": "#/$defs/duration" },
+        {
+          "type": "object",
+          "properties": {
+            "min": { "$ref": "#/$defs/duration" },
+            "max": { "$ref": "#/$defs/duration" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "method": { "$ref": "#/$defs/stringMatcher" },
+        "path": { "$ref": "#/$defs/stringMatcher" },
+        "body": { "$ref": "#/$defs/bodyMatcher" },
+        "query_params": { "$ref": "#/$defs/multimapMatcher" },
+        "headers": { "$ref": "#/$defs/multimapMatcher" }
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "body": { "type": "string" },
+        "status": { "type": "integer" },
+        "delay": { "$ref": "#/$defs/delay" },
+        "headers": { "$ref": "#/$defs/multimap" }
+      },
+      "additionalProperties": false
+    },
+    "dynamicResponse": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": ["go_template", "go_template_yaml", "go_template_json", "lua"]
+        },
+        "script": { "type": "string" }
+      },
+      "required": ["engine", "script"],
+      "additionalProperties": false
+    },
+    "proxy": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "delay": { "$ref": "#/$defs/delay" },
+        "follow_redirect": { "type": "boolean" },
+        "skip_verify_tls": { "type": "boolean" },
+        "keep_host": { "type": "boolean" },
+        "headers": { "$ref": "#/$defs/multimap" }
+      },
+      "required": ["host"],
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "times": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "description": "Server-managed runtime state (present in stored/returned mocks, not written by hand).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "times_count": { "type": "integer" },
+        "locked": { "type": "boolean" },
+        "creation_date": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "mock": {
+      "type": "object",
+      "properties": {
+        "request": { "$ref": "#/$defs/request" },
+        "response": { "$ref": "#/$defs/response" },
+        "dynamic_response": { "$ref": "#/$defs/dynamicResponse" },
+        "proxy": { "$ref": "#/$defs/proxy" },
+        "context": { "$ref": "#/$defs/context" },
+        "state": { "$ref": "#/$defs/state" }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        { "required": ["response"] },
+        { "required": ["dynamic_response"] },
+        { "required": ["proxy"] }
+      ]
+    }
+  }
+}

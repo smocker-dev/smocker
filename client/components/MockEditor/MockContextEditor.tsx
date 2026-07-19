@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Form, InputNumber, Switch } from "antd";
 
-export const MockContextEditor = (): JSX.Element => (
+export const MockContextEditor = (): React.JSX.Element => (
   <div className="inline-form-items">
     <Form.Item name={["context", "times_enabled"]} noStyle>
       <Switch size="small" />
@@ -9,9 +9,11 @@ export const MockContextEditor = (): JSX.Element => (
 
     <Form.Item
       label="Limit this mock to be called"
-      shouldUpdate={(prevValues, currentValues) => prevValues?.context?.times_enabled !==
-        currentValues?.context?.times_enabled ||
-        prevValues?.context?.times !== currentValues?.context?.times}
+      shouldUpdate={(prevValues, currentValues) =>
+        prevValues?.context?.times_enabled !==
+          currentValues?.context?.times_enabled ||
+        prevValues?.context?.times !== currentValues?.context?.times
+      }
       style={{ marginBottom: 0, paddingLeft: "5px" }}
     >
       {({ getFieldValue }) => (
@@ -19,7 +21,8 @@ export const MockContextEditor = (): JSX.Element => (
           <Form.Item name={["context", "times"]} noStyle>
             <InputNumber
               min={1}
-              disabled={!getFieldValue(["context", "times_enabled"])} />
+              disabled={!getFieldValue(["context", "times_enabled"])}
+            />
           </Form.Item>
           {getFieldValue(["context", "times"]) <= 1 ? (
             <span> time</span>

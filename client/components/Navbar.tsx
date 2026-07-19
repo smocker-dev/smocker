@@ -5,8 +5,28 @@ import Logo from "../assets/logo180.png";
 import { cleanQueryParams } from "../modules/utils";
 import "./Navbar.scss";
 
-const Navbar = (): JSX.Element => {
+const Navbar = (): React.JSX.Element => {
   const location = useLocation();
+  const cleaned = cleanQueryParams(location);
+  const search = cleaned.search ? `?${cleaned.search}` : "";
+  const items = [
+    {
+      key: "/pages/history",
+      label: <Link to={{ pathname: "/pages/history", search }}>History</Link>,
+    },
+    {
+      key: "/pages/mocks",
+      label: <Link to={{ pathname: "/pages/mocks", search }}>Mocks</Link>,
+    },
+    {
+      key: "documentation",
+      label: (
+        <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
+          Documentation
+        </a>
+      ),
+    },
+  ];
   return (
     <Layout.Header className="navbar">
       <Row justify="start" align="middle">
@@ -20,33 +40,8 @@ const Navbar = (): JSX.Element => {
           className="menu"
           theme="dark"
           mode="horizontal"
-        >
-          <Menu.Item key="/pages/history">
-            <Link
-              to={(loc) => ({
-                ...cleanQueryParams(loc),
-                pathname: "/pages/history",
-              })}
-            >
-              History
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/pages/mocks">
-            <Link
-              to={(loc) => ({
-                ...cleanQueryParams(loc),
-                pathname: "/pages/mocks",
-              })}
-            >
-              Mocks
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="documentation">
-            <a href="https://smocker.dev/" target="_blank" rel="noreferrer">
-              Documentation
-            </a>
-          </Menu.Item>
-        </Menu>
+          items={items}
+        />
       </Row>
     </Layout.Header>
   );
