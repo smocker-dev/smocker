@@ -78,8 +78,17 @@ func (a *Admin) AddMocks(c echo.Context) error {
 		}
 	}
 
+	// Return the target session (id + name) so callers — shell scripts especially — can chain a
+	// GET /mocks?session=<id> without a separate GET /sessions lookup. Session names are not a
+	// reliable key (they need not be unique); the opaque id is.
+	session, err := a.mocksServices.GetSessionByID(sessionID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Mocks registered successfully",
+		"session": session.Summarize(),
 	})
 }
 
