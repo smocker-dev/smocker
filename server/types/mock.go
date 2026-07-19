@@ -120,7 +120,7 @@ func (mr MockRequest) Match(req Request) bool {
 		slog.Debug("Path did not match")
 		return false
 	}
-	matchHeaders := mr.Headers == nil || mr.Headers.Match(req.Headers)
+	matchHeaders := mr.Headers == nil || mr.Headers.MatchHeaders(req.Headers)
 	if !matchHeaders {
 		slog.Debug("Headers did not match")
 		return false

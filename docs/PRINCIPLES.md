@@ -71,9 +71,15 @@ a **single portable artifact** you can move between machines and sessions. Large
 are fine — Smocker handles them. ([#161])
 
 ### 3.4 Matching is faithful to real HTTP, not lenient
-- Header and query-parameter matching is **case-sensitive by design**. Real servers in the
-  wild are case-sensitive (e.g. AWS API Gateway), and being lenient would hide real bugs in
-  the system under test. ([#179])
+- **Header names** are matched **case-insensitively** (RFC 7230 §3.2: header field names are
+  case-insensitive), so a mock declaring `content-type` matches a request's `Content-Type`.
+  **Header values** and **query-parameter names** stay **case-sensitive by design**: real
+  servers are case-sensitive there (e.g. AWS API Gateway), and being lenient would hide real
+  bugs in the system under test. ([#179], [#281])
+- Smocker never rewrites the casing it is given: response headers are returned with the exact
+  case the mock declares (or the upstream sends, for proxies). Note that Go's `net/http`
+  canonicalizes header names when it parses an incoming request or an upstream proxy response,
+  so those reach Smocker already canonicalized regardless.
 - The default matcher is `ShouldEqual`; a bare string is shorthand for it. The matcher set
   (`ShouldMatch`, `ShouldContainSubstring`, `ShouldEqualJSON`, `ShouldNotBeEmpty`, …) is the
   vocabulary — prefer extending existing semantics over inventing parallel ones.
@@ -166,6 +172,7 @@ These are recognized gaps, not oversights — worth improving, but not regressio
 [#161]: https://github.com/smocker-dev/smocker/issues/161
 [#162]: https://github.com/smocker-dev/smocker/issues/162
 [#179]: https://github.com/smocker-dev/smocker/issues/179
+[#281]: https://github.com/smocker-dev/smocker/issues/281
 [#219]: https://github.com/smocker-dev/smocker/issues/219
 [#231]: https://github.com/smocker-dev/smocker/issues/231
 [#266]: https://github.com/smocker-dev/smocker/issues/266

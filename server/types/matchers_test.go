@@ -2,11 +2,51 @@ package types
 
 import (
 	"encoding/json"
+	"net/http"
 	"reflect"
 	"testing"
 
 	"gopkg.in/yaml.v3"
 )
+
+func mapMatcher(t *testing.T, y string) MultiMapMatcher {
+	t.Helper()
+	var mmm MultiMapMatcher
+	if err := yaml.Unmarshal([]byte(y), &mmm); err != nil {
+		t.Fatalf("invalid matcher yaml: %v", err)
+	}
+	return mmm
+}
+
+// TestMatchHeadersCaseInsensitive covers #281: header *names* match case-insensitively (RFC 7230),
+// while header *values* — and query-parameter names via Match — stay case-sensitive.
+func TestMatchHeadersCaseInsensitive(t *testing.T) {
+	// A mock declaring a lowercase name matches the canonical request header, and vice versa.
+	req := http.Header{}
+	req.Set("Content-Type", "application/json") // net/http canonicalizes incoming names
+
+	if !mapMatcher(t, "content-type: application/json").MatchHeaders(req) {
+		t.Error(`"content-type" should match request header "Content-Type"`)
+	}
+	if !mapMatcher(t, "Content-Type: application/json").MatchHeaders(req) {
+		t.Error(`"Content-Type" should match request header "Content-Type"`)
+	}
+
+	// Header values remain case-sensitive.
+	if mapMatcher(t, "Content-Type: application/json").MatchHeaders(http.Header{"Content-Type": {"Application/JSON"}}) {
+		t.Error("header values must stay case-sensitive")
+	}
+
+	// A missing header still fails to match.
+	if mapMatcher(t, "X-Absent: x").MatchHeaders(req) {
+		t.Error("a header absent from the request must not match")
+	}
+
+	// Query-parameter matching (Match) stays case-sensitive on names.
+	if mapMatcher(t, "Token: abc").Match(map[string][]string{"token": {"abc"}}) {
+		t.Error("query-parameter names must stay case-sensitive")
+	}
+}
 
 func TestStringMatcherJSON(t *testing.T) {
 	test := `"test"`
