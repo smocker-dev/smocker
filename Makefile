@@ -237,6 +237,14 @@ deploy-docker:
 	# Assemble and push the multi-arch image from the pre-built binaries. No compilation and no
 	# QEMU: every target stage is COPY-only (the cert stage runs on the build platform).
 	docker buildx create --use
+	# Smoke-test BEFORE publishing anything: build the native amd64 image locally (--load) from the
+	# exact downloaded artifact — which has lost its executable bit through the GitHub artifact
+	# round-trip — then run it and check it serves. Nothing is pushed unless this passes, so a
+	# broken image can never reach the registry (the build job's smoke can't catch this: it builds
+	# the binary locally, never from the artifact).
+	docker buildx build --load --platform linux/amd64 --tag $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	$(MAKE) start-docker smoke-docker
+	docker rm -f $(APPNAME) >/dev/null 2>&1 || true
 ifdef IS_SEMVER
 	docker buildx build --push --platform $(DOCKER_PLATFORMS) --tag $(DOCKER_IMAGE):latest .
 endif
