@@ -1,11 +1,37 @@
 package services
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/smocker-dev/smocker/server/types"
 	"gopkg.in/yaml.v3"
 )
+
+// TestGetLastSessionConcurrent guards the TOCTOU race that let concurrent callers each create a
+// default session (two "Session #1") when the list was empty — the source of the flaky "rename a
+// session" e2e test. Run under -race.
+func TestGetLastSessionConcurrent(t *testing.T) {
+	svc := NewMocks(nil, 0, NewPersistence(""))
+
+	const n = 50
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			<-start
+			_ = svc.GetLastSession()
+		}()
+	}
+	close(start) // release all goroutines at once to maximize contention
+	wg.Wait()
+
+	if got := len(svc.GetSessions()); got != 1 {
+		t.Fatalf("concurrent GetLastSession on an empty service created %d sessions, want 1", got)
+	}
+}
 
 func mockFromYAML(t *testing.T, s string) *types.Mock {
 	t.Helper()
