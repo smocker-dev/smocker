@@ -14,12 +14,12 @@ on:
       - main
   workflow_dispatch: # Allow manual trigger
 
-# Least privilege by default; jobs that need more elevate it explicitly (see deploy).
+# Least privilege by default; the deploy job elevates it explicitly.
 permissions:
   contents: read
 
-# Cancel superseded runs on the same ref, but only for pull requests — never abort an
-# in-flight push to main or a tag (which may be mid-release).
+# Cancel superseded runs on the same ref, but only for pull requests — never abort an in-flight
+# push to main or a tag (which may be mid-release).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -32,14 +32,14 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
-
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
       - run: npm ci
-
       - name: Lint sources
         run: |
           make lint
@@ -53,70 +53,26 @@ jobs:
         with:
           fetch-depth: 0 # SonarCloud needs the full history for blame/coverage
           persist-credentials: false
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      - name: Setup Go environment
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-
       - run: npm ci
-
       - name: Execute tests
         run: |
           make test
           make test-integration
           npm test
           make coverage
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - id: extract_ref
-        run: echo "GIT_REF=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Setup Go environment
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-
-      - run: npm ci
-
-      - name: Build
-        run: |
-          make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} RELEASE=1 release
-          make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} build-docker
-          make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} start-docker
-
-      - name: Smoke-test the docker image
-        run: make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} smoke-docker
-
-      - if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: smocker-bin
-          path: ./build/smocker.tar.gz
 
   e2e:
     runs-on: ubuntu-latest
@@ -125,22 +81,16 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      - name: Setup Go environment
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-
       - run: npm ci
-
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
-
       - name: Run Playwright non-regression suite
         run: make test-e2e
 
@@ -151,26 +101,56 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      # Audit only the dependencies that ship in the client bundle (dev tooling isn't served), and
+      # fail only on high/critical advisories.
+      - name: Audit frontend dependencies (npm)
+        run: npm audit --omit=dev --audit-level=high
+      # govulncheck reports only vulnerabilities actually reachable from the code, so it's low-noise
+      # and safe to gate on.
+      - name: Scan backend dependencies (govulncheck)
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-      - name: Setup Go environment
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
-      # Audit only the dependencies that ship in the client bundle (dev tooling isn't
-      # served), and fail only on high/critical advisories.
-      - name: Audit frontend dependencies (npm)
-        run: npm audit --omit=dev --audit-level=high
+      # Every run assembles the native image and smoke-tests it (proves the Dockerfile + embedded
+      # UI still work). Only tag builds also cross-compile the release binaries + tarball, which the
+      # deploy job packages into the multi-arch image and the GitHub release.
+      - name: Build image (+ release binaries on tags) and smoke-test
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          targets="build-docker start-docker smoke-docker"
+          [[ "$GITHUB_REF" == refs/tags/* ]] && targets="release $targets"
+          make VERSION="$VERSION" RELEASE=1 $targets
 
-      # govulncheck reports only vulnerabilities actually reachable from the code, so it's
-      # low-noise and safe to gate on.
-      - name: Scan backend dependencies (govulncheck)
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - name: Upload release artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smocker-dist
+          path: |
+            build/smocker.tar.gz
+            build/smocker-*
 
   deploy:
     needs: [lint, test, build, e2e, security]
@@ -186,20 +166,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - id: extract_ref
-        run: echo "GIT_REF=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
-
       - id: release_flags
         name: Derive the release flavor from the tag suffix
+        env:
+          REF: ${{ github.ref_name }}
         run: |
-          ref="${GITHUB_REF##*/}"
           draft=false
           prerelease=false
           make_latest=true
-          if [[ "$ref" == *-draft ]]; then
+          if [[ "$REF" == *-draft ]]; then
             draft=true          # unpublished, editable on GitHub before release
             make_latest=false
-          elif [[ "$ref" == *-* ]]; then
+          elif [[ "$REF" == *-* ]]; then
             prerelease=true      # e.g. -preview / -rc: published but never "Latest"
             make_latest=false
           fi
@@ -209,12 +187,11 @@ jobs:
             echo "make_latest=$make_latest"
           } >> "$GITHUB_OUTPUT"
 
+      # The pre-built binaries (+ tarball) from the build job; the image is assembled from them.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: smocker-bin
+          name: smocker-dist
           path: ./build
-
-      - run: cd build && tar -xvf smocker.tar.gz
 
       - name: Docker login
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
@@ -223,19 +200,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
-
+      # No QEMU: the image only packages the pre-built binaries (COPY-only target stages).
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Deploy on Docker registry
-        run: make VERSION=${{ steps.extract_ref.outputs.GIT_REF }} deploy-docker
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: make VERSION="$VERSION" deploy-docker
 
       - name: Deploy on GitHub releases
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
-          files: build/smocker.tar.gz
+          files: |
+            build/smocker.tar.gz
+            build/smocker-*
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: ${{ steps.release_flags.outputs.draft }}
           prerelease: ${{ steps.release_flags.outputs.prerelease }}
