@@ -12,6 +12,9 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.message ShouldEqual "Mocks registered successfully"
+          # POST /mocks returns the target session so callers can chain GET /mocks?session=<id>.
+          - result.bodyjson.session.id ShouldNotBeEmpty
+          - result.bodyjson.session.name ShouldNotBeEmpty
 
       - type: http
         method: GET
