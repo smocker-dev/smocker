@@ -15,7 +15,9 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY build/smocker-${TARGETOS}-${TARGETARCH}${TARGETVARIANT} /smocker
+# --chmod: GitHub artifacts don't preserve the executable bit, so the downloaded binary the
+# deploy job packages is 0644 — force 0755 here or scratch can't exec it.
+COPY --chmod=0755 build/smocker-${TARGETOS}-${TARGETARCH}${TARGETVARIANT} /smocker
 # Run unprivileged (nobody); ports are >1024 and a mounted persistence dir must be writable by it.
 USER 65534:65534
 ENTRYPOINT ["/smocker"]
