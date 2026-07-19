@@ -302,6 +302,16 @@ func (s *mocks) GetHistoryByPath(sessionID, filterPath string) (types.History, e
 }
 
 func (s *mocks) NewSession(name string) *types.Session {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.newSessionLocked(name)
+}
+
+// newSessionLocked appends a new session and returns it. The caller MUST hold s.mu: the default
+// name and the carried-over locked mocks are both derived from s.sessions, so the whole thing has
+// to happen in one critical section — otherwise two concurrent creators can read the same length
+// and both mint e.g. "Session #1" (the bug behind the flaky rename e2e test).
+func (s *mocks) newSessionLocked(name string) *types.Session {
 	if strings.TrimSpace(name) == "" {
 		name = fmt.Sprintf("Session #%d", len(s.sessions)+1)
 	}
@@ -313,20 +323,15 @@ func (s *mocks) NewSession(name string) *types.Session {
 		history = types.History{}
 	}
 
+	// Carry over the locked mocks from the current last session, reset for the new one.
 	mocks := types.Mocks{}
 	if len(s.sessions) > 0 {
-		session := s.GetLastSession()
-		s.mu.Lock()
-		for _, mock := range session.Mocks {
+		for _, mock := range s.sessions[len(s.sessions)-1].Mocks {
 			if mock.State.Locked {
 				mocks = append(mocks, mock.CloneAndReset())
 			}
 		}
-		s.mu.Unlock()
 	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	session := &types.Session{
 		ID:      types.NewID(),
@@ -384,12 +389,10 @@ func (s *mocks) DeleteSession(id string) error {
 
 func (s *mocks) GetLastSession() *types.Session {
 	s.mu.Lock()
-	if len(s.sessions) == 0 {
-		s.mu.Unlock()
-		s.NewSession("")
-		s.mu.Lock()
-	}
 	defer s.mu.Unlock()
+	if len(s.sessions) == 0 {
+		return s.newSessionLocked("").Clone()
+	}
 	return s.sessions[len(s.sessions)-1].Clone()
 }
 
