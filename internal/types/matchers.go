@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/goccy/go-yaml"
 	"github.com/smocker-dev/smocker/internal/pkg/operators"
@@ -121,13 +122,7 @@ var (
 // Match ensures that all matchers in the slice match at least one of the values.
 func (m StringMatchers) Match(values []string) bool {
 	for _, matcher := range m {
-		matched := false
-		for _, v := range values { //nolint:modernize
-			if matcher.Match(v) {
-				matched = true
-				break
-			}
-		}
+		matched := slices.ContainsFunc(values, matcher.Match)
 		if !matched {
 			return false
 		}

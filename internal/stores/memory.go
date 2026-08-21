@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/smocker-dev/smocker/internal/types"
 )
 

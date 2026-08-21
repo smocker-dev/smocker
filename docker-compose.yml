@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.test
       args:
-        - GO_VERSION=1.25
+        - GO_VERSION=1.27
     restart: unless-stopped
     ports:
       - 8080:8080

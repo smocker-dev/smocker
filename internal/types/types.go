@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+	"uuid"
 
 	"github.com/goccy/go-yaml"
-	"github.com/google/uuid"
 )
 
 type Timeline struct {

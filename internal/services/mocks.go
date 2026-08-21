@@ -12,8 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/smocker-dev/smocker/internal/handlers/bind"
 	"github.com/smocker-dev/smocker/internal/services/engines"
 	"github.com/smocker-dev/smocker/internal/stores"
@@ -43,11 +43,7 @@ func (s *MocksService) MatchRequest(ctx context.Context, request types.Request) 
 					return fmt.Errorf("failed to get current timeline: %w", err)
 				}
 
-				newID, err := uuid.NewV7()
-				if err != nil {
-					return fmt.Errorf("failed to generate UUID for default timeline: %w", err)
-				}
-				timelineID = newID.String()
+				timelineID = uuid.NewV7().String()
 
 				if err := s.CreateTimeline(ctx, types.Timeline{
 					ID:        timelineID,
@@ -159,14 +155,8 @@ func (s *MocksService) MatchRequest(ctx context.Context, request types.Request) 
 		}
 	}
 
-	historyEntryID, err := uuid.NewV7()
-	if err != nil {
-		slog.WarnContext(ctx, "failed to generate UUID for history entry", slog.Any("error", err))
-		historyEntryID = uuid.New()
-	}
-
 	historyEntry := types.HistoryEntry{
-		ID:         historyEntryID,
+		ID:         uuid.NewV7(),
 		TimelineID: timelineID,
 		Metadata: types.HistoryEntryMetadata{
 			MatchedMockID: &matchedMock.ID,
@@ -195,14 +185,8 @@ func (s *MocksService) MatchRequest(ctx context.Context, request types.Request) 
 }
 
 func (s *MocksService) handleMatchRequestError(ctx context.Context, timelineID string, request types.Request, matchErr error) types.MockResponse {
-	historyEntryID, err := uuid.NewV7()
-	if err != nil {
-		slog.WarnContext(ctx, "failed to generate UUID for history entry", slog.Any("error", err))
-		historyEntryID = uuid.New()
-	}
-
 	historyEntry := types.HistoryEntry{
-		ID:         historyEntryID,
+		ID:         uuid.NewV7(),
 		TimelineID: timelineID,
 		Request:    request,
 		Response: types.Response{
@@ -226,8 +210,7 @@ func (s *MocksService) handleMatchRequestError(ctx context.Context, timelineID s
 		apiErr.Type = "uri:smocker:client-error"
 	}
 
-	var smockerErr *types.SmockerError
-	if errors.As(matchErr, &smockerErr) {
+	if smockerErr, ok := errors.AsType[*types.SmockerError](matchErr); ok {
 		apiErr.Title = smockerErr.Error()
 		if smockerErr.WrappedError != nil {
 			apiErr.Detail = smockerErr.WrappedError.Error()

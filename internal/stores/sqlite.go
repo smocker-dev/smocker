@@ -6,8 +6,8 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
 	"github.com/smocker-dev/smocker/internal/types"
 )

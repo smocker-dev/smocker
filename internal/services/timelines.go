@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/smocker-dev/smocker/internal/stores"
 	"github.com/smocker-dev/smocker/internal/types"
 )
@@ -31,12 +31,7 @@ func (s *TimelinesService) CreateTimeline(ctx context.Context, id, name string, 
 	}
 
 	if timeline.ID == "" {
-		newID, err := uuid.NewV7()
-		if err != nil {
-			return types.Timeline{}, nil, fmt.Errorf("failed to generate UUID: %w", err)
-		}
-
-		timeline.ID = newID.String()
+		timeline.ID = uuid.NewV7().String()
 	}
 
 	if timeline.Name == "" {
@@ -82,13 +77,8 @@ func (s *TimelinesService) CreateTimeline(ctx context.Context, id, name string, 
 }
 
 func newMock(createMock types.CreateMock, timelineID string) types.Mock {
-	mockID, err := uuid.NewV7()
-	if err != nil {
-		panic(fmt.Sprintf("failed to generate UUID: %v", err))
-	}
-
 	return types.Mock{
-		ID:              mockID,
+		ID:              uuid.NewV7(),
 		TimelineID:      timelineID,
 		CreatedAt:       time.Now().UTC(),
 		Options:         createMock.Options,
@@ -323,7 +313,7 @@ func (s *TimelinesService) GetTimelineMock(ctx context.Context, timelineID strin
 		return types.MockWithState{}, types.ErrTimelineNotFound
 	}
 
-	if mockID == uuid.Nil {
+	if mockID == uuid.Nil() {
 		return types.MockWithState{}, types.ErrMockNotFound
 	}
 

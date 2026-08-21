@@ -10,8 +10,8 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/smocker-dev/smocker/internal/pkg/assert"
 	"github.com/smocker-dev/smocker/internal/types"
 

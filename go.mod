@@ -1,12 +1,11 @@
 module github.com/smocker-dev/smocker
 
-go 1.25.0
+go 1.27
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/clbanning/mxj/v2 v2.7.0
 	github.com/goccy/go-yaml v1.19.2
-	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/peterbourgon/ff/v3 v3.4.0
 	github.com/pressly/goose/v3 v3.26.0
@@ -19,6 +18,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

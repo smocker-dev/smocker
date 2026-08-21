@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/smocker-dev/smocker/internal/handlers/bind"
 	"github.com/smocker-dev/smocker/internal/handlers/render"
 	"github.com/smocker-dev/smocker/internal/services"
