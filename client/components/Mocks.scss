@@ -1,4 +1,4 @@
-@import "../variables.scss";
+@use "../variables.scss" as *;
 
 #root .mocks {
   padding: 1em 5% 0;
