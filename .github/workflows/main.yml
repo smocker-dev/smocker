@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Lint sources
         run: |
           make lint
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Execute tests
         run: |
           make test
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Run Playwright non-regression suite
