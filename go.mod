@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/labstack/echo/v4 v4.15.4
+	github.com/labstack/echo/v4 v4.16.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/smarty/assertions v1.16.0
 	github.com/stretchr/objx v0.5.3
@@ -35,7 +35,7 @@ require (
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
