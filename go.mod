@@ -7,7 +7,7 @@ require (
 	github.com/labstack/echo/v4 v4.16.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/smarty/assertions v1.16.0
-	github.com/stretchr/objx v0.5.3
+	github.com/stretchr/objx v0.7.0
 	github.com/yuin/gluamapper v0.0.0-20150323120927-d836955830e7
 	github.com/yuin/gopher-lua v1.1.2
 	golang.org/x/sync v0.24.0
