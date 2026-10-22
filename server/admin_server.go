@@ -59,6 +59,9 @@ func Serve(config config.Config) {
 	var adminGroup *echo.Group
 	if basePrefix != "" {
 		adminGroup = adminServerEngine.Group(basePrefix)
+		adminServerEngine.GET(basePrefix, func(c echo.Context) error {
+			return c.Redirect(http.StatusMovedPermanently, basePrefix+"/")
+		})
 	} else {
 		adminGroup = adminServerEngine.Group("")
 	}
@@ -205,8 +208,13 @@ func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 			e.Renderer = templateRenderer
 		}
 
+		basePath := cfg.ConfigBasePath
+		if basePath != "/" && !strings.HasSuffix(basePath, "/") {
+			basePath += "/"
+		}
+
 		return c.Render(http.StatusOK, "index.html", echo.Map{
-			"basePath": cfg.ConfigBasePath,
+			"basePath": basePath,
 			"version":  cfg.Build.BuildVersion,
 		})
 	}
