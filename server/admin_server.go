@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -51,8 +52,22 @@ func Serve(config config.Config) {
 	graphServices := services.NewGraph()
 	handler := handlers.NewAdmin(mockServices, graphServices)
 
-	// Admin Routes
-	mocksGroup := adminServerEngine.Group("/mocks")
+	// Clean base path prefix
+	basePrefix := strings.TrimRight(config.ConfigBasePath, "/")
+
+	// Create root or prefixed group
+	var adminGroup *echo.Group
+	if basePrefix != "" {
+		adminGroup = adminServerEngine.Group(basePrefix)
+		adminServerEngine.GET(basePrefix, func(c echo.Context) error {
+			return c.Redirect(http.StatusMovedPermanently, basePrefix+"/")
+		})
+	} else {
+		adminGroup = adminServerEngine.Group("")
+	}
+
+	// Admin Routes under adminGroup
+	mocksGroup := adminGroup.Group("/mocks")
 	mocksGroup.GET("", handler.GetMocks)
 	mocksGroup.POST("", handler.AddMocks)
 	mocksGroup.POST("/lock", handler.LockMocks)
@@ -60,12 +75,12 @@ func Serve(config config.Config) {
 	mocksGroup.PUT("/:id", handler.UpdateMock)
 	mocksGroup.DELETE("/:id", handler.DeleteMock)
 
-	historyGroup := adminServerEngine.Group("/history")
+	historyGroup := adminGroup.Group("/history")
 	historyGroup.GET("", handler.GetHistory)
 	historyGroup.GET("/summary", handler.SummarizeHistory)
 	historyGroup.DELETE("", handler.DeleteHistory)
 
-	sessionsGroup := adminServerEngine.Group("/sessions")
+	sessionsGroup := adminGroup.Group("/sessions")
 	sessionsGroup.GET("", handler.GetSessions)
 	sessionsGroup.POST("", handler.NewSession)
 	sessionsGroup.PUT("", handler.UpdateSession)
@@ -74,10 +89,10 @@ func Serve(config config.Config) {
 	sessionsGroup.GET("/summary", handler.SummarizeSessions)
 	sessionsGroup.POST("/import", handler.ImportSession)
 
-	adminServerEngine.POST("/reset", handler.Reset)
+	adminGroup.POST("/reset", handler.Reset)
 
 	// Health Check Route
-	adminServerEngine.GET("/version", func(c echo.Context) error {
+	adminGroup.GET("/version", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, config.Build)
 	})
 
@@ -86,13 +101,13 @@ func Serve(config config.Config) {
 	// released binary is self-contained. Vite emits hashed assets under <root>/assets (served at
 	// /assets/*); index.html sits at the root and is rendered as a Go template (see renderIndex).
 	if fileExists(config.StaticFiles + "/index.html") {
-		adminServerEngine.Static("/assets", config.StaticFiles+"/assets")
+		adminGroup.Static("/assets", config.StaticFiles+"/assets")
 	} else if dist, ok := frontend.FS(); ok {
 		if assets, err := fs.Sub(dist, "assets"); err == nil {
-			adminServerEngine.StaticFS("/assets", assets)
+			adminGroup.StaticFS("/assets", assets)
 		}
 	}
-	adminServerEngine.GET("/*", renderIndex(adminServerEngine, config))
+	adminGroup.GET("/*", renderIndex(adminServerEngine, config))
 
 	slog.Info("Starting admin server", "port", config.ConfigListenPort)
 	slog.Info("Starting mock server", "port", config.MockServerListenPort)
@@ -193,8 +208,13 @@ func renderIndex(e *echo.Echo, cfg config.Config) echo.HandlerFunc {
 			e.Renderer = templateRenderer
 		}
 
+		basePath := cfg.ConfigBasePath
+		if basePath != "/" && !strings.HasSuffix(basePath, "/") {
+			basePath += "/"
+		}
+
 		return c.Render(http.StatusOK, "index.html", echo.Map{
-			"basePath": cfg.ConfigBasePath,
+			"basePath": basePath,
 			"version":  cfg.Build.BuildVersion,
 		})
 	}
